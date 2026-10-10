@@ -5,7 +5,7 @@ const MAC = process.platform === 'darwin';
 
 const ko: Translation<CoreText> = {
   settings: {
-    language: { title: '언어', description: '설정 창과 펫의 말풍선, 메뉴에 이 언어를 쓰며, Coo도 이 언어로 말합니다. 바로 적용됩니다.' },
+    language: { title: '언어', description: '인터페이스와 Coo가 이 언어를 사용합니다. 바로 적용됩니다.' },
     telemetry: { title: '익명 사용 통계', description: '대화 내용 없이 사용 횟수와 설정을 보내 Coopanion 개선에 도움을 줍니다. 보내는 항목은 docs/TELEMETRY.md에 있습니다.' },
     roundsSoft: { title: '마무리 알림', suffix: '회', description: '한 번 깨어난 동안 모델 요청이 이만큼 쌓이면 Coo에게 하던 일을 마치고 턴을 끝내라고 알립니다.' },
     roundsHard: { title: '한 번 깨어날 때 요청 한도', suffix: '회', description: '한 번 깨어난 동안 보낼 수 있는 최대 모델 요청 수이며, 도달하면 턴이 끝납니다.' },

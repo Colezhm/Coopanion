@@ -5,7 +5,7 @@ const MAC = process.platform === 'darwin';
 
 const ptBR: Translation<CoreText> = {
   settings: {
-    language: { title: 'Idioma', description: 'A janela de configurações e os balões e o menu do pet usam este idioma, e Coo fala com você nele. Vale na hora.' },
+    language: { title: 'Idioma', description: 'A interface e Coo usam este idioma. Vale na hora.' },
     telemetry: { title: 'Estatísticas de uso anônimas', description: 'Envia contagens de uso e configurações, nunca conversas, para ajudar a melhorar o Coopanion. Os campos estão listados em docs/TELEMETRY.md.' },
     roundsSoft: { title: 'Lembrete para encerrar', suffix: 'solicitações', description: 'Depois dessa quantidade de solicitações ao modelo em um mesmo despertar, Coo recebe um lembrete para terminar o que está fazendo e encerrar o turno.' },
     roundsHard: { title: 'Solicitações por despertar', suffix: 'solicitações', description: 'O máximo de solicitações ao modelo em um despertar; ao chegar nele, o turno termina.' },

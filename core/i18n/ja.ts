@@ -5,7 +5,7 @@ const MAC = process.platform === 'darwin';
 
 const ja: Translation<CoreText> = {
   settings: {
-    language: { title: '言語', description: '設定ウィンドウ、ペットの吹き出しとメニューがこの言語で表示され、Coo もこの言語で話します。すぐに反映されます。' },
+    language: { title: '言語', description: '画面の表示と Coo の話す言葉にこの言語を使います。すぐに反映されます。' },
     telemetry: { title: '匿名の利用統計', description: '会話内容を含まない利用回数と設定を送信し、Coopanion の改善に役立てます。送信する項目は docs/TELEMETRY.md に記載されています。' },
     roundsSoft: { title: 'まとめのリマインド', suffix: '回', description: '1 回のウェイクでモデルへのリクエストがこの回数に達すると、今の作業を片付けてターンを終えるよう Coo に促します。' },
     roundsHard: { title: '1 回のウェイクのリクエスト上限', suffix: '回', description: '1 回のウェイクでモデルにリクエストできる最大回数です。達するとターンが終わります。' },

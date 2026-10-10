@@ -1,36 +1,38 @@
 import { describe, expect, it } from 'vitest';
 import { petToolDescriber } from '../core/pet-status.ts';
+import zh from '../core/i18n/zh.ts';
 
 const describePetTool = petToolDescriber(() => 'zh');
+const T = zh.status;
 
 describe('the status bubble for each tool', () => {
   it.each([
-    ['read_file', { path: 'notes/today.md' }, { kind: 'read', text: '在看', detail: 'today.md' }],
-    ['list_files', {}, { kind: 'browse', text: '在翻', detail: '记忆' }],
-    ['list_files', { dir: 'memory/notes/' }, { kind: 'browse', text: '在翻', detail: 'notes/' }],
-    ['glob_files', { glob_pattern: '*.md', target_directory: 'private' }, { kind: 'browse', text: '在找', detail: '*.md' }],
-    ['grep_files', { pattern: '周末', path: 'private' }, { kind: 'search', text: '在搜', detail: '「周末」' }],
-    ['write_file', { path: 'notes/today.md', content: 'private' }, { kind: 'write', text: '在写', detail: 'today.md' }],
-    ['edit_file', { path: 'notes/today.md' }, { kind: 'write', text: '在改', detail: 'today.md' }],
-    ['append_file', { path: 'notes/today.md' }, { kind: 'write', text: '在补记', detail: 'today.md' }],
-    ['delete_file', { path: 'notes/today.md' }, { kind: 'delete', text: '在删', detail: 'today.md' }],
-    ['save_blob', { path: 'blobs/cat.png', handle: 'private' }, { kind: 'save', text: '在存', detail: 'cat.png' }],
-    ['cua_screenshot', {}, { kind: 'look', text: '在看屏幕' }],
-    ['cua_windows', {}, { kind: 'look', text: '在看开着的窗口' }],
-    ['cua_click', { x: 123, y: 456 }, { kind: 'click', text: '在点' }],
-    ['cua_click', { clicks: 2 }, { kind: 'click', text: '在双击' }],
-    ['cua_click', { button: 'right' }, { kind: 'click', text: '在右键' }],
-    ['cua_move', { x: 123, y: 456 }, { kind: 'click', text: '在挪鼠标' }],
-    ['cua_drag', { from: [1, 2], to: [3, 4] }, { kind: 'click', text: '在拖' }],
-    ['cua_scroll', { x: 123, y: 456, down: 3 }, { kind: 'scroll', text: '在滚动' }],
-    ['cua_focus', { window: 'private' }, { kind: 'click', text: '在切窗口' }],
-    ['cua_type', { text: 'private' }, { kind: 'type', text: '在打字' }],
-    ['cua_key', { keys: 'ctrl+s' }, { kind: 'type', text: '在按', detail: 'ctrl+s' }],
-    ['cua_wait', { seconds: 2.5 }, { kind: 'wait', text: '等', detail: '2.5 秒' }],
-    ['alarm_set', { at: '18:30', note: 'private' }, { kind: 'alarm', text: '在定闹钟', detail: '18:30' }],
-    ['alarm_set', { in_minutes: 5, note: 'private' }, { kind: 'alarm', text: '在定闹钟', detail: '5 分钟后' }],
-    ['alarm_list', {}, { kind: 'alarm', text: '在看闹钟' }],
-    ['alarm_cancel', { id: 'private' }, { kind: 'alarm', text: '在取消闹钟' }],
+    ['read_file', { path: 'notes/today.md' }, { kind: 'read', text: T.read, detail: 'today.md' }],
+    ['list_files', {}, { kind: 'browse', text: T.browse, detail: T.memory }],
+    ['list_files', { dir: 'memory/notes/' }, { kind: 'browse', text: T.browse, detail: 'notes/' }],
+    ['glob_files', { glob_pattern: '*.md', target_directory: 'private' }, { kind: 'browse', text: T.find, detail: '*.md' }],
+    ['grep_files', { pattern: '周末', path: 'private' }, { kind: 'search', text: T.search, detail: '「周末」' }],
+    ['write_file', { path: 'notes/today.md', content: 'private' }, { kind: 'write', text: T.write, detail: 'today.md' }],
+    ['edit_file', { path: 'notes/today.md' }, { kind: 'write', text: T.edit, detail: 'today.md' }],
+    ['append_file', { path: 'notes/today.md' }, { kind: 'write', text: T.append, detail: 'today.md' }],
+    ['delete_file', { path: 'notes/today.md' }, { kind: 'delete', text: T.delete, detail: 'today.md' }],
+    ['save_blob', { path: 'blobs/cat.png', handle: 'private' }, { kind: 'save', text: T.save, detail: 'cat.png' }],
+    ['cua_screenshot', {}, { kind: 'look', text: T.screen }],
+    ['cua_windows', {}, { kind: 'look', text: T.windows }],
+    ['cua_click', { x: 123, y: 456 }, { kind: 'click', text: T.click }],
+    ['cua_click', { clicks: 2 }, { kind: 'click', text: T.doubleClick }],
+    ['cua_click', { button: 'right' }, { kind: 'click', text: T.rightClick }],
+    ['cua_move', { x: 123, y: 456 }, { kind: 'click', text: T.move }],
+    ['cua_drag', { from: [1, 2], to: [3, 4] }, { kind: 'click', text: T.drag }],
+    ['cua_scroll', { x: 123, y: 456, down: 3 }, { kind: 'scroll', text: T.scroll }],
+    ['cua_focus', { window: 'private' }, { kind: 'click', text: T.focus }],
+    ['cua_type', { text: 'private' }, { kind: 'type', text: T.type }],
+    ['cua_key', { keys: 'ctrl+s' }, { kind: 'type', text: T.key, detail: 'ctrl+s' }],
+    ['cua_wait', { seconds: 2.5 }, { kind: 'wait', text: T.wait, detail: '2.5 秒' }],
+    ['alarm_set', { at: '18:30', note: 'private' }, { kind: 'alarm', text: T.alarmSet, detail: '18:30' }],
+    ['alarm_set', { in_minutes: 5, note: 'private' }, { kind: 'alarm', text: T.alarmSet, detail: '5 分钟后' }],
+    ['alarm_list', {}, { kind: 'alarm', text: T.alarmList }],
+    ['alarm_cancel', { id: 'private' }, { kind: 'alarm', text: T.alarmCancel }],
     ['private_extension', { path: 'private', text: 'private' }, undefined],
     ['terminal_send', { text: 'private' }, null],
     ['end_turn', {}, null],
@@ -52,8 +54,8 @@ describe('the status bubble for each tool', () => {
   });
 
   it('waits for a closed string or a number followed by a delimiter', () => {
-    expect(describePetTool('write_file', '{"path":"notes/da', false)).toEqual({ kind: 'write', text: '在写' });
-    expect(describePetTool('write_file', '{"path":"notes/day\\u0020\\"one\\".md","content":"still streaming', false)).toEqual({ kind: 'write', text: '在写', detail: 'day "one".md' });
+    expect(describePetTool('write_file', '{"path":"notes/da', false)).toEqual({ kind: 'write', text: T.write });
+    expect(describePetTool('write_file', '{"path":"notes/day\\u0020\\"one\\".md","content":"still streaming', false)).toEqual({ kind: 'write', text: T.write, detail: 'day "one".md' });
     for (const args of ['{"seconds":1', '{"seconds":1.', '{"seconds":1e']) expect(describePetTool('cua_wait', args, false)?.detail).toBeUndefined();
     expect(describePetTool('cua_wait', '{"seconds":1.5,', false)?.detail).toBe('1.5 秒');
     expect(describePetTool('cua_wait', '{"seconds":0}', true)?.detail).toBe('0 秒');
@@ -62,8 +64,8 @@ describe('the status bubble for each tool', () => {
 
   it('says nothing an unfinished call may contradict', () => {
     expect(describePetTool('cua_click', '{"x":1', false)).toBeNull();
-    expect(describePetTool('cua_click', '{"button":"right"', false)).toEqual({ kind: 'click', text: '在右键' });
-    expect(describePetTool('list_files', '{"di', false)).toEqual({ kind: 'browse', text: '在翻' });
+    expect(describePetTool('cua_click', '{"button":"right"', false)).toEqual({ kind: 'click', text: T.rightClick });
+    expect(describePetTool('list_files', '{"di', false)).toEqual({ kind: 'browse', text: T.browse });
   });
 
   it('never exposes typed secrets or alarm notes, including partial arguments', () => {

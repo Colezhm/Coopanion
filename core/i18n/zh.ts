@@ -7,10 +7,10 @@ const MAC = process.platform === 'darwin';
 export default {
   /** 「习惯」页与高级设置里 Coopanion 自己的设置项 */
   settings: {
-    language: { title: '语言', description: '设置窗口、桌宠的气泡和菜单用这种语言，Coo 也用它和你说话。改了立刻生效。' },
+    language: { title: '语言', description: '界面和 Coo 说话都使用这种语言，修改后立即生效。' },
     telemetry: { title: '匿名使用统计', description: '发送不含对话内容的使用次数与设置，帮助改进 Coopanion。字段见 docs/TELEMETRY.md。' },
-    roundsSoft: { title: '收尾提醒', suffix: '次', description: '一次唤醒里请求模型到这么多次，提醒 Coo 做完手上的事就结束这一轮。' },
-    roundsHard: { title: '单次唤醒上限', suffix: '次', description: '一次唤醒里最多请求模型这么多次，到了就结束这一轮。' },
+    roundsSoft: { title: '收尾提醒', suffix: '次', description: '单次唤醒请求模型达到此次数时，提醒 Coo 完成当前任务后结束本轮。' },
+    roundsHard: { title: '单次唤醒上限', suffix: '次', description: '单次唤醒最多请求模型的次数，达到后结束本轮。' },
   },
 
   /** 连续几次请求模型失败后,桌宠气泡里的说明 */
@@ -25,7 +25,7 @@ export default {
     downloading: (v: string) => `发现新版本 ${v}，正在后台下载，下好了我再告诉你。下载卡住的话，也可以去 GitHub 手动下载安装。`,
     ready: (v: string) => `新版本 ${v} 下载好了。现在重启更新吗？不急的话，下次退出应用时会自动装上。`,
     failed: (v: string, why: string) => `新版本 ${v} 没能下载下来：${why}。可以去 GitHub 手动下载安装。`,
-    ok: '好', github: '去 GitHub 下载', install: '现在重启更新', later: '下次再说', gotIt: '知道了',
+    ok: '好', github: '前往 GitHub 下载', install: '现在重启更新', later: '下次再说', gotIt: '知道了',
   },
 
   /** 桌宠菜单头上的电源键 */
@@ -36,10 +36,10 @@ export default {
 
   /** 状态气泡:Coo 正在用的工具 */
   status: {
-    read: '在看', browse: '在翻', memory: '记忆', find: '在找', search: '在搜', write: '在写', edit: '在改', append: '在补记',
-    delete: '在删', save: '在存', screen: '在看屏幕', windows: '在看开着的窗口', rightClick: '在右键', doubleClick: '在双击', click: '在点',
-    move: '在挪鼠标', drag: '在拖', scroll: '在滚动', focus: '在切窗口', type: '在打字', key: '在按', wait: '等',
-    alarmSet: '在定闹钟', alarmList: '在看闹钟', alarmCancel: '在取消闹钟',
+    read: '在查看', browse: '在翻阅', memory: '记忆', find: '在查找', search: '在搜索', write: '在写入', edit: '在修改', append: '在追加',
+    delete: '在删除', save: '在保存', screen: '在查看屏幕', windows: '在查看打开的窗口', rightClick: '在右击', doubleClick: '在双击', click: '在点击',
+    move: '在移动鼠标', drag: '在拖动', scroll: '在滚动', focus: '在切换窗口', type: '在打字', key: '在按键', wait: '在等待',
+    alarmSet: '在设定闹钟', alarmList: '在查看闹钟', alarmCancel: '在取消闹钟',
     /** 在搜的关键词 */
     quoted: (text: string) => `「${text}」`,
     seconds: (n: number) => `${n} 秒`,

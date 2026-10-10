@@ -10,7 +10,7 @@ const MAC = process.platform === 'darwin';
 const en: CoreText = {
   /** Coopanion's own settings, on the Habits page and in the advanced settings. */
   settings: {
-    language: { title: 'Language', description: 'The settings window and the pet\'s bubbles and menu use this language, and Coo talks to you in it. Takes effect at once.' },
+    language: { title: 'Language', description: 'The interface and Coo use this language. Takes effect at once.' },
     telemetry: { title: 'Anonymous usage statistics', description: 'Sends usage counts and settings, never conversations, to help improve Coopanion. The fields are listed in docs/TELEMETRY.md.' },
     roundsSoft: { title: 'Wrap-up reminder', suffix: 'requests', description: 'After this many model requests in one wake-up, Coo is reminded to finish what it is doing and end the turn.' },
     roundsHard: { title: 'Requests per wake-up', suffix: 'requests', description: 'The most model requests in one wake-up; the turn ends when it is reached.' },

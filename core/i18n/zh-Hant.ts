@@ -5,10 +5,10 @@ const MAC = process.platform === 'darwin';
 
 const zhHant: Translation<CoreText> = {
   settings: {
-    language: { title: '語言', description: '設定視窗、桌寵的氣泡和選單使用這種語言，Coo 也用它和你說話。變更後立即生效。' },
+    language: { title: '語言', description: '介面和 Coo 說話都使用這種語言，修改後立即生效。' },
     telemetry: { title: '匿名使用統計', description: '傳送不含對話內容的使用次數與設定，幫助改進 Coopanion。欄位見 docs/TELEMETRY.md。' },
-    roundsSoft: { title: '收尾提醒', suffix: '次', description: '一次喚醒裡請求模型達到這麼多次時，提醒 Coo 做完手上的事就結束這一輪。' },
-    roundsHard: { title: '單次喚醒上限', suffix: '次', description: '一次喚醒裡最多請求模型這麼多次，到了就結束這一輪。' },
+    roundsSoft: { title: '收尾提醒', suffix: '次', description: '單次喚醒請求模型達到此次數時，提醒 Coo 完成目前任務後結束本輪。' },
+    roundsHard: { title: '單次喚醒上限', suffix: '次', description: '單次喚醒最多請求模型的次數，達到後結束本輪。' },
   },
 
   failure: {
@@ -21,7 +21,7 @@ const zhHant: Translation<CoreText> = {
     downloading: (v: string) => `發現新版本 ${v}，正在背景下載，下載好了我再告訴你。下載卡住的話，也可以到 GitHub 手動下載安裝。`,
     ready: (v: string) => `新版本 ${v} 下載好了。現在重新啟動更新嗎？不急的話，下次結束應用程式時會自動安裝。`,
     failed: (v: string, why: string) => `新版本 ${v} 沒能下載下來：${why}。可以到 GitHub 手動下載安裝。`,
-    ok: '好', github: '到 GitHub 下載', install: '現在重新啟動更新', later: '下次再說', gotIt: '知道了',
+    ok: '好', github: '前往 GitHub 下載', install: '現在重新啟動更新', later: '下次再說', gotIt: '知道了',
   },
 
   quit: '結束應用程式',
@@ -29,10 +29,10 @@ const zhHant: Translation<CoreText> = {
   cuaNo: '這次不行',
 
   status: {
-    read: '在看', browse: '在翻', memory: '記憶', find: '在找', search: '在搜尋', write: '在寫', edit: '在改', append: '在補記',
-    delete: '在刪', save: '在存', screen: '在看螢幕', windows: '在看開著的視窗', rightClick: '在按右鍵', doubleClick: '在點兩下', click: '在點',
-    move: '在移動滑鼠', drag: '在拖曳', scroll: '在捲動', focus: '在切換視窗', type: '在打字', key: '在按鍵', wait: '在等',
-    alarmSet: '在設鬧鐘', alarmList: '在看鬧鐘', alarmCancel: '在取消鬧鐘',
+    read: '在查看', browse: '在翻閱', memory: '記憶', find: '在尋找', search: '在搜尋', write: '在寫入', edit: '在修改', append: '在附加',
+    delete: '在刪除', save: '在儲存', screen: '在查看螢幕', windows: '在查看開啟的視窗', rightClick: '在按右鍵', doubleClick: '在點兩下', click: '在點選',
+    move: '在移動滑鼠', drag: '在拖曳', scroll: '在捲動', focus: '在切換視窗', type: '在打字', key: '在按鍵', wait: '在等待',
+    alarmSet: '在設定鬧鐘', alarmList: '在查看鬧鐘', alarmCancel: '在取消鬧鐘',
     quoted: (text: string) => `「${text}」`,
     seconds: (n: number) => `${n} 秒`,
     minutesLater: (n: number) => `${n} 分鐘後`,
@@ -71,7 +71,7 @@ const zhHant: Translation<CoreText> = {
     askVendor: (first: string) => `要和你聊天，我得先連上模型。用哪一家的？拿不定主意就選 ${first}。`,
     vendorOk: '就用這家',
     moreVendors: '更多…',
-    pickModel: (model: string) => `預設用 ${model}，便宜，還能看圖。想用別的模型，改成它的名字就行。`,
+    pickModel: (model: string) => `預設用 ${model}，便宜，還能看圖。想用別的模型，改成它的名字就好。`,
     modelOk: '就用這個',
     askKey: (name: string) => `把 ${name} 的 API Key 貼在這裡吧。依用量計費，要留意 token 消耗喔。`,
     keySend: '連線',
@@ -100,13 +100,13 @@ const zhHant: Translation<CoreText> = {
     personaMark: '系統提示詞',
     personaOk: '明白了',
     finish: MAC
-      ? '都準備好囉！選單列裡也有我的圖示，想改設定點它就行。'
+      ? '都準備好囉！選單列裡也有我的圖示，想改設定點它就好。'
       : process.platform === 'linux'
-        ? '都準備好囉！想改設定的話，在我身上按右鍵開啟選單就行；桌面的系統匣裡要是有我的圖示，點它也可以。'
-        : '都準備好囉！工作列右下角的系統匣裡也有我的圖示，想改設定點它就行。',
+        ? '都準備好囉！想改設定的話，在我身上按右鍵開啟選單就好；桌面的系統匣裡要是有我的圖示，點它也可以。'
+        : '都準備好囉！工作列右下角的系統匣裡也有我的圖示，想改設定點它就好。',
     go: '開始吧',
     dress: '先幫我換身衣服',
-    closed: '好，那先到這裡。想再聽我介紹，開啟設定，在「開始」頁點「使用嚮導」。',
+    closed: '好，那先到這裡。想再聽我介紹，開啟設定，在「開始」頁點「使用導覽」。',
 
     askFirst: '我還沒連上模型，填好 API Key 我才能和你說話。用哪一家的？',
     askAgain: '還是沒連上模型呢，填好 API Key 我才能陪你聊天。用哪一家的？',
