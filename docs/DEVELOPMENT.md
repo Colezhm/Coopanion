@@ -72,6 +72,7 @@ GitHub Actions 会构建 Windows 安装包和两个 Mac 包(Apple 芯片、Intel
 
 - 提 PR 前先跑 `pnpm run test`、`pnpm run test:worlds`、`pnpm run typecheck`、`pnpm run typecheck:web` 和 `pnpm run typecheck:worlds`，CI 也会跑这些检查。
 - 改到用户能看到的行为时,同步更新 [README](../README.md)。
+- 写法、测试与提交格式的规则见 [AGENTS.md](../AGENTS.md)。
 - 第一次提 PR 要签贡献者许可协议,见 [CONTRIBUTING.md](../CONTRIBUTING.md)。
 
 ## World 源码来源
