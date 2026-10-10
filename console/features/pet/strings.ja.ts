@@ -34,7 +34,7 @@ export const S: Partial<typeof en> = {
   snoreUnit: '秒',
   snoreHint: '0 = 起きるまで。',
   remember: '位置を覚える',
-  rememberHint: '次回の起動時に前回の位置に戻ります。',
+  rememberHint: '次回起動時に前回の横方向の位置に戻ります。画面が複数あるときはメイン画面で起動します。',
   hover: 'ホバーボタン',
   hoverHint: (n: number) => `最大 ${n} 個。`,
   dblclick: '入力欄を開く',

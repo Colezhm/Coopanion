@@ -34,7 +34,7 @@ export const S: Partial<typeof en> = {
   snoreUnit: 's',
   snoreHint: '0 = hasta despertar.',
   remember: 'Recordar posición',
-  rememberHint: 'Coo empieza donde estaba la última vez que se cerró la app.',
+  rememberHint: 'Al iniciar de nuevo vuelve a la última posición horizontal; con varias pantallas, en la principal.',
   hover: 'Botones al pasar el cursor',
   hoverHint: (n: number) => `Hasta ${n}.`,
   dblclick: 'Doble clic en Coo para abrir el cuadro de texto',

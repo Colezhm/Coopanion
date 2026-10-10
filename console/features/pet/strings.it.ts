@@ -34,7 +34,7 @@ export const S: Partial<typeof en> = {
   snoreUnit: 's',
   snoreHint: '0 = fino al risveglio.',
   remember: 'Ricorda la posizione',
-  rememberHint: "Coo riparte dove si trovava alla chiusura dell'app.",
+  rememberHint: 'Al prossimo avvio torna all’ultima posizione orizzontale; con più schermi, su quello principale.',
   hover: 'Pulsanti al passaggio',
   hoverHint: (n: number) => `Fino a ${n}.`,
   dblclick: 'Doppio clic su Coo per aprire la casella di testo',
