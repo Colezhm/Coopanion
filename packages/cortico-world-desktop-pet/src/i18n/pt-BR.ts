@@ -198,7 +198,7 @@ const ptBR: Translation<PetText> = {
     electronFile: { title: 'Executável do Electron', description: 'Vazio usa CORTICO_DESKTOP_PET_HOST e depois o ambiente instalado pelo painel.' },
     port: { title: 'Porta da página', description: 'Se estiver ocupada, passa para a próxima porta livre.' },
     touchEnabled: { title: 'Toques viram eventos', description: 'Cutucadas, carinho, e pegar e arremessar o pet.' },
-    touchWakeOn: { title: 'Modo de resposta', description: 'poke: só um cutucão recebe resposta na hora; os outros toques esperam a próxima resposta. all: todo toque recebe resposta na hora. none: todo toque espera a próxima resposta. custom: os toques marcados na página Hábitos recebem resposta na hora.' },
+    touchWakeOn: { title: 'Modo de resposta', description: 'poke: só um cutucão recebe resposta na hora; os outros toques esperam a próxima resposta. all: todo toque recebe resposta na hora. none: todo toque espera a próxima resposta. custom: os toques marcados na página Hábitos recebem resposta na hora. Depois de uma resposta, os toques até o fim desse turno esperam a próxima.' },
     sound: { title: 'Todos os sons', description: 'O botão de som no menu do pet alterna isto.' },
     sounds: {
       move: { title: 'Movimentos', description: 'Andar, correr, pular, aterrissar, arremesso, acenar com a cabeça, balançar a cabeça, girar, tontura, tremer, dançar, olhar em volta.' },

@@ -198,7 +198,7 @@ const zhHant: Translation<PetText> = {
     electronFile: { title: 'Electron 程式', description: '留空時依序使用 CORTICO_DESKTOP_PET_HOST 和面板裡安裝的執行環境。' },
     port: { title: '頁面連接埠', description: '被佔用時往上順延到下一個空的連接埠。' },
     touchEnabled: { title: '互動送成事件', description: '戳、摸、拎起來甩出去。' },
-    touchWakeOn: { title: '回應模式', description: 'poke：只有戳一下馬上回應，其餘互動等下次回應時一併送達；all：所有互動都馬上回應；none：所有互動都等下次回應時一併送達；custom：依「習慣」頁勾選的互動馬上回應。' },
+    touchWakeOn: { title: '回應模式', description: 'poke：只有戳一下馬上回應，其餘互動等下次回應時一併送達；all：所有互動都馬上回應；none：所有互動都等下次回應時一併送達；custom：依「習慣」頁勾選的互動馬上回應。一次互動得到回應之後、本輪結束之前的互動，都等下次回應時一併送達。' },
     sound: { title: '音效總開關', description: '桌寵選單裡的音效按鈕切換的就是這個。' },
     sounds: {
       move: { title: '動作', description: '走路、跑、跳、落地、被甩出去、點頭、搖頭、轉圈、頭暈、發抖、跳舞、張望。' },

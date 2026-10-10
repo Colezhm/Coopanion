@@ -198,7 +198,7 @@ const de: Translation<PetText> = {
     electronFile: { title: 'Electron-Programmdatei', description: 'Leer verwendet CORTICO_DESKTOP_PET_HOST, dann die im Panel installierte Laufzeit.' },
     port: { title: 'Seiten-Port', description: 'Weicht auf den nächsten freien Port aus, wenn er belegt ist.' },
     touchEnabled: { title: 'Berührungen werden zu Ereignissen', description: 'Anstupsen, Streicheln, Hochheben und Werfen.' },
-    touchWakeOn: { title: 'Reaktionsmodus', description: 'poke: Nur Anstupsen bekommt sofort eine Reaktion; andere Berührungen warten auf die nächste. all: Jede Berührung bekommt sofort eine. none: Jede Berührung wartet auf die nächste Reaktion. custom: Die auf der Seite „Gewohnheiten“ angehakten Berührungen bekommen sofort eine.' },
+    touchWakeOn: { title: 'Reaktionsmodus', description: 'poke: Nur Anstupsen bekommt sofort eine Reaktion; andere Berührungen warten auf die nächste. all: Jede Berührung bekommt sofort eine. none: Jede Berührung wartet auf die nächste Reaktion. custom: Die auf der Seite „Gewohnheiten“ angehakten Berührungen bekommen sofort eine. Nach einer Reaktion warten die Berührungen bis zum Ende dieser Runde auf die nächste.' },
     sound: { title: 'Alle Töne', description: 'Die Ton-Schaltfläche im Menü des Haustiers schaltet das um.' },
     sounds: {
       move: { title: 'Bewegung', description: 'Gehen, Rennen, Springen, Landen, Geworfenwerden, Nicken, Kopfschütteln, Drehen, Schwindel, Zittern, Tanzen, Umherschauen.' },

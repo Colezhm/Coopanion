@@ -198,7 +198,7 @@ const es419: Translation<PetText> = {
     electronFile: { title: 'Ejecutable de Electron', description: 'Si está vacío, se usa CORTICO_DESKTOP_PET_HOST y luego el entorno instalado desde el panel.' },
     port: { title: 'Puerto de la página', description: 'Si está ocupado, pasa al siguiente puerto libre.' },
     touchEnabled: { title: 'Los toques se vuelven eventos', description: 'Toquecitos, caricias, levantadas y lanzamientos.' },
-    touchWakeOn: { title: 'Modo de respuesta', description: 'poke: solo un toque recibe respuesta enseguida; los demás toques esperan a la siguiente respuesta. all: todos los toques reciben respuesta. none: todos los toques esperan a la siguiente respuesta. custom: reciben respuesta los toques marcados en la página Hábitos.' },
+    touchWakeOn: { title: 'Modo de respuesta', description: 'poke: solo un toque recibe respuesta enseguida; los demás toques esperan a la siguiente respuesta. all: todos los toques reciben respuesta. none: todos los toques esperan a la siguiente respuesta. custom: reciben respuesta los toques marcados en la página Hábitos. Tras una respuesta, los toques hasta el final de ese turno esperan a la siguiente.' },
     sound: { title: 'Todos los sonidos', description: 'El botón de sonido del menú de la mascota cambia esto.' },
     sounds: {
       move: { title: 'Movimientos', description: 'Caminar, correr, saltar, aterrizar, salir volando, asentir, negar con la cabeza, girar, marearse, temblar, bailar, mirar alrededor.' },
