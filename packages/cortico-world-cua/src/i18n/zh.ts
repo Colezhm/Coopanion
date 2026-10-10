@@ -48,7 +48,7 @@ export default {
   config: {
     group: '电脑操作',
     control: { title: '允许操作鼠标和键盘', description: '关闭后只能截图和列出窗口。' },
-    permission: { title: '什么时候先问你', description: 'ask-each-turn：每轮查看屏幕或操作前都询问；ask-before-acting：查看屏幕不询问，每轮操作鼠标键盘前询问；ask-once：查看屏幕不询问，操作前询问一次，同意后在「同意有效期」内不再询问；never-ask：从不询问。' },
+    permission: { title: '询问时机', description: 'ask-each-turn：每轮查看屏幕或操作前都询问；ask-before-acting：查看屏幕不询问，每轮操作鼠标键盘前询问；ask-once：查看屏幕不询问，操作前询问一次，同意后在「同意有效期」内不再询问；never-ask：从不询问。' },
     grantMinutes: { title: '同意有效期', suffix: '分钟', description: '只对 ask-once 有效。' },
     userIdleMs: { title: '让位时长', description: '你操作鼠标或键盘后，需静止这么久才继续操作。' },
     maxYieldWaitMs: { title: '让位最多等待' },

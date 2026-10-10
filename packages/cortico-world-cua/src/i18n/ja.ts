@@ -41,7 +41,7 @@ const ja: Translation<CuaText> = {
   config: {
     group: 'コンピューター操作',
     control: { title: 'マウスとキーボードを許可', description: 'オフのときは、スクリーンショットとウィンドウ一覧だけです。' },
-    permission: { title: 'いつ先に確認するか', description: 'ask-each-turn：毎ターン、画面を見る前や操作の前に確認します。ask-before-acting：画面を見るのは確認なし、毎ターンマウスとキーボードを使う前に確認します。ask-once：画面を見るのは確認なし、マウスとキーボードを使う前に一度だけ確認し、許可は「許可の有効時間」のあいだ続きます。never-ask：確認しません。' },
+    permission: { title: 'いつ確認するか', description: 'ask-each-turn：毎ターン、画面を見る前や操作の前に確認します。ask-before-acting：画面を見るのは確認なし、毎ターンマウスとキーボードを使う前に確認します。ask-once：画面を見るのは確認なし、マウスとキーボードを使う前に一度だけ確認し、許可は「許可の有効時間」のあいだ続きます。never-ask：確認しません。' },
     grantMinutes: { title: '許可の有効時間', suffix: '分', description: 'ask-once のときだけ使われます。' },
     userIdleMs: { title: 'ユーザーに譲る時間', description: 'あなたがマウスやキーボードを使ったあと、操作がこの時間止まるまで待ちます。' },
     maxYieldWaitMs: { title: 'ユーザーを待つ最長時間' },

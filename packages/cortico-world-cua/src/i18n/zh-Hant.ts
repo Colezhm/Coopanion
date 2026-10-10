@@ -41,7 +41,7 @@ const zhHant: Translation<CuaText> = {
   config: {
     group: '電腦操作',
     control: { title: '允許操作滑鼠和鍵盤', description: '關閉後只能截圖和列出視窗。' },
-    permission: { title: '什麼時候先問你', description: 'ask-each-turn：每輪查看螢幕或操作前都詢問；ask-before-acting：查看螢幕不詢問，每輪操作滑鼠鍵盤前詢問；ask-once：查看螢幕不詢問，操作前詢問一次，同意後在「同意有效期」內不再詢問；never-ask：從不詢問。' },
+    permission: { title: '詢問時機', description: 'ask-each-turn：每輪查看螢幕或操作前都詢問；ask-before-acting：查看螢幕不詢問，每輪操作滑鼠鍵盤前詢問；ask-once：查看螢幕不詢問，操作前詢問一次，同意後在「同意有效期」內不再詢問；never-ask：從不詢問。' },
     grantMinutes: { title: '同意有效期', suffix: '分鐘', description: '只對 ask-once 有效。' },
     userIdleMs: { title: '讓位時長', description: '你操作滑鼠或鍵盤後，需靜止這麼久才繼續操作。' },
     maxYieldWaitMs: { title: '讓位最多等待' },
