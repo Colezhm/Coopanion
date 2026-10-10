@@ -119,7 +119,7 @@ export default {
   'import.done': 'インポートしました：{names}',
   'import.nameSep': '、',
   'import.replacing': '。デスクトップ上のアバターは、次に読み込まれるときに新しいバージョンに切り替わります',
-  'import.lead': 'アバターパックとは figure.json が入ったフォルダーのことです。そのフォルダー、それを含むフォルダー（{depth} 階層下まで）、またはその zip を選んでください。',
+  'import.lead': 'figure.json が入ったフォルダー、またはそれを含む zip を選んでください。',
   'import.pickZip': 'zip ファイルを選ぶ',
   'import.pickDir': 'フォルダーを選ぶ',
   'import.dropNote': 'zip やフォルダーをこのページにドラッグすることもできます。',

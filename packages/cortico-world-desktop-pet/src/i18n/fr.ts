@@ -193,7 +193,7 @@ const fr: Translation<PetText> = {
     windowEnabled: { title: 'Ouvrir la fenêtre du compagnon au démarrage' },
     scale: { title: 'Taille' },
     frameRate: { title: "Fréquence d'images", description: "Images par seconde quand le compagnon marche, saute ou se fait porter ; 0 suit l'écran. Au-delà de la fréquence de rafraîchissement de l'écran, celle de l'écran s'applique. La page Habitudes propose 60, 120, 144 et Illimitée." },
-    lockFrameRate: { title: 'Toujours dessiner à cette fréquence', description: "Dessine aussi le compagnon à cette fréquence au repos. Désactivé, elle descend à 30 images par seconde quand le compagnon se tient debout, s'assoit ou dort." },
+    lockFrameRate: { title: 'Verrouiller la fréquence', description: "Dessine aussi le compagnon à cette fréquence au repos. Désactivé, elle descend à 30 images par seconde quand le compagnon se tient debout, s'assoit ou dort." },
     hideWhenFullscreen: { title: 'Masquer en plein écran', description: 'Activé, le compagnon se cache quand la fenêtre au premier plan remplit son écran (un jeu, une vidéo en plein écran, un navigateur en plein écran) et revient à la fin du plein écran ; une fenêtre agrandie ne compte pas. Désactivé, le compagnon reste toujours au premier plan.' },
     electronFile: { title: 'Exécutable Electron', description: "Vide : CORTICO_DESKTOP_PET_HOST, puis l'environnement d'exécution installé depuis le panneau." },
     port: { title: 'Port de la page', description: "Passe au port libre suivant s'il est occupé." },

@@ -119,7 +119,7 @@ export default {
   'import.done': 'Импортировано: {names}',
   'import.nameSep': ', ',
   'import.replacing': '. Персонаж на рабочем столе сменится на новую версию при следующей загрузке',
-  'import.lead': 'Пакет персонажа — это папка с файлом figure.json. Выберите эту папку, папку, в которой она лежит (глубина вложения до {depth}), или её zip.',
+  'import.lead': 'Выберите папку с figure.json или zip-архив с ней.',
   'import.pickZip': 'Выбрать zip-файл',
   'import.pickDir': 'Выбрать папку',
   'import.dropNote': 'Также можно перетащить на эту страницу zip или папки.',

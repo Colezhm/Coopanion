@@ -119,7 +119,7 @@ export default {
   'import.done': 'Importados: {names}',
   'import.nameSep': ', ',
   'import.replacing': '. O personagem na área de trabalho muda para a nova versão na próxima vez que carregar',
-  'import.lead': 'Um pacote de personagem é a pasta que contém figure.json. Escolha essa pasta, uma pasta que a contenha (até {depth} níveis abaixo) ou o zip dela.',
+  'import.lead': 'Escolha a pasta com figure.json ou um zip que a contenha.',
   'import.pickZip': 'Escolher um arquivo zip',
   'import.pickDir': 'Escolher uma pasta',
   'import.dropNote': 'Você também pode arrastar um zip ou pastas para esta página.',

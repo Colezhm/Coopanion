@@ -119,7 +119,7 @@ export default {
   'import.done': 'Importiert: {names}',
   'import.nameSep': ', ',
   'import.replacing': '. Die Figur auf dem Desktop wechselt beim nächsten Laden zur neuen Version',
-  'import.lead': 'Ein Figurenpaket ist der Ordner mit figure.json darin. Wähle diesen Ordner, einen Ordner, der ihn enthält (bis zu {depth} Ebenen tiefer), oder sein ZIP.',
+  'import.lead': 'Wähle den Ordner mit figure.json oder ein ZIP, das ihn enthält.',
   'import.pickZip': 'ZIP-Datei wählen',
   'import.pickDir': 'Ordner wählen',
   'import.dropNote': 'Du kannst auch ein ZIP oder Ordner auf diese Seite ziehen.',

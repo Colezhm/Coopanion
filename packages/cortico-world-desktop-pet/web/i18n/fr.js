@@ -119,7 +119,7 @@ export default {
   'import.done': 'Importé : {names}',
   'import.nameSep': ', ',
   'import.replacing': '. Le personnage sur le bureau passe à la nouvelle version à son prochain chargement',
-  'import.lead': "Un pack de personnage est le dossier qui contient figure.json. Choisissez ce dossier, un dossier qui le contient (jusqu'à {depth} niveaux plus bas) ou son zip.",
+  'import.lead': 'Choisissez le dossier qui contient figure.json, ou un zip qui le contient.',
   'import.pickZip': 'Choisir un fichier zip',
   'import.pickDir': 'Choisir un dossier',
   'import.dropNote': 'Vous pouvez aussi glisser un zip ou des dossiers sur cette page.',

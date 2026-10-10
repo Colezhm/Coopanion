@@ -119,7 +119,7 @@ export default {
   'import.done': '가져왔습니다: {names}',
   'import.nameSep': ', ',
   'import.replacing': '. 바탕 화면에서 쓰고 있는 외형은 다음에 불러올 때 새 버전으로 바뀝니다',
-  'import.lead': '외형 팩은 figure.json이 들어 있는 폴더입니다. 그 폴더, 그 폴더를 담은 폴더({depth}단계 아래까지), 또는 그 zip 파일을 선택하세요.',
+  'import.lead': 'figure.json이 들어 있는 폴더나 그 폴더를 담은 zip 파일을 선택하세요.',
   'import.pickZip': 'zip 파일 선택',
   'import.pickDir': '폴더 선택',
   'import.dropNote': 'zip 파일이나 폴더를 이 페이지로 끌어다 놓아도 됩니다.',

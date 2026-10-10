@@ -119,7 +119,7 @@ export default {
   'import.done': 'Importati: {names}',
   'import.nameSep': ', ',
   'import.replacing': '. Il personaggio sul desktop passa alla nuova versione al prossimo caricamento',
-  'import.lead': 'Un pacchetto personaggio è la cartella che contiene figure.json. Scegli quella cartella, una cartella che la contiene (fino a {depth} livelli sotto) o il suo zip.',
+  'import.lead': 'Scegli la cartella che contiene figure.json o uno zip che la include.',
   'import.pickZip': 'Scegli un file zip',
   'import.pickDir': 'Scegli una cartella',
   'import.dropNote': 'Puoi anche trascinare uno zip o delle cartelle su questa pagina.',
