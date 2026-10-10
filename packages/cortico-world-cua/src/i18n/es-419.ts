@@ -40,9 +40,9 @@ const es419: Translation<CuaText> = {
 
   config: {
     group: 'Uso de la computadora',
-    control: { title: 'Permitir mouse y teclado', description: 'Si está desactivado, solo capturas de pantalla y la lista de ventanas.' },
-    permission: { title: 'Cuándo preguntarte primero', description: 'ask-each-turn: antes de mirar la pantalla o actuar, en cada turno; ask-before-acting: mirar es libre, pregunta antes de usar el mouse y el teclado en cada turno; ask-once: mirar es libre, pregunta una vez antes de usar el mouse y el teclado, y un sí vale durante “Cuánto dura un sí”; never-ask: nunca pregunta.' },
-    grantMinutes: { title: 'Cuánto dura un sí', suffix: 'min', description: 'Solo para ask-once.' },
+    control: { title: 'Permitir el mouse y el teclado', description: 'Si está desactivado, solo capturas de pantalla y la lista de ventanas.' },
+    permission: { title: 'Cuándo preguntarte primero', description: 'ask-each-turn: antes de mirar la pantalla o actuar, en cada turno; ask-before-acting: mirar es libre, pregunta antes de usar el mouse y el teclado en cada turno; ask-once: mirar es libre, pregunta una vez antes de usar el mouse y el teclado, y un sí vale durante “Un sí dura”; never-ask: nunca pregunta.' },
+    grantMinutes: { title: 'Un sí dura', suffix: 'min', description: 'Solo para ask-once.' },
     userIdleMs: { title: 'No estorbar durante', description: 'Después de que usas el mouse o el teclado, espera hasta que hayan estado quietos este tiempo.' },
     maxYieldWaitMs: { title: 'Espera máxima por ti' },
     maxWidth: { title: 'Ancho máximo de la captura' },

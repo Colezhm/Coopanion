@@ -41,8 +41,8 @@ const it: Translation<CuaText> = {
   config: {
     group: 'Controllo del computer',
     control: { title: 'Consenti mouse e tastiera', description: "Se disattivato, solo screenshot ed elenco delle finestre." },
-    permission: { title: 'Quando chiederti prima', description: 'ask-each-turn: chiede ogni turno prima di guardare lo schermo o agire; ask-before-acting: guardare è libero, chiede ogni turno prima di usare mouse e tastiera; ask-once: guardare è libero, chiede una volta prima di usare mouse e tastiera, e un sì vale per «Quanto dura un sì»; never-ask: non chiede mai.' },
-    grantMinutes: { title: 'Quanto dura un sì', suffix: 'min', description: 'Solo per ask-once.' },
+    permission: { title: 'Quando chiederti prima', description: 'ask-each-turn: chiede ogni turno prima di guardare lo schermo o agire; ask-before-acting: guardare è libero, chiede ogni turno prima di usare mouse e tastiera; ask-once: guardare è libero, chiede una volta prima di usare mouse e tastiera, e un sì dura quanto indicato in «Un sì vale»; never-ask: non chiede mai.' },
+    grantMinutes: { title: 'Un sì vale', suffix: 'min', description: 'Solo per ask-once.' },
     userIdleMs: { title: 'Lasciarti il passo per', description: 'Dopo che hai usato mouse o tastiera, aspetta che restino inattivi per questo tempo.' },
     maxYieldWaitMs: { title: 'Attesa massima per te' },
     maxWidth: { title: 'Larghezza massima screenshot' },

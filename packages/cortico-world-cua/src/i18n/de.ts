@@ -41,8 +41,8 @@ const de: Translation<CuaText> = {
   config: {
     group: 'Computersteuerung',
     control: { title: 'Maus und Tastatur erlauben', description: 'Wenn aus, nur Screenshots und die Fensterliste.' },
-    permission: { title: 'Wann du zuerst gefragt wirst', description: 'ask-each-turn: fragt jede Runde, bevor es auf den Bildschirm schaut oder handelt; ask-before-acting: Schauen ist frei, fragt jede Runde, bevor es Maus und Tastatur benutzt; ask-once: Schauen ist frei, fragt einmal, bevor es Maus und Tastatur benutzt, und ein Ja gilt für „Wie lange ein Ja gilt“; never-ask: fragt nie.' },
-    grantMinutes: { title: 'Wie lange ein Ja gilt', suffix: 'Min.', description: 'Nur für ask-once.' },
+    permission: { title: 'Wann du zuerst gefragt wirst', description: 'ask-each-turn: fragt jede Runde, bevor es auf den Bildschirm schaut oder handelt; ask-before-acting: Schauen ist frei, fragt jede Runde, bevor es Maus und Tastatur benutzt; ask-once: Schauen ist frei, fragt einmal, bevor es Maus und Tastatur benutzt, und ein Ja gilt so lange wie bei „Ein Ja gilt“ eingestellt; never-ask: fragt nie.' },
+    grantMinutes: { title: 'Ein Ja gilt', suffix: 'Min.', description: 'Nur für ask-once.' },
     userIdleMs: { title: 'Dir den Vortritt lassen für', description: 'Nachdem du Maus oder Tastatur benutzt hast, wartet es, bis sie so lange unberührt waren.' },
     maxYieldWaitMs: { title: 'Längste Wartezeit auf dich' },
     maxWidth: { title: 'Maximale Screenshot-Breite' },

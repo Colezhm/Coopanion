@@ -6,9 +6,9 @@
 export default {
   /** 用电脑前征求同意:who 是 bot 的名字 */
   ask: {
-    eachTurn: (who: string) => `${who} 想用你的电脑：看屏幕、动鼠标和键盘。这一次可以吗？`,
-    once: (who: string, minutes: number) => `${who} 想动你的鼠标和键盘。接下来 ${minutes} 分钟里都可以吗？`,
-    acting: (who: string) => `${who} 想动你的鼠标和键盘。这一次可以吗？`,
+    eachTurn: (who: string) => `${who} 想使用你的电脑：查看屏幕、操作鼠标和键盘。这一次可以吗？`,
+    once: (who: string, minutes: number) => `${who} 想操作你的鼠标和键盘。接下来 ${minutes} 分钟内都可以吗？`,
+    acting: (who: string) => `${who} 想操作你的鼠标和键盘。这一次可以吗？`,
     /** 没有桌宠页时,系统对话框的标题和两个按钮 */
     caption: '电脑操作',
     yes: '可以',
@@ -47,10 +47,10 @@ export default {
   /** 控制台的配置项 */
   config: {
     group: '电脑操作',
-    control: { title: '允许操作鼠标键盘', description: '关掉后只能截图和列窗口。' },
-    permission: { title: '什么时候先问你', description: 'ask-each-turn：每一轮看屏幕或动手前都问；ask-before-acting：看屏幕不问，每一轮动鼠标键盘前问；ask-once：看屏幕不问，动鼠标键盘前问一次，同意后「同意管多久」内不再问；never-ask：都不问。' },
-    grantMinutes: { title: '同意管多久', suffix: '分钟', description: '只对 ask-once 有效。' },
-    userIdleMs: { title: '让位时长', description: '你动过鼠标或键盘后，要静止这么久才继续操作。' },
+    control: { title: '允许操作鼠标和键盘', description: '关闭后只能截图和列出窗口。' },
+    permission: { title: '什么时候先问你', description: 'ask-each-turn：每轮查看屏幕或操作前都询问；ask-before-acting：查看屏幕不询问，每轮操作鼠标键盘前询问；ask-once：查看屏幕不询问，操作前询问一次，同意后在「同意有效期」内不再询问；never-ask：从不询问。' },
+    grantMinutes: { title: '同意有效期', suffix: '分钟', description: '只对 ask-once 有效。' },
+    userIdleMs: { title: '让位时长', description: '你操作鼠标或键盘后，需静止这么久才继续操作。' },
     maxYieldWaitMs: { title: '让位最多等待' },
     maxWidth: { title: '截图最大宽' },
     maxHeight: { title: '截图最大高' },

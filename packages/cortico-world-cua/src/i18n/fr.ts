@@ -41,8 +41,8 @@ const fr: Translation<CuaText> = {
   config: {
     group: "Contrôle de l'ordinateur",
     control: { title: 'Autoriser la souris et le clavier', description: "Désactivé : seulement les captures d'écran et la liste des fenêtres." },
-    permission: { title: "Quand vous demander d'abord", description: "ask-each-turn : demande avant de regarder l'écran ou d'agir, à chaque tour ; ask-before-acting : regarder est libre, demande avant d'utiliser la souris et le clavier à chaque tour ; ask-once : regarder est libre, demande une fois avant d'utiliser la souris et le clavier, et un oui vaut pendant « Durée d'un oui » ; never-ask : ne demande jamais." },
-    grantMinutes: { title: "Durée d'un oui", suffix: 'min', description: 'Pour ask-once uniquement.' },
+    permission: { title: "Quand vous demander d'abord", description: "ask-each-turn : demande avant de regarder l'écran ou d'agir, à chaque tour ; ask-before-acting : regarder est libre, demande avant d'utiliser la souris et le clavier à chaque tour ; ask-once : regarder est libre, demande une fois avant d'utiliser la souris et le clavier, et un oui vaut pendant « Un oui vaut » ; never-ask : ne demande jamais." },
+    grantMinutes: { title: 'Un oui vaut', suffix: 'min', description: 'Pour ask-once uniquement.' },
     userIdleMs: { title: 'Vous laisser la main pendant', description: "Après que vous avez utilisé la souris ou le clavier, attend qu'ils soient restés immobiles aussi longtemps." },
     maxYieldWaitMs: { title: 'Attente maximale pour vous' },
     maxWidth: { title: 'Largeur max. des captures' },
