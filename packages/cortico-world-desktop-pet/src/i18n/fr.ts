@@ -199,7 +199,7 @@ const fr: Translation<PetText> = {
     electronFile: { title: 'Exécutable Electron', description: "Vide : CORTICO_DESKTOP_PET_HOST, puis l'environnement d'exécution installé depuis le panneau." },
     port: { title: 'Port de la page', description: "Passe au port libre suivant s'il est occupé." },
     touchEnabled: { title: 'Les contacts deviennent des événements', description: 'Petits coups, caresses, se faire soulever et lancer.' },
-    touchWakeOn: { title: 'Mode de réponse', description: 'poke : seul un petit coup obtient une réponse immédiate ; les autres contacts attendent la prochaine réponse. all : chaque contact obtient une réponse immédiate. none : chaque contact attend la prochaine réponse. custom : les contacts cochés sur la page Habitudes obtiennent une réponse immédiate.' },
+    touchWakeOn: { title: 'Mode de réponse', description: 'poke : seul un petit coup obtient une réponse immédiate ; les autres contacts attendent la prochaine réponse. all : chaque contact obtient une réponse immédiate. none : chaque contact attend la prochaine réponse. custom : les contacts cochés sur la page Habitudes obtiennent une réponse immédiate. Après une réponse, les contacts jusqu’à la fin de ce tour attendent la suivante.' },
     sound: { title: 'Tous les sons', description: 'Le bouton son du menu du compagnon bascule ce réglage.' },
     sounds: {
       move: { title: 'Mouvements', description: 'Marcher, courir, sauter, atterrir, se faire lancer, hocher la tête, la secouer, tourner, vertige, frissons, danser, regarder autour.' },

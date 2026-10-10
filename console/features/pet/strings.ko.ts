@@ -34,7 +34,7 @@ export const S: Partial<typeof en> = {
   snoreUnit: '초',
   snoreHint: '0 = 깰 때까지.',
   remember: '위치 기억',
-  rememberHint: '다음에 실행할 때 마지막 위치에서 시작합니다.',
+  rememberHint: '다음 실행 때 지난번 가로 위치로 돌아갑니다. 화면이 여러 개이면 주 화면에서 시작합니다.',
   hover: '호버 버튼',
   hoverHint: (n: number) => `최대 ${n}개입니다.`,
   dblclick: 'Coo를 더블클릭해 입력 상자 열기',

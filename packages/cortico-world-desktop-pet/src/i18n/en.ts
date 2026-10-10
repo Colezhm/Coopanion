@@ -226,7 +226,7 @@ const en: PetText = {
     electronFile: { title: 'Electron executable', description: 'Empty uses CORTICO_DESKTOP_PET_HOST, then the runtime installed from the panel.' },
     port: { title: 'Page port', description: 'Moves up to the next free port when taken.' },
     touchEnabled: { title: 'Touches become events', description: 'Pokes, petting, and being picked up and thrown.' },
-    touchWakeOn: { title: 'Response mode', description: 'poke: only a poke gets a response right away; other touches wait for the next response. all: every touch gets one. none: every touch waits for the next response. custom: the touches ticked on the Habits page get one.' },
+    touchWakeOn: { title: 'Response mode', description: 'poke: only a poke gets a response right away; other touches wait for the next response. all: every touch gets one. none: every touch waits for the next response. custom: the touches ticked on the Habits page get one. After a touch gets a response, the touches until that turn ends wait for the next one.' },
     sound: { title: 'All sounds', description: "The sound button in the pet's menu flips this." },
     sounds: {
       move: { title: 'Moving', description: 'Walking, running, jumping, landing, being thrown, nodding, shaking, spinning, dizziness, shivering, dancing, looking about.' },

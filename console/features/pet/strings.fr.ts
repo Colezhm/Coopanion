@@ -34,7 +34,7 @@ export const S: Partial<typeof en> = {
   snoreUnit: 's',
   snoreHint: "0 = jusqu'au réveil.",
   remember: 'Mémoriser la position',
-  rememberHint: "Coo démarre là où il était à la dernière fermeture de l'application.",
+  rememberHint: 'Au prochain démarrage, Coo reprend sa position horizontale ; avec plusieurs écrans, sur l’écran principal.',
   hover: 'Boutons au survol',
   hoverHint: (n: number) => `Jusqu'à ${n}.`,
   dblclick: 'Double-cliquer sur Coo pour ouvrir la zone de saisie',

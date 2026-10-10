@@ -199,7 +199,7 @@ const it: Translation<PetText> = {
     electronFile: { title: 'Eseguibile Electron', description: 'Vuoto usa CORTICO_DESKTOP_PET_HOST, poi il runtime installato dal pannello.' },
     port: { title: 'Porta della pagina', description: 'Passa alla porta libera successiva se è occupata.' },
     touchEnabled: { title: 'I tocchi diventano eventi', description: 'Colpetti, carezze, sollevamenti e lanci.' },
-    touchWakeOn: { title: 'Modalità di risposta', description: 'poke: solo un colpetto riceve subito una risposta; gli altri tocchi attendono la risposta successiva. all: ogni tocco ne riceve una. none: ogni tocco attende la risposta successiva. custom: ricevono una risposta i tocchi spuntati nella pagina Abitudini.' },
+    touchWakeOn: { title: 'Modalità di risposta', description: 'poke: solo un colpetto riceve subito una risposta; gli altri tocchi attendono la risposta successiva. all: ogni tocco ne riceve una. none: ogni tocco attende la risposta successiva. custom: ricevono una risposta i tocchi spuntati nella pagina Abitudini. Dopo una risposta, i tocchi fino alla fine di quel turno attendono la successiva.' },
     sound: { title: 'Tutti i suoni', description: "Il pulsante dei suoni nel menu dell'animaletto attiva e disattiva questa opzione." },
     sounds: {
       move: { title: 'Movimento', description: 'Camminare, correre, saltare, atterrare, volare dopo un lancio, annuire, scuotere la testa, fare piroette, capogiro, brividi, ballare, guardarsi intorno.' },

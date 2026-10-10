@@ -34,7 +34,7 @@ export const S: Partial<typeof en> = {
   snoreUnit: '秒',
   snoreHint: '0 表示持續到醒來。',
   remember: '記住位置',
-  rememberHint: '下次啟動時回到上次的位置。',
+  rememberHint: '下次啟動時回到上次的橫向位置；有多個螢幕時在主螢幕上啟動。',
   hover: '懸停按鈕',
   hoverHint: (n: number) => `最多 ${n} 個。`,
   dblclick: '開啟打字框',

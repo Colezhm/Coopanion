@@ -34,7 +34,7 @@ export const S: Partial<typeof en> = {
   snoreUnit: 's',
   snoreHint: '0 = bis zum Aufwachen.',
   remember: 'Position merken',
-  rememberHint: 'Coo startet dort, wo es beim letzten Beenden der App war.',
+  rememberHint: 'Startet beim nächsten Mal an der letzten waagerechten Position; bei mehreren Bildschirmen auf dem Hauptbildschirm.',
   hover: 'Hover-Schaltflächen',
   hoverHint: (n: number) => `Bis zu ${n}.`,
   dblclick: 'Doppelklick auf Coo öffnet das Eingabefeld',
