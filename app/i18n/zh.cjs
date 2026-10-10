@@ -16,7 +16,7 @@ module.exports = {
   /** 一次自动更新把程序挪了位置,旧的数据目录还留在原处时问一次 */
   strandedMessage: '找到更新前的设置',
   strandedDetail: (stranded, parent) => `之前的一次自动更新把 Coopanion 装到了现在的位置，更新前的设置、API Key、提示词和记忆还留在：\n${stranded}\n\n`
-    + `换回后，现在这份改名为 data-replaced-<时间>，留在 ${parent} 里，不会删除。选「继续用现在的」以后不再询问。`,
+    + `换回后，现在这份改名为 data-replaced-<时间>，留在 ${parent} 里，不会删除。选「继续使用当前设置」以后不再询问。`,
   strandedRestore: '换回更新前的设置',
-  strandedKeep: '继续用现在的',
+  strandedKeep: '继续使用当前设置',
 };

@@ -13,7 +13,7 @@ module.exports = {
 
   strandedMessage: '找到更新前的設定',
   strandedDetail: (stranded, parent) => `之前的一次自動更新把 Coopanion 裝到了現在的位置，更新前的設定、API Key、提示詞和記憶還留在：\n${stranded}\n\n`
-    + `換回後，現在這份會改名為 data-replaced-<時間>，留在 ${parent} 裡，不會刪除。選「繼續用現在的」之後不再詢問。`,
+    + `換回後，現在這份會改名為 data-replaced-<時間>，留在 ${parent} 裡，不會刪除。選「繼續使用目前設定」之後不再詢問。`,
   strandedRestore: '換回更新前的設定',
-  strandedKeep: '繼續用現在的',
+  strandedKeep: '繼續使用目前設定',
 };
