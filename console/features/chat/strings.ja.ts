@@ -42,7 +42,7 @@ export const S: Partial<typeof en> = {
       default: return `${b} は地面に強く落ちて、しばらく目を回していました`;
     }
   },
-  figure: (change: string, name: string, b: string): string => (change === 'figure' ? `${b} を「${name}」の姿に変えました` : change === 'dress' ? `${b} の衣装を替えました` : `「${name}」を表示できなかったため、Coo を表示しています`),
+  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `${b} を「${name}」の姿に変えました` : kind === 'dress' ? `${b} の衣装を替えました` : `「${name}」を表示できなかったため、Coo を表示しています`),
 };
 
 export const STEP: Partial<typeof stepEn> = {

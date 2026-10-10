@@ -29,7 +29,7 @@ type ChatItem =
   | { kind: 'user'; cursor: number; ts: string; via: 'chat' | 'bubble' | 'voice'; text: string; images?: WireImage[]; at?: number }
   | { kind: 'answer'; cursor: number; ts: string; askId: string; index?: number; text?: string; dismissed?: true }
   | { kind: 'touch'; cursor: number; ts: string; touch?: Touch; text?: string }
-  | { kind: 'figure'; cursor: number; ts: string; figure: { change: string; name: Record<string, string> } }
+  | { kind: 'figure'; cursor: number; ts: string; figure: { kind: string; name: Record<string, string> } }
   | { kind: 'say'; cursor: number; ts: string; beats: SayBeat[] }
   | { kind: 'ask'; cursor: number; ts: string; askId: string; question: string; options: string[]; own: boolean }
   | { kind: 'activity'; cursor: number; ts: string; steps: string[]; ms: number };
@@ -246,7 +246,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
     for (const it of shown) {
       if (it.kind === 'user') { group = null; thread.append(userNode(it)); continue; }
       if (it.kind === 'touch') { group = null; thread.append(ui.h('div', 'chat-note', it.touch ? S.touch(it.touch, bot) : it.text ?? '')); continue; }
-      if (it.kind === 'figure') { group = null; thread.append(ui.h('div', 'chat-note', S.figure(it.figure.change, localName(it.figure.name), bot))); continue; }
+      if (it.kind === 'figure') { group = null; thread.append(ui.h('div', 'chat-note', S.figure(it.figure.kind, localName(it.figure.name), bot))); continue; }
       const body = cooBody();
       if (it.kind === 'say') {
         for (const beat of it.beats) {
