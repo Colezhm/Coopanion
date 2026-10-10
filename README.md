@@ -79,7 +79,7 @@ irm https://raw.githubusercontent.com/Pal-AI-Lab/Coopanion/main/installer/instal
 It downloads the latest installer, runs it, and deletes the download afterwards.
 
 If the graphical installer fails (antivirus software can stop it halfway), the downloaded installer
-is kept and its path printed — retry it silently with `Coopanion-Setup-<version>.exe /S`, or add
+is kept and its path printed. Retry it silently with `Coopanion-Setup-<version>.exe /S`, or add
 Coopanion to your antivirus's allowed list first.
 
 ### macOS

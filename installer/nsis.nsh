@@ -9,7 +9,8 @@
   ; nothing behind. customFiles_x64 is undocumented but the first hook after the files land
   ; (customInstall runs only after the install is already registered).
   ${IfNot} ${FileExists} "$INSTDIR\Coopanion.exe"
-    MessageBox MB_OK|MB_ICONSTOP "Coopanion's files did not reach the install directory: the installer could not extract its package. This is usually antivirus software or low disk space. Nothing was installed; please check and run the installer again."
+    ; /SD: a silent install (an automatic update runs one) must not wait on the box
+    MessageBox MB_OK|MB_ICONSTOP "Coopanion's files did not reach the install directory: the installer could not extract its package. This is usually antivirus software or low disk space. Nothing was installed; please check and run the installer again." /SD IDOK
     Abort
   ${EndIf}
 !macroend
