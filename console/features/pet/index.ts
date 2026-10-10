@@ -2,9 +2,9 @@
  * 「习惯」: the everyday settings of the desktop pet, in sections: 通用 (language, what Coo calls you,
  * the app's anonymous usage statistics in the `companion` group, core/telemetry.ts), 行为与互动, 显示,
  * 音效 and 电脑操作 (features/cua). Every row names its setting in the label column, except one that
- * only refines the row above it. Each row reads top to bottom: the setting, then what it means in small
- * type under it. An on/off setting is a switch; picks among several (sound kinds, the popups) are checkboxes. Most are written to the desktop-pet
- * World's config group through `/api/config` (only the keys shown here are sent). The pet's own menu
+ * only refines the row above it. In each row the setting comes first and what it means under it. An
+ * on/off setting is a switch; picks among several (sound kinds, the popups) are checkboxes. Most are
+ * written to the desktop-pet World's config group through `/api/config` (only the keys shown here are sent). The pet's own menu
  * changes some of the same values, so they are read again every few seconds. Dressing up has its own
  * page (features/dress). The hover buttons are picked from the pet menu's own actions, drawn with the
  * pet page's icons. The 「音效」 section writes the World's sound group: the master switch (the same
@@ -70,7 +70,7 @@ interface HabitState {
   selfAdjust?: { mode: string; custom: Record<string, boolean> };
 }
 
-/** The pet menu's actions in its order (the World's PET_ACTIONS), with the icon each shows. */
+/** The pet's actions in the menu's order (the World's PET_ACTIONS), with the icon each shows. */
 const ACTIONS: ReadonlyArray<[id: string, icon: string]> = [
   ['chat', 'chat'], ['voice', 'mic'], ['roam', 'roam_calm'], ['theme', 'moon'], ['sound', 'sound'], ['hide', 'eyeOff'], ['dress', 'shirt'],
 ];

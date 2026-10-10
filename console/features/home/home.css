@@ -29,7 +29,7 @@
 .sheet h3 > .pill { margin-left: 10px; vertical-align: 2px; font-weight: 400; }
 
 /* 「习惯」「装扮」页 */
-/* 「习惯」页的行:左栏名称与右栏的设置对齐在同一条基线上,说明以小字贴在设置下面;行与行之间留得比设置与说明之间宽 */
+/* 「习惯」页的行:左栏名称与右栏的设置对齐在同一条基线上,说明以小字贴在设置下面 */
 .companion-row { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 12px 0; }
 .companion-row[hidden] { display: none; }
 .companion-label { font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
