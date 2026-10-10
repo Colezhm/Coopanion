@@ -498,7 +498,7 @@ export class DesktopPetWorld implements World {
       const note = this.vocabNote();
       const name = modelName(pack?.manifest.name, id, this.language);
       void this.push('desktop-pet.figure', 'desktop-pet.figure', this.t.figureFailed(name, reason, this.bodyText(coo), note), 'flush',
-        { meta: { figure: { change: 'failed', name: { ...pack?.manifest.name, id } } } });
+        { meta: { figure: { kind: 'failed', name: { ...pack?.manifest.name, id } } } });
       return;
     }
     if ('words' in msg) {
@@ -519,7 +519,7 @@ export class DesktopPetWorld implements World {
       if (shown === this.botLook) this.botLook = null;
       else {
         look = this.t.figureNow(this.bodyText(pack));
-        change = { change: before.split(':')[0] === id ? 'dress' : 'figure', name: { ...pack?.manifest.name, id } };
+        change = { kind: before.split(':')[0] === id ? 'dress' : 'figure', name: { ...pack?.manifest.name, id } };
       }
     }
     const note = this.vocabNote();

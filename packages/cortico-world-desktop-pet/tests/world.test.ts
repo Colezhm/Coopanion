@@ -561,6 +561,29 @@ describe('chat page', () => {
       .toEqual(['帮我看看这个报错', [{ text: '看到了', mood: { id: 'happy', zh: '开心' } }]]);
   });
 
+  it('shows the figure and dress switches the person makes, not the ones the bot makes', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'packs-'));
+    mkdirSync(join(root, 'robot'));
+    writeFileSync(join(root, 'robot', 'figure.json'), JSON.stringify({
+      manifest: 2, api: 2, id: 'robot', name: { zh: '机器人' }, about: { zh: '一个机器人' }, entry: 'figure.js', export: 'createBody', axes: [], presets: [], vocab: [],
+    }));
+    const { world } = await mounted(undefined, { packRoots: () => [root] });
+    const page = await FakePage.open(origin(world));
+    cleanup.push(() => page.close());
+    const chat = chatSocket(world);
+    const figures = () => chat.frames.filter((f) => f.t === 'item' && (f.item as { kind: string }).kind === 'figure').map((f) => (f.item as { figure: unknown }).figure);
+
+    page.send({ t: 'figure', id: 'coo', ok: true });
+    await tool(world, 'pet_set').handler({ figure: 'robot' }, ctx);
+    page.send({ t: 'figure', id: 'robot', scheme: '', ok: true });
+    page.send({ t: 'figure', id: 'robot', scheme: 'b', ok: true });
+    page.send({ t: 'figure', id: 'coo', ok: true });
+    page.send({ t: 'figure', id: 'robot', ok: false, reason: 'broken' });
+    await expect.poll(figures).toHaveLength(3);
+    const robot = { zh: '机器人', id: 'robot' };
+    expect(figures()).toEqual([{ kind: 'dress', name: robot }, { kind: 'figure', name: expect.objectContaining({ id: 'coo' }) }, { kind: 'failed', name: robot }]);
+  });
+
   it('an interrupt stops pet_walk_to where the pet stands', async () => {
     const { world } = await mounted();
     const page = await FakePage.open(origin(world));

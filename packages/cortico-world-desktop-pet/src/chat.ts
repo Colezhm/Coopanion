@@ -7,7 +7,7 @@
  * `desktop-pet.self` events that are stored and never delivered: `say`, `ask`, `activity` (the tool
  * steps between two lines), `delivered` (where messages that waited reached the bot) and `withdrawn`
  * (a message taken back before delivery, left out of the history). A touch is stored as its kind and
- * counts, a figure the person switched to (`desktop-pet.figure`) as the change and the figure's names;
+ * counts, a figure the person switched to (`desktop-pet.figure`) as the kind of switch and the figure's names;
  * the page tells both in its own language.
  */
 import type { EventEnvelope, RunPhase, WorldStreamSocket } from 'cortico/core/types.ts';
@@ -27,7 +27,7 @@ export interface WireImage { ref: string; mime: string; name?: string }
 export interface ChatTouch { kind: string; count: number; woke: boolean; crashed: boolean }
 
 /** A figure switch: to another figure, to another dress of the same one, or a figure that did not load (Coo shows instead); `name` by language, with its `id`. */
-export interface ChatFigure { change: 'figure' | 'dress' | 'failed'; name: Record<string, string> }
+export interface ChatFigure { kind: 'figure' | 'dress' | 'failed'; name: Record<string, string> }
 
 /** One beat of a `pet_say`: its text and the first expression played in it, by its id and its name in each language. */
 export interface SayBeat { text: string; mood?: Record<string, string> }
@@ -80,8 +80,8 @@ export function chatItem(e: EventEnvelope): ChatItem | null {
     }
     case 'desktop-pet.figure': {
       const f = (m.figure ?? null) as Meta | null;
-      if (!f || !['figure', 'dress', 'failed'].includes(f.change as string) || !f.name || typeof f.name !== 'object') return null;
-      return { kind: 'figure', ...base, figure: { change: f.change as ChatFigure['change'], name: f.name as Record<string, string> } };
+      if (!f || !['figure', 'dress', 'failed'].includes(f.kind as string) || !f.name || typeof f.name !== 'object') return null;
+      return { kind: 'figure', ...base, figure: { kind: f.kind as ChatFigure['kind'], name: f.name as Record<string, string> } };
     }
     default: {
       if (m.kind === 'say' && Array.isArray(m.beats)) {
