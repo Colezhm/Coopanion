@@ -857,7 +857,7 @@ const MAX_HOVER = 6;
  * `on` read the current prefs: `state` is the line that says what the button does and where it
  * stands, `on` lights a switch that is on (undefined for plain actions). `keep` leaves the menu
  * open after a click, so a switch shows its new state there. `hoverOnly` keeps a button out of the
- * menu: walking is set on the 「习惯」 page, and the menu's six fill a grid of three by two.
+ * menu.
  */
 const ACTIONS = {
   chat: {
