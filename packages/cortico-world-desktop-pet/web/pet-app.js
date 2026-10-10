@@ -846,7 +846,6 @@ function stopMic() {
 /* ---------- actions: the menu's lower zone and the hover buttons draw from one list ---------- */
 const ROAM_ORDER = ['off', 'calm', 'free'];
 const roamName = (id) => (ROAM_ORDER.includes(id) ? t(`roam.${id}`) : '');
-const roamLevel = (id) => (ROAM_ORDER.includes(id) ? t(`roam.level.${id}`) : '');
 /** The voice button's badge: `auto` when listening all the time, else the talk key (`Alt×2`). */
 const micBadge = () => (prefs.voice.mode === 'always' ? 'auto' : prefs.voice.key || 'key');
 /** Most hover buttons shown beside the pet. */
@@ -880,7 +879,7 @@ const ACTIONS = {
     icon: () => ICONS[`roam_${prefs.roam}`] ?? ICONS.roam_calm,
     state: () => {
       const next = ROAM_ORDER[(ROAM_ORDER.indexOf(prefs.roam) + 1) % ROAM_ORDER.length];
-      return t('action.roam', { level: roamLevel(prefs.roam), name: roamName(prefs.roam), next: roamName(next) });
+      return t('action.roam', { name: roamName(prefs.roam), next: roamName(next) });
     },
     run: () => cycleRoam(),
   },

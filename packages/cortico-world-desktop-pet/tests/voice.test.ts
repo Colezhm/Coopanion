@@ -11,6 +11,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DESKTOP_PET_DEFAULTS } from '../src/config.ts';
 import { DesktopPetWorld } from '../src/world.ts';
+import { petText } from '../src/i18n/index.ts';
 import type { MicMode } from '../src/config.ts';
 import type { Language } from 'cortico/core/language.ts';
 import type { SherpaModule } from '../src/asr/sherpa.ts';
@@ -294,7 +295,7 @@ describe('voice input', () => {
     });
     await world.start(new FakeHost());
     cleanup.push(() => world.stop());
-    await expect.poll(() => (world.voiceState().server as { detail: string | null }).detail).toContain('识别模型还没下载');
+    await expect.poll(() => (world.voiceState().server as { detail: string | null }).detail).toContain(petText('zh').voice.modelMissing(0));
     expect((world.voiceState().server as { phase: string }).phase).toBe('stopped');
     expect((world.voiceState().model as { phase: string }).phase).toBe('absent');
     await world.installVoice();

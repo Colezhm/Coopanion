@@ -43,13 +43,13 @@ describe('activity in the shared speech bubble', () => {
   it('shows activity by default and applies the switch without changing the thinking face', () => {
     const p = page();
     show(p, think); p.step(1);
-    expect(p.bubble.getAttribute('aria-label')).toBe('在想');
+    expect(p.bubble.getAttribute('aria-label')).toBe(t('status.thinking'));
     expect(p.bubble.hidden).toBe(false);
     expect(p.bodyChanges).toContainEqual({ thinking: true });
     p.onOrder({ t: 'prefs', statusBubble: false }); p.step(.01);
     expect(p.bubble.hidden).toBe(true);
     p.onOrder({ t: 'prefs', statusBubble: true }); p.step(.01);
-    expect(p.bubble.getAttribute('aria-label')).toBe('在想');
+    expect(p.bubble.getAttribute('aria-label')).toBe(t('status.thinking'));
     expect(p.bubble.hidden).toBe(false);
     expect(p.bodyChanges.filter(c => 'thinking' in c)).toEqual([{ thinking: true }]);
   });
@@ -61,7 +61,7 @@ describe('activity in the shared speech bubble', () => {
     p.step(.59);
     expect(p.bubble.hidden).toBe(true);
     p.step(.02);
-    expect(p.bubble.getAttribute('aria-label')).toBe('在想');
+    expect(p.bubble.getAttribute('aria-label')).toBe(t('status.thinking'));
     expect(p.bubble.classList.contains('status')).toBe(true);
     p.onOrder({ t: 'prefs', status: think, statusBubble: false });
     p.step(.01);
