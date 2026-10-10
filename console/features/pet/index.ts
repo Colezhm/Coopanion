@@ -320,7 +320,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
   /* ---------- other: the OBS overlay ---------- */
   const other = ui.sheet({ title: S.groupOther });
   const otherMsg = ui.msgline('');
-  const overlay = ui.checkbox(S.overlay, { onChange: (on) => { overlayUrlBox.hidden = !on; void save(KEYS.overlay, on, GROUP, otherMsg); } });
+  const overlay = ui.checkbox(S.overlay, { onChange: (on) => { overlayUrlBox.hidden = !on || !overlayUrl.value; void save(KEYS.overlay, on, GROUP, otherMsg); } });
   // the address to paste into OBS, while the overlay is exported
   const overlayUrl = ui.input();
   overlayUrl.readOnly = true;
