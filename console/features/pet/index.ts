@@ -309,7 +309,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
   const snoreBox = ui.h('div', 'companion-rangebox');
   snoreBox.append(snore, ui.h('span', 'companion-rangeval', S.snoreUnit));
   sounds.body.append(
-    row(S.soundLabel, sound.el, S.soundHint),
+    row(S.soundLabel, sound.el),
     row(S.soundKinds, kindBox, S.soundKindsHint),
     row(S.snore, snoreBox, S.snoreHint),
     soundMsg,

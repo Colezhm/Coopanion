@@ -24,9 +24,10 @@ async function mount(ctx: FeatureContext): Promise<void> {
   const { ui, root, signal } = ctx;
   root.classList.add('home');
 
-  const note = ui.h('p', null, S.note);
   const frame = ui.h('iframe', 'companion-dressframe');
   frame.title = S.nav;
+  // shown only while the pet is not ready
+  const note = ui.h('p', null, S.noPet);
   root.append(intro(ui, S.nav, { desc: note }), frame);
 
   const doc = root.ownerDocument;
@@ -52,7 +53,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
       url = (await post<{ dressUrl: string | null }>(panelPath('state'), { args: [] }, { signal }))?.dressUrl ?? null;
     } catch { url = null; }
     frame.hidden = !url;
-    note.textContent = url ? S.note : S.noPet;
+    note.hidden = !!url;
     if (url && frame.dataset.src !== url) {
       frame.dataset.src = url;
       const target = new URL(url);

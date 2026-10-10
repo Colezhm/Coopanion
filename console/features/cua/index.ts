@@ -60,7 +60,7 @@ export function cuaSection(ctx: FeatureContext, row: Row): HTMLElement {
 
   const grantRow = row(S.grant, grantBox);
   sheet.body.append(
-    row(S.enabledLabel, enabled.el, S.enabledHint),
+    row(S.enabledLabel, enabled.el),
     row(S.controlLabel, control.el, S.controlHint),
     row(S.permission, level.el, levelHint),
     grantRow,

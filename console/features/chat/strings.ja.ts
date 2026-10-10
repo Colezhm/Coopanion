@@ -6,7 +6,7 @@ export const S: Partial<typeof en> = {
   title: 'チャット',
   trace: '実行トレース',
   traceHint: '詳細モードの完全な実行トレース：コンテキスト、ツール呼び出し、生のイベント',
-  placeholder: (bot: string) => `${bot} に話しかける…`,
+  placeholder: (bot: string) => `${bot} にメッセージを送信…`,
   connecting: '接続しています…',
   empty: (bot: string) => `${bot} とはまだ話していません。`,
   older: '以前の会話',
@@ -29,7 +29,7 @@ export const S: Partial<typeof en> = {
   send: '送信',
   computer: 'コンピューターを操作中',
   steps: (n: number) => `${n} ステップ`,
-  things: (n: number) => `${n} 件完了`,
+  things: (n: number) => `${n} 件の操作を完了`,
   seconds: (s: number) => `${s} 秒`,
   imagesUnseen: (bot: string) => `現在のモデルは画像を見られません。${bot} には送った枚数だけが伝わります。`,
   touch: (t: Touch, b: string): string => {
@@ -42,7 +42,7 @@ export const S: Partial<typeof en> = {
       default: return `${b} は地面に強く落ちて、しばらく目を回していました`;
     }
   },
-  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `${b} を「${name}」の姿に変えました` : kind === 'dress' ? `${b} の衣装を替えました` : `「${name}」を表示できなかったため、Coo を表示しています`),
+  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `${b} を「${name}」に変更しました` : kind === 'dress' ? `${b} の着せ替えを変更しました` : `「${name}」を表示できなかったため、Coo に切り替えました`),
 };
 
 export const STEP: Partial<typeof stepEn> = {

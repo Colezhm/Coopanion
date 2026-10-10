@@ -6,7 +6,7 @@ export const S: Partial<typeof en> = {
   title: 'Discussion',
   trace: "Trace d'exécution",
   traceHint: "La trace d'exécution complète en mode avancé : contexte, appels d'outils et événements bruts",
-  placeholder: (bot: string) => `Dites quelque chose à ${bot}…`,
+  placeholder: (bot: string) => `Message à ${bot}…`,
   connecting: 'Connexion…',
   empty: (bot: string) => `Rien n'a encore été dit à ${bot}.`,
   older: 'Plus ancien',
@@ -29,7 +29,7 @@ export const S: Partial<typeof en> = {
   send: 'Envoyer',
   computer: "Utilise l'ordinateur",
   steps: (n: number) => `${n} étape${n > 1 ? 's' : ''}`,
-  things: (n: number) => `${n} action${n > 1 ? 's' : ''} effectuée${n > 1 ? 's' : ''}`,
+  things: (n: number) => `${n} étape${n > 1 ? 's' : ''} effectuée${n > 1 ? 's' : ''}`,
   seconds: (s: number) => `${s} s`,
   imagesUnseen: (bot: string) => `Le modèle actuel ne voit pas les images ; ${bot} apprend seulement combien vous en avez envoyé.`,
   touch: (t: Touch, b: string): string => {
@@ -42,7 +42,7 @@ export const S: Partial<typeof en> = {
       default: return `${b} a durement touché le sol et en a eu le tournis un moment`;
     }
   },
-  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `Vous avez transformé ${b} en ${name}` : kind === 'dress' ? `Vous avez changé la tenue de ${b}` : `${name} n’a pas pu s’afficher ; Coo s’affiche à la place`),
+  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `Vous avez changé ${b} en ${name}` : kind === 'dress' ? `Vous avez changé la tenue de ${b}` : `${name} n’a pas pu s’afficher ; retour à Coo`),
 };
 
 export const STEP: Partial<typeof stepEn> = {

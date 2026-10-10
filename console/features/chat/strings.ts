@@ -15,7 +15,7 @@ const zh = {
   title: '对话',
   trace: '运行轨迹',
   traceHint: '高级模式里的完整运行轨迹：上下文、工具调用与原始事件',
-  placeholder: (bot: string) => `和 ${bot} 说点什么…`,
+  placeholder: (bot: string) => `给 ${bot} 发消息…`,
   connecting: '正在连接…',
   empty: (bot: string) => `还没有和 ${bot} 说过话。`,
   older: '更早的对话',
@@ -24,9 +24,9 @@ const zh = {
   thinking: (bot: string) => `${bot} 在想…`,
   doing: (what: string) => `正在${what}`,
   retry: (at: string) => `模型没有应答，${at} 重试`,
-  handoff: '在整理之前的对话',
+  handoff: '正在整理之前的对话',
   paused: '已暂停 · 消息在继续后送达',
-  queued: (bot: string) => `排队中，${bot} 做完这一步就看`,
+  queued: (bot: string) => `排队中，${bot} 完成当前步骤后查看`,
   queuedPaused: '已暂停，继续后送达',
   sendNow: '立即发送',
   sendNowHint: (bot: string) => `中断 ${bot} 当前的操作，立即送达`,
@@ -34,11 +34,11 @@ const zh = {
   withdrawHint: '撤回到输入框',
   discarded: '未送达：排队的消息已被清空',
   imageCount: (n: number) => `[${n} 张图]`,
-  ownAnswer: '自己回答…',
+  ownAnswer: '自行回答…',
   send: '发送',
   computer: '操作电脑',
   steps: (n: number) => `${n} 步`,
-  things: (n: number) => `做了 ${n} 件事`,
+  things: (n: number) => `完成了 ${n} 项操作`,
   seconds: (s: number) => `${s} 秒`,
   imagesUnseen: (bot: string) => `现在的模型看不到图片，${bot} 只会知道你发了几张图。`,
   touch: (t: Touch, b: string): string => {
@@ -52,7 +52,7 @@ const zh = {
     }
   },
   /** A figure switch (`figure`), a dress switch (`dress`), or a figure that did not load. */
-  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `你把 ${b} 换成了「${name}」` : kind === 'dress' ? `你给 ${b} 换了一身打扮` : `「${name}」没能显示出来，换成了 Coo`),
+  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `你将 ${b} 更换为「${name}」` : kind === 'dress' ? `你为 ${b} 更换了装扮` : `「${name}」显示失败，已切换为 Coo`),
 };
 
 export const en: typeof zh = {
@@ -60,7 +60,7 @@ export const en: typeof zh = {
   title: 'Chat',
   trace: 'Run trace',
   traceHint: 'The full run trace in advanced mode: context, tool calls and raw events',
-  placeholder: (bot: string) => `Say something to ${bot}…`,
+  placeholder: (bot: string) => `Message ${bot}…`,
   connecting: 'Connecting…',
   empty: (bot: string) => `Nothing said to ${bot} yet.`,
   older: 'Earlier',
@@ -83,7 +83,7 @@ export const en: typeof zh = {
   send: 'Send',
   computer: 'Using the computer',
   steps: (n: number) => `${n} step${n === 1 ? '' : 's'}`,
-  things: (n: number) => `${n} thing${n === 1 ? '' : 's'} done`,
+  things: (n: number) => `${n} step${n === 1 ? '' : 's'} done`,
   seconds: (s: number) => `${s} s`,
   imagesUnseen: (bot: string) => `The current model cannot see images; ${bot} only learns how many you sent.`,
   touch: (t: Touch, b: string): string => {
@@ -96,7 +96,7 @@ export const en: typeof zh = {
       default: return `${b} hit the ground hard and was knocked out for a bit`;
     }
   },
-  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `You turned ${b} into ${name}` : kind === 'dress' ? `You gave ${b} a new outfit` : `${name} could not be shown; Coo shows instead`),
+  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `You changed ${b} to ${name}` : kind === 'dress' ? `You changed ${b}'s outfit` : `${name} failed to show; switched to Coo`),
 };
 
 export const S = pick({

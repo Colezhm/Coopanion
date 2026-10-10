@@ -17,10 +17,9 @@ export function mountSchemes(ctx: FeatureContext): HTMLElement {
   const [schemes, workbench] = [...box.children] as HTMLElement[];
   const [palette, specimen] = [...workbench!.children] as HTMLElement[];
 
-  // the card: its own title, the color-scheme note, the schemes
+  // the card: its own title and the schemes; Cortico's note says the choice stays in this browser, which the deployment's /api/theme makes untrue
   schemes!.querySelector(':scope > h3')!.replaceChildren(S.schemeTitle);
-  // the deployment keeps the choice (/api/theme): the note says so in place of Cortico's 「in this browser」
-  schemes!.querySelector(':scope > .sheetbody > .sh-desc')!.textContent = S.schemeDesc;
+  schemes!.querySelector(':scope > .sheetbody > .sh-desc')!.remove();
   schemes!.classList.add('home-schemes');
 
   // 调色盘: the palette card's body on the left, the specimen's on the right

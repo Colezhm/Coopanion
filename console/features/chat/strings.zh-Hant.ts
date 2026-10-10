@@ -6,7 +6,7 @@ export const S: Partial<typeof en> = {
   title: '對話',
   trace: '執行軌跡',
   traceHint: '進階模式裡的完整執行軌跡：上下文、工具呼叫與原始事件',
-  placeholder: (bot: string) => `和 ${bot} 說點什麼…`,
+  placeholder: (bot: string) => `給 ${bot} 傳訊息…`,
   connecting: '正在連線…',
   empty: (bot: string) => `還沒有和 ${bot} 說過話。`,
   older: '更早的對話',
@@ -15,9 +15,9 @@ export const S: Partial<typeof en> = {
   thinking: (bot: string) => `${bot} 在想…`,
   doing: (what: string) => `正在${what}`,
   retry: (at: string) => `模型沒有回應，${at} 重試`,
-  handoff: '在整理之前的對話',
+  handoff: '正在整理之前的對話',
   paused: '已暫停 · 訊息在繼續後送達',
-  queued: (bot: string) => `排隊中，${bot} 做完這一步就看`,
+  queued: (bot: string) => `排隊中，${bot} 完成目前步驟後查看`,
   queuedPaused: '已暫停，繼續後送達',
   sendNow: '立即傳送',
   sendNowHint: (bot: string) => `打斷 ${bot} 正在做的這一步，馬上送達`,
@@ -25,11 +25,11 @@ export const S: Partial<typeof en> = {
   withdrawHint: '退回輸入框',
   discarded: '沒有送達：排隊的訊息被清空了',
   imageCount: (n: number) => `[${n} 張圖]`,
-  ownAnswer: '自己回答…',
+  ownAnswer: '自行回答…',
   send: '傳送',
   computer: '操作電腦',
   steps: (n: number) => `${n} 步`,
-  things: (n: number) => `做了 ${n} 件事`,
+  things: (n: number) => `完成了 ${n} 項操作`,
   seconds: (s: number) => `${s} 秒`,
   imagesUnseen: (bot: string) => `目前的模型看不到圖片，${bot} 只會知道你傳了幾張圖。`,
   touch: (t: Touch, b: string): string => {
@@ -42,11 +42,11 @@ export const S: Partial<typeof en> = {
       default: return `${b} 重重落地，摔暈了一會兒`;
     }
   },
-  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `你把 ${b} 換成了「${name}」` : kind === 'dress' ? `你幫 ${b} 換了一身打扮` : `「${name}」沒能顯示出來，換成了 Coo`),
+  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `你將 ${b} 更換為「${name}」` : kind === 'dress' ? `你為 ${b} 更換了裝扮` : `「${name}」顯示失敗，已切換為 Coo`),
 };
 
 export const STEP: Partial<typeof stepEn> = {
-  cua_screenshot: '截圖', cua_click: '點擊', cua_move: '移動滑鼠', cua_drag: '拖曳', cua_scroll: '捲動', cua_type: '打字',
+  cua_screenshot: '截圖', cua_click: '點選', cua_move: '移動滑鼠', cua_drag: '拖曳', cua_scroll: '捲動', cua_type: '打字',
   cua_key: '按鍵', cua_windows: '查看視窗', cua_focus: '切換視窗', cua_wait: '等待',
   pet_walk_to: '走動', pet_act: '做動作', pet_set: '調整自己', pet_quiet: '安靜一會兒',
 };

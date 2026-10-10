@@ -6,7 +6,7 @@ export const S: Partial<typeof en> = {
   title: 'Chat',
   trace: 'Ablaufprotokoll',
   traceHint: 'Das vollständige Ablaufprotokoll im erweiterten Modus: Kontext, Tool-Aufrufe und Rohereignisse',
-  placeholder: (bot: string) => `Sag ${bot} etwas…`,
+  placeholder: (bot: string) => `Nachricht an ${bot}…`,
   connecting: 'Verbinde…',
   empty: (bot: string) => `Noch nichts zu ${bot} gesagt.`,
   older: 'Früher',
@@ -29,7 +29,7 @@ export const S: Partial<typeof en> = {
   send: 'Senden',
   computer: 'Bedient den Computer',
   steps: (n: number) => `${n} ${n === 1 ? 'Schritt' : 'Schritte'}`,
-  things: (n: number) => `${n} ${n === 1 ? 'Sache' : 'Sachen'} erledigt`,
+  things: (n: number) => `${n} ${n === 1 ? 'Schritt' : 'Schritte'} erledigt`,
   seconds: (s: number) => `${s} s`,
   imagesUnseen: (bot: string) => `Das aktuelle Modell kann keine Bilder sehen; ${bot} erfährt nur, wie viele du geschickt hast.`,
   touch: (t: Touch, b: string): string => {
@@ -42,7 +42,7 @@ export const S: Partial<typeof en> = {
       default: return `${b} ist hart aufgeschlagen und war kurz k. o.`;
     }
   },
-  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `Du hast ${b} in ${name} verwandelt` : kind === 'dress' ? `Du hast ${b} umgezogen` : `${name} ließ sich nicht anzeigen; stattdessen ist Coo zu sehen`),
+  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `Du hast ${b} auf ${name} umgestellt` : kind === 'dress' ? `Du hast das Outfit von ${b} geändert` : `${name} konnte nicht angezeigt werden; zu Coo gewechselt`),
 };
 
 export const STEP: Partial<typeof stepEn> = {

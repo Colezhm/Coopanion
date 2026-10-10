@@ -6,7 +6,7 @@ export const S: Partial<typeof en> = {
   title: '대화',
   trace: '실행 기록',
   traceHint: '고급 모드의 전체 실행 기록: 컨텍스트, 도구 호출, 원시 이벤트',
-  placeholder: (bot: string) => `${bot}에게 할 말…`,
+  placeholder: (bot: string) => `${bot}에게 메시지 보내기…`,
   connecting: '연결하는 중…',
   empty: (bot: string) => `아직 ${bot}에게 한 말이 없습니다.`,
   older: '이전 대화',
@@ -29,7 +29,7 @@ export const S: Partial<typeof en> = {
   send: '보내기',
   computer: '컴퓨터 사용',
   steps: (n: number) => `${n}단계`,
-  things: (n: number) => `작업 ${n}개 완료`,
+  things: (n: number) => `${n}단계 완료`,
   seconds: (s: number) => `${s}초`,
   imagesUnseen: (bot: string) => `현재 모델은 이미지를 볼 수 없어 ${bot}에게는 보낸 이미지 수만 전달됩니다.`,
   touch: (t: Touch, b: string): string => {
@@ -42,7 +42,7 @@ export const S: Partial<typeof en> = {
       default: return `${b}은(는) 땅에 세게 떨어져 잠시 기절했습니다`;
     }
   },
-  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `${b}을(를) '${name}'(으)로 바꿨습니다` : kind === 'dress' ? `${b}의 옷을 갈아입혔습니다` : `'${name}'을(를) 표시하지 못해 Coo를 표시합니다`),
+  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `${b}을(를) '${name}'(으)로 바꿨습니다` : kind === 'dress' ? `${b}의 꾸미기를 바꿨습니다` : `'${name}'을(를) 표시하지 못해 Coo로 바꿨습니다`),
 };
 
 export const STEP: Partial<typeof stepEn> = {

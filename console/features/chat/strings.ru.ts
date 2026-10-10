@@ -35,7 +35,7 @@ export const S: Partial<typeof en> = {
   send: 'Отправить',
   computer: 'Работа с компьютером',
   steps: (n: number) => `${n} ${plural(n, 'шаг', 'шага', 'шагов')}`,
-  things: (n: number) => `Сделано ${n} ${plural(n, 'дело', 'дела', 'дел')}`,
+  things: (n: number) => `${plural(n, 'Выполнен', 'Выполнено', 'Выполнено')} ${n} ${plural(n, 'шаг', 'шага', 'шагов')}`,
   seconds: (s: number) => `${s} с`,
   imagesUnseen: (bot: string) => `Текущая модель не видит изображения; ${bot} узнает только, сколько вы их отправили.`,
   touch: (t: Touch, b: string): string => {
@@ -48,7 +48,7 @@ export const S: Partial<typeof en> = {
       default: return `Сильный удар о землю, ${b} ненадолго в отключке`;
     }
   },
-  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `Вы превратили ${b} в ${name}` : kind === 'dress' ? `Вы переодели ${b}` : `Не удалось показать ${name}; вместо него показан Coo`),
+  figure: (kind: string, name: string, b: string): string => (kind === 'figure' ? `Вы заменили ${b} на ${name}` : kind === 'dress' ? `Вы сменили наряд ${b}` : `Не удалось показать ${name}; выбран Coo`),
 };
 
 export const STEP: Partial<typeof stepEn> = {
