@@ -140,7 +140,18 @@ const autoHideTaskbarEdge = (() => {
  */
 const AUTOHIDE_TASKBAR_GAP = 3;
 
-/** The part of display `d` the window covers: its work area, off the edge an auto-hidden taskbar waits on. */
+/**
+ * DIP the window stays off the bottom of the display when it reaches down over a taskbar there: a window
+ * covering the whole display would be taken for a full-screen app (see AUTOHIDE_TASKBAR_GAP).
+ */
+const OVERHANG_GAP = 3;
+
+/**
+ * The part of display `d` the window covers: its work area, off the edge an auto-hidden taskbar waits on.
+ * On Windows, over a taskbar at the bottom it reaches down past the work area by `below` DIP, so what a
+ * figure draws under the floor (legs hanging over the edge while it sits) shows over the taskbar; the page
+ * keeps the floor at the work area's bottom.
+ */
 function coverArea(d) {
   let { x, y, width, height } = d.workArea;
   const b = d.bounds, edge = autoHideTaskbarEdge(), gap = AUTOHIDE_TASKBAR_GAP;
@@ -149,7 +160,9 @@ function coverArea(d) {
   if (edge === 'top' && y === b.y) { y += gap; height -= gap; }
   if (edge === 'right' && x + width === b.x + b.width) width -= gap;
   if (edge === 'bottom' && y + height === b.y + b.height) height -= gap;
-  return { x, y, width, height };
+  const strip = b.y + b.height - (y + height);
+  const below = process.platform === 'win32' ? Math.max(0, strip - OVERHANG_GAP) : 0;
+  return { x, y, width, height: height + below, below };
 }
 
 /** A window's HWND as a BigInt. */
@@ -293,12 +306,14 @@ function runPetHost({ url, parentPid = 0, tray: withTray = true }) {
   /** Moves the window over display `d`; returns the area it now covers. */
   const cover = (d) => {
     displayId = d.id;
-    const area = coverArea(d);
-    win.setBounds(area);
+    const area = coverArea(d), { below, ...rect } = area;
+    win.setBounds(rect);
     // Windows: a window moved onto a display with another scale factor is resized by the DPI
     // change to its old size times the ratio of the two scales; once it is on the new display, the
     // same bounds set again hold.
-    win.setBounds(area);
+    win.setBounds(rect);
+    // where the floor is: the page keeps it this far above the window's bottom
+    win.webContents.send('pet:floor', below);
     return area;
   };
 
@@ -347,7 +362,7 @@ function runPetHost({ url, parentPid = 0, tray: withTray = true }) {
     win.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && (['-', '_', '=', '+', '0'].includes(input.key) || ['NumpadAdd', 'NumpadSubtract', 'Numpad0'].includes(input.code))) event.preventDefault();
     });
-    win.webContents.on('did-finish-load', () => { win.webContents.setZoomLevel(0); overlay.pageLoaded(); });
+    win.webContents.on('did-finish-load', () => { win.webContents.setZoomLevel(0); overlay.pageLoaded(); win.webContents.send('pet:floor', coverArea(display()).below); });
     // the page learns where the cursor is even when the click-through window misses its moves
     let last = '';
     const cursorTimer = setInterval(() => {

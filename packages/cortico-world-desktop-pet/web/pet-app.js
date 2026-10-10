@@ -61,7 +61,9 @@ const sfx = createSfx();
 if (host) sfx.unlock();
 else ['pointerdown', 'keydown'].forEach((ev) => document.addEventListener(ev, () => sfx.unlock(), { capture: true }));
 
-const floorGap = () => (host ? 2 : 48);
+/** Page pixels the window reaches below the floor, over a taskbar (the window process says how many); a figure may draw there. */
+let below = 0;
+const floorGap = () => (host ? 2 + below : 48);
 const bounds = () => ({ W: innerWidth, H: innerHeight, floorY: innerHeight - floorGap(), S: .42 * prefs.scale });
 /**
  * The body on screen (body-host.js), null until the first one is ready, and the words it does (its pack's
@@ -73,6 +75,7 @@ const at = () => body?.layout ?? null;
 /** What the body is told of the page: talking orders hold its roaming off, and these states. */
 const bodyState = { listening: false, thinking: false, thoughtShown: true, dialogOpen: false };
 const holdRoam = (seconds) => body?.set({ hold: seconds });
+host?.onFloor?.((px) => { below = px; body?.set({ bounds: bounds() }); });
 addEventListener('resize', () => {
   body?.set({ bounds: bounds() });
   // the World reads walk targets and drop spots against the stage the pet is on now

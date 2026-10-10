@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld('petHost', {
   openDress: () => ipcRenderer.send('pet:openDress'),
   /** The app language the page shows, for the window process's own words (the tray menu). */
   setLanguage: (code) => ipcRenderer.send('pet:language', String(code)),
+  /** How far the window reaches below the floor (over a taskbar), in page pixels, each time it is placed. */
+  onFloor: (cb) => ipcRenderer.on('pet:floor', (_e, below) => cb(Number(below) || 0)),
   /** Where the cursor is, in page pixels, or null off the window: called a few times a second. */
   onCursor: (cb) => ipcRenderer.on('pet:cursor', (_e, p) => cb(p)),
   /** Screen pixels behind `rect`, minus `skip` rects (page coordinates), as a flat [r, g, b, …]; null where the screen cannot be read. */
