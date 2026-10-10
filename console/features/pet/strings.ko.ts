@@ -69,4 +69,8 @@ export const S: Partial<typeof en> = {
   hideFullscreenLabel: '전체 화면',
   rememberLabel: '위치',
   soundLabel: '효과음',
+  groupOther: '기타',
+  overlayLabel: 'OBS 오버레이',
+  overlay: 'OBS 오버레이 내보내기',
+  overlayHint: 'OBS에서 「브라우저」 소스를 추가하고 이 주소를 입력한 뒤 너비와 높이를 화면 해상도로 맞추세요.',
 };

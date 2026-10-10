@@ -69,4 +69,8 @@ export const S: Partial<typeof en> = {
   hideFullscreenLabel: 'Tela cheia',
   rememberLabel: 'Posição',
   soundLabel: 'Sons',
+  groupOther: 'Outros',
+  overlayLabel: 'Overlay do OBS',
+  overlay: 'Exportar overlay do OBS',
+  overlayHint: 'No OBS, adicione uma fonte “Navegador” com este endereço e a resolução da sua tela como largura e altura.',
 };

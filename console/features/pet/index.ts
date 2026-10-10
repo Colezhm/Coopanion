@@ -1,7 +1,7 @@
 /**
  * 「习惯」: the everyday settings of the desktop pet, in sections: 通用 (language, what Coo calls you,
  * the app's anonymous usage statistics in the `companion` group, core/telemetry.ts), 行为与互动, 显示,
- * 音效 and 电脑操作 (features/cua). Every row names its setting in the label column, except one that
+ * 音效, 电脑操作 (features/cua) and 其他 (the OBS overlay). Every row names its setting in the label column, except one that
  * only refines the row above it. In each row the setting comes first and what it means under it. An
  * on/off setting is a switch; picks among several (sound kinds, the popups) are checkboxes. Most are
  * written to the desktop-pet World's config group through `/api/config` (only the keys shown here are sent). The pet's own menu
@@ -46,6 +46,7 @@ const KEYS = {
   lockFps: `${K}.window.lockFrameRate`,
   frameRate: `${K}.window.frameRate`,
   hideFullscreen: `${K}.window.hideWhenFullscreen`,
+  overlay: `${K}.window.exportOverlay`,
   sound: `${K}.sound`,
   snoreSeconds: `${K}.sounds.snoreSeconds`,
   remember: `${K}.rememberPosition`,
@@ -216,7 +217,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
   statsDoc.href = STATS_DOC;
   statsDoc.target = '_blank';
   statsDoc.rel = 'noreferrer';
-  const statsBox = ui.h('div', 'companion-stats');
+  const statsBox = ui.h('div', 'companion-switchbox');
   statsBox.append(stats.el, statsDoc);
   // hover buttons: one round toggle per action, in the menu's order; picked ones are lit
   let picked: string[] = [];
@@ -316,6 +317,21 @@ async function mount(ctx: FeatureContext): Promise<void> {
   );
   root.append(sounds.el, cuaSection(ctx, row));
 
+  /* ---------- other: the OBS overlay ---------- */
+  const other = ui.sheet({ title: S.groupOther });
+  const otherMsg = ui.msgline('');
+  const overlay = ui.checkbox(S.overlay, { onChange: (on) => { overlayUrlBox.hidden = !on; void save(KEYS.overlay, on, GROUP, otherMsg); } });
+  // the address to paste into OBS, while the overlay is exported
+  const overlayUrl = ui.input();
+  overlayUrl.readOnly = true;
+  const overlayUrlBox = ui.h('div', 'companion-rangebox');
+  overlayUrlBox.append(overlayUrl, ui.copyButton(() => overlayUrl.value));
+  overlayUrlBox.hidden = true;
+  const overlayBox = ui.h('div', 'companion-switchbox');
+  overlayBox.append(overlay.el, overlayUrlBox);
+  other.body.append(row(S.overlayLabel, overlayBox, S.overlayHint), otherMsg);
+  root.append(other.el);
+
   /* ---------- behaviour ---------- */
   const save = async (key: string, value: string | number | boolean, group = GROUP, line = msg) => {
     try {
@@ -373,7 +389,8 @@ async function mount(ctx: FeatureContext): Promise<void> {
   snore.addEventListener('keydown', (e) => { if (e.key === 'Enter') snore.blur(); });
 
   const refreshValues = async () => {
-    const habitState = post<HabitState>(PET_STATE, { args: [] }, opts).catch(() => null);
+    // with the OBS overlay page while it is exported
+    const habitState = post<HabitState & { overlayUrl?: string | null }>(PET_STATE, { args: [] }, opts).catch(() => null);
     let values: Record<string, unknown> = {};
     let soundValues: Record<string, unknown> = {};
     let statsValues: Record<string, unknown> = {};
@@ -412,9 +429,12 @@ async function mount(ctx: FeatureContext): Promise<void> {
     if (typeof values[KEYS.remember] === 'boolean') remember.setChecked(values[KEYS.remember] as boolean);
     if (typeof values[KEYS.dblclick] === 'boolean') dblclick.setChecked(values[KEYS.dblclick] as boolean);
     if (typeof values[KEYS.statusBubble] === 'boolean') statusBubble.setChecked(values[KEYS.statusBubble] as boolean);
+    if (typeof values[KEYS.overlay] === 'boolean') overlay.setChecked(values[KEYS.overlay] as boolean);
     // a popup open over the page keeps the rows as they are until it is saved or closed
     const state = await habitState;
     if (!root.ownerDocument.querySelector('.companion-popup')) takeHabits(state);
+    overlayUrl.value = state?.overlayUrl ?? '';
+    overlayUrlBox.hidden = !overlay.checked || !overlayUrl.value;
     if (typeof values[KEYS.hover] === 'string') {
       picked = (values[KEYS.hover] as string).split(',').map((x) => x.trim()).filter((x) => ACTIONS.some(([a]) => a === x));
       renderHover();

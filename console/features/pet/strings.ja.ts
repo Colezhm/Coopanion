@@ -69,4 +69,8 @@ export const S: Partial<typeof en> = {
   hideFullscreenLabel: '全画面表示',
   rememberLabel: '位置',
   soundLabel: 'サウンド',
+  groupOther: 'その他',
+  overlayLabel: 'OBS オーバーレイ',
+  overlay: 'OBS オーバーレイを出力',
+  overlayHint: 'OBS で「ブラウザ」ソースを追加し、この URL を入力して、幅と高さを画面の解像度にします。',
 };

@@ -69,4 +69,8 @@ export const S: Partial<typeof en> = {
   hideFullscreenLabel: 'Полный экран',
   rememberLabel: 'Положение',
   soundLabel: 'Звуки',
+  groupOther: 'Прочее',
+  overlayLabel: 'Оверлей для OBS',
+  overlay: 'Выводить оверлей для OBS',
+  overlayHint: 'В OBS добавьте источник «Браузер» с этим адресом, а ширину и высоту укажите по разрешению экрана.',
 };

@@ -69,4 +69,8 @@ export const S: Partial<typeof en> = {
   hideFullscreenLabel: 'Plein écran',
   rememberLabel: 'Position',
   soundLabel: 'Sons',
+  groupOther: 'Autres',
+  overlayLabel: 'Overlay OBS',
+  overlay: "Exporter l'overlay OBS",
+  overlayHint: 'Dans OBS, ajoutez une source « Navigateur » avec cette adresse et la résolution de votre écran comme largeur et hauteur.',
 };

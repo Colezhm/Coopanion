@@ -69,4 +69,8 @@ export const S: Partial<typeof en> = {
   hideFullscreenLabel: '全螢幕時',
   rememberLabel: '位置',
   soundLabel: '音效',
+  groupOther: '其他',
+  overlayLabel: 'OBS 畫面',
+  overlay: '輸出 OBS 畫面',
+  overlayHint: '在 OBS 新增「瀏覽器」來源，網址填寫這個位址，寬度和高度設為螢幕解析度。',
 };

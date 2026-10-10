@@ -79,6 +79,10 @@ const zh = {
   hideFullscreenLabel: '全屏时',
   rememberLabel: '位置',
   soundLabel: '音效',
+  groupOther: '其他',
+  overlayLabel: 'OBS 画面',
+  overlay: '导出 OBS 画面',
+  overlayHint: '在 OBS 添加「浏览器」来源，网址填写这个地址，宽度和高度设为屏幕分辨率。',
 };
 
 export const en: typeof zh = {
@@ -150,6 +154,10 @@ export const en: typeof zh = {
   hideFullscreenLabel: 'Full screen',
   rememberLabel: 'Position',
   soundLabel: 'Sounds',
+  groupOther: 'Other',
+  overlayLabel: 'OBS overlay',
+  overlay: 'Export OBS overlay',
+  overlayHint: "In OBS, add a Browser source with this address and your screen's resolution as its width and height.",
 };
 
 export const S = pick({

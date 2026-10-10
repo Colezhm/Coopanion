@@ -35,19 +35,22 @@
 .companion-label { font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
 .companion-control > .home-note { margin: 6px 0 0; font-size: 12.5px; line-height: 1.55; }
 /* 开关:一项设置的开与关(左栏写着是哪一项);勾选框只用于多选 */
-.companion-control > .check, .companion-stats > .check { gap: 10px; font-size: 14px; }
-.companion-control > .check > input, .companion-stats > .check > input {
+.companion-control > .check, .companion-switchbox > .check { gap: 10px; font-size: 14px; }
+.companion-control > .check > input, .companion-switchbox > .check > input {
   appearance: none; flex: none; position: relative; width: 34px; height: 20px; margin: 0; border-radius: 10px;
   background: var(--line-2); cursor: pointer; transition: background .15s;
 }
-.companion-control > .check > input::after, .companion-stats > .check > input::after {
+.companion-control > .check > input::after, .companion-switchbox > .check > input::after {
   content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff;
   box-shadow: 0 1px 2px rgb(0 0 0 / .3); transition: transform .15s;
 }
-.companion-control > .check > input:checked, .companion-stats > .check > input:checked { background: var(--accent); }
-.companion-control > .check > input:checked::after, .companion-stats > .check > input:checked::after { transform: translateX(14px); }
-.companion-control > .check > input:focus-visible, .companion-stats > .check > input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.companion-control > .check > input:checked, .companion-switchbox > .check > input:checked { background: var(--accent); }
+.companion-control > .check > input:checked::after, .companion-switchbox > .check > input:checked::after { transform: translateX(14px); }
+.companion-control > .check > input:focus-visible, .companion-switchbox > .check > input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .companion-checks .check > input, .companion-popup .check > input { width: 18px; height: 18px; margin: 0; }
+/* 开关下面跟着的一行(OBS 画面的地址) */
+.companion-switchbox > .companion-rangebox { margin-top: 8px; }
+.companion-switchbox > .companion-rangebox > input { flex: 1; max-width: 320px; }
 /* 大小的滑杆没有文字基线:这一行按垂直居中对齐 */
 .companion-row:has(.companion-scale) { align-items: center; }
 /* 悬停按钮的第一行是图标:左栏名称对着图标的中线 */
@@ -83,7 +86,7 @@
 /* 按钮随标签加宽到 96px;日文、韩文只在空格处折行,不把一个词拆成两行 */
 .companion-hoverlbl { font-size: 12px; line-height: 1.3; word-break: keep-all; }
 /* 统计开关后面的说明链接,与开关文字隔开 */
-.companion-statsdoc { margin-left: 10px; }
+.companion-switchboxdoc { margin-left: 10px; }
 @media (max-width: 640px) { .companion-row { grid-template-columns: 1fr; gap: 4px; } }
 
 /* 字标下的版本与项目地址;新版本提示沿用上游的 .release-hint */

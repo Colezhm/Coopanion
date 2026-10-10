@@ -69,4 +69,8 @@ export const S: Partial<typeof en> = {
   hideFullscreenLabel: 'Pantalla completa',
   rememberLabel: 'Posición',
   soundLabel: 'Sonidos',
+  groupOther: 'Otros',
+  overlayLabel: 'Overlay de OBS',
+  overlay: 'Exportar overlay de OBS',
+  overlayHint: 'En OBS, agrega una fuente «Navegador» con esta dirección y la resolución de tu pantalla como ancho y alto.',
 };
