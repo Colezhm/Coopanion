@@ -23,6 +23,7 @@ const { app, BrowserWindow, Menu, Tray, ipcMain, nativeImage, screen, session, s
 const { join } = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { createCursorSource } = require('./cursor.cjs');
+const { createOverlaySource } = require('./overlay.cjs');
 
 /** The pages' text table of `code`, falling back as web/i18n.js does. */
 async function pageText(code) {
@@ -278,6 +279,9 @@ function runPetHost({ url, parentPid = 0, tray: withTray = true }) {
   if (!url) throw new Error('pet host needs --pet-url');
   const origin = new URL(url).origin;
   let win = null, tray = null, dress = null, cursor;
+  // the window as an OBS layer, while the World asks for it
+  const overlay = createOverlaySource({ origin, getWindow: () => win });
+  app.once('will-quit', () => overlay.stop());
   /** Id of the display whose work area the window covers. */
   let displayId = null;
   /** The setting, and whether it is what hid the window. */
@@ -343,7 +347,7 @@ function runPetHost({ url, parentPid = 0, tray: withTray = true }) {
     win.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && (['-', '_', '=', '+', '0'].includes(input.key) || ['NumpadAdd', 'NumpadSubtract', 'Numpad0'].includes(input.code))) event.preventDefault();
     });
-    win.webContents.on('did-finish-load', () => win.webContents.setZoomLevel(0));
+    win.webContents.on('did-finish-load', () => { win.webContents.setZoomLevel(0); overlay.pageLoaded(); });
     // the page learns where the cursor is even when the click-through window misses its moves
     let last = '';
     const cursorTimer = setInterval(() => {
@@ -403,6 +407,7 @@ function runPetHost({ url, parentPid = 0, tray: withTray = true }) {
     else if (win.isFocused()) win.blur();
   });
   ipcMain.on('pet:hide', () => { releaseAutoHidden(); if (win) win.hide(); });
+  ipcMain.on('pet:overlayRect', (_e, rect) => overlay.setRect(rect));
   ipcMain.on('pet:hideWhenFullscreen', (_e, on) => { hideWhenFullscreen = !!on; });
   ipcMain.on('pet:openDress', () => openDress());
   let language = 'zh';

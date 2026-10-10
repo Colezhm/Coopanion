@@ -195,6 +195,7 @@ const it: Translation<PetText> = {
     frameRate: { title: 'Frequenza fotogrammi', description: "Fotogrammi al secondo mentre l'animaletto cammina, si fa portare o salta; 0 segue lo schermo. Oltre la frequenza di aggiornamento dello schermo vale quella dello schermo. La pagina Abitudini offre 60, 120, 144 e Illimitata." },
     lockFrameRate: { title: 'Blocca la frequenza', description: "Disegna l'animaletto a questa frequenza anche quando non si muove. Se disattivato, scende a 30 fotogrammi al secondo quando sta in piedi, sta a sedere o dorme." },
     hideWhenFullscreen: { title: 'Nascondi a schermo intero', description: "Se attivo, l'animaletto si nasconde mentre la finestra in primo piano riempie il suo schermo (un gioco, un video a schermo intero, un browser a schermo intero) e torna quando lo schermo intero finisce; una finestra ingrandita non conta. Se disattivato, resta sempre in primo piano." },
+    exportOverlay: { title: 'Overlay OBS', description: "Fornisce l'immagine della finestra dell'animaletto su sfondo trasparente in /overlay per una sorgente «Browser» di OBS; se disattivato non fornisce nulla." },
     electronFile: { title: 'Eseguibile Electron', description: 'Vuoto usa CORTICO_DESKTOP_PET_HOST, poi il runtime installato dal pannello.' },
     port: { title: 'Porta della pagina', description: 'Passa alla porta libera successiva se è occupata.' },
     touchEnabled: { title: 'I tocchi diventano eventi', description: 'Colpetti, carezze, sollevamenti e lanci.' },

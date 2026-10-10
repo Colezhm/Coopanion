@@ -119,6 +119,17 @@ Windows 上每 0.8 秒用 GDI 取一小块身体周围的屏幕像素来比,其�
 `status`、`statusBubble`,供重连时恢复。`status` 变化只发状态消息,不会触发整份偏好广播;原来的 `thinking` 消息由它替代,
 kit 的身体(`web/kit/body.js`)另收 `set({ thoughtShown })`,表示页面正在气泡里显示思考。
 
+### OBS 画面
+
+`window.exportOverlay` 开着时,页面服务提供 `/overlay`:桌宠窗口的画面,透明底,画布和窗口一样大,所以桌宠和气泡在
+OBS 里的位置与屏幕上一致。在 OBS 添加「浏览器」来源,网址填这个地址,宽高设为屏幕分辨率。关着时 `/overlay` 返回 404,
+窗口进程不截图。
+
+画面由窗口进程截:它以 `/socket?role=overlay-source` 连页面服务,开关开着且有 overlay 页在看时被告知开始,
+每秒至多 30 次截桌宠页报来的那块(身体加光晕和头顶的余量,并上显示中的气泡,`pet:overlayRect`),
+连同窗口尺寸与位置发给页面服务,原样转给每个 `/socket?role=overlay`。帧格式见 `host/overlay.cjs`。
+右键菜单和悬停按钮落在这块里时也会被截进去。
+
 ## 语音输入
 
 桌宠窗口里的页面用麦克风收音,16 kHz 单声道 PCM 经 WebSocket 送到 World,按能量门限切句

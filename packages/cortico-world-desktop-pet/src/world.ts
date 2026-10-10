@@ -372,6 +372,7 @@ export class DesktopPetWorld implements World {
       importer: this.importer ?? undefined,
       language: () => this.appLanguage,
       text: () => this.ui,
+      overlay: () => this.cfg.window.exportOverlay,
     });
   }
 
@@ -807,6 +808,7 @@ export class DesktopPetWorld implements World {
     void this.syncHotkey();
     // the person changed what a quiet holds back: theirs wins
     if (this.quiet && (this.cfg.sound !== this.quiet.base.sound || this.cfg.roam !== this.quiet.base.roam)) this.endQuiet();
+    this.server.syncOverlay();
     const paused = this.opts.controls?.isPaused?.() ?? false;
     if (paused !== this.pausedShown) { this.pausedShown = paused; this.chat.broadcast({ t: 'paused', paused }); }
     const key = this.prefsSignature();
@@ -1762,6 +1764,8 @@ export class DesktopPetWorld implements World {
       onDesktop: this.server.petInWindow && !this.petHidden,
       url: this.server.port ? this.petUrl : null,
       dressUrl: this.server.port ? `${this.server.origin}/dress` : null,
+      /** The OBS overlay page while `window.exportOverlay` is on. */
+      overlayUrl: this.server.port && this.cfg.window.exportOverlay ? `${this.server.origin}/overlay` : null,
       skin: this.cfg.skin,
       /** What the person is called while `user` is empty, in the app language. */
       defaultUser: this.ui.defaultUser,

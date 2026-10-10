@@ -138,6 +138,8 @@ export interface DesktopPetConfigSection extends WorldSection {
     lockFrameRate: boolean;
     /** Hide the pet window while a fullscreen window covers the display it is on. */
     hideWhenFullscreen: boolean;
+    /** Serve `/overlay`, the pet window's picture for an OBS browser source. */
+    exportOverlay: boolean;
   };
   roam: RoamMode;
   /** All of the pet's sounds; `sounds` picks among them while this is on. */
@@ -199,7 +201,7 @@ export const DESKTOP_PET_DEFAULTS: DesktopPetConfigSection = {
   enabled: false,
   port: 7797,
   user: '',
-  window: { enabled: true, electronFile: '', scale: 1, frameRate: 60, lockFrameRate: false, hideWhenFullscreen: false },
+  window: { enabled: true, electronFile: '', scale: 1, frameRate: 60, lockFrameRate: false, hideWhenFullscreen: false, exportOverlay: false },
   roam: 'calm',
   sound: true,
   sounds: { move: true, touch: true, face: true, snore: true, talk: true, ui: true, snoreSeconds: 0 },
@@ -257,6 +259,7 @@ export function desktopPetConfigGroups(language: Language = 'zh'): ConfigGroup[]
         ...(process.platform === 'win32' ? {
           [`${K}.window.hideWhenFullscreen`]: { type: 'boolean', title: c.hideWhenFullscreen.title, description: c.hideWhenFullscreen.description, 'x-hot': true },
         } : {}),
+        [`${K}.window.exportOverlay`]: { type: 'boolean', title: c.exportOverlay.title, description: c.exportOverlay.description, 'x-hot': true },
         [`${K}.window.electronFile`]: { type: 'string', title: c.electronFile.title, description: c.electronFile.description, 'x-path': { kind: 'file' }, 'x-hot': false },
         [`${K}.port`]: { type: 'integer', title: c.port.title, minimum: 1024, maximum: 65535, description: c.port.description, 'x-hot': false },
         [`${K}.touch.enabled`]: { type: 'boolean', title: c.touchEnabled.title, description: c.touchEnabled.description, 'x-hot': true },

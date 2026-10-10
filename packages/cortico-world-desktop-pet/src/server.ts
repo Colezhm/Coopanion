@@ -20,6 +20,10 @@
  *   live one, except that a browser tab only watches while the pet window is connected. A
  *   watching tab still sends typed text, preference changes and run-control clicks.
  *   Binary frames from the pet connection are 16 kHz mono PCM16 microphone audio.
+ * - `/overlay` and `/socket?role=overlay`: the OBS overlay page and its feed, while `overlay()` is on
+ *   (404 and a closed socket otherwise). `/socket?role=overlay-source` is the pet window process: it is told
+ *   `{ t: 'overlay', on }` (on while the overlay is on and a page watches) and its binary frames
+ *   (host/overlay.cjs) go to every overlay page as they are.
  */
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -75,6 +79,8 @@ export interface PetServerOptions {
   language?(): Language;
   /** The text table of the app language, for errors; Chinese when absent. */
   text?(): PetText;
+  /** Whether the OBS overlay is served; off when absent. */
+  overlay?(): boolean;
 }
 
 export class PetServer {
@@ -84,6 +90,11 @@ export class PetServer {
   private petIsWindow = false;
   /** Dressing pages and pet pages that only watch. */
   private readonly dressers = new Set<WebSocket>();
+  /** The pet window process sending the overlay's frames, and the overlay pages watching. */
+  private overlaySource: WebSocket | null = null;
+  private readonly overlayViewers = new Set<WebSocket>();
+  /** What the source was last told. */
+  private overlayTold: boolean | null = null;
   private boundPort = 0;
 
   constructor(private readonly opts: PetServerOptions) {}
@@ -139,9 +150,11 @@ export class PetServer {
   }
 
   async stop(): Promise<void> {
-    for (const ws of [this.pet, ...this.dressers]) ws?.close();
+    for (const ws of [this.pet, ...this.dressers, this.overlaySource, ...this.overlayViewers]) ws?.close();
     this.pet = null;
     this.dressers.clear();
+    this.overlaySource = null;
+    this.overlayViewers.clear();
     this.wss?.close();
     this.wss = null;
     const http = this.http;
@@ -166,6 +179,21 @@ export class PetServer {
     for (const ws of [this.pet, ...this.dressers]) if (ws && ws.readyState === ws.OPEN) ws.send(text);
   }
 
+  /** Follows `overlay()`: off closes the overlay pages; the source streams while it is on and a page watches. */
+  syncOverlay(): void {
+    if (!this.overlayEnabled) for (const ws of this.overlayViewers) ws.close(4003, 'overlay off');
+    const source = this.overlaySource;
+    if (!source || source.readyState !== source.OPEN) return;
+    const on = this.overlayEnabled && this.overlayViewers.size > 0;
+    if (on === this.overlayTold) return;
+    this.overlayTold = on;
+    source.send(JSON.stringify({ t: 'overlay', on }));
+  }
+
+  private get overlayEnabled(): boolean {
+    return this.opts.overlay?.() ?? false;
+  }
+
   /** A loopback Host, and a loopback or absent Origin; an opaque origin (the figure frame) only reads. */
   private allowed(req: IncomingMessage, write: boolean): boolean {
     if (!LOOPBACK.test(req.headers.host ?? '')) return false;
@@ -182,6 +210,8 @@ export class PetServer {
   private accept(ws: WebSocket, req: IncomingMessage): void {
     const params = new URL(req.url ?? '/', 'http://x').searchParams;
     const fromWindow = params.get('host') === 'window';
+    if (params.get('role') === 'overlay-source') return this.acceptOverlaySource(ws);
+    if (params.get('role') === 'overlay') return this.acceptOverlayViewer(ws);
     ws.send(JSON.stringify({ t: 'init', ...this.opts.snapshot() }));
     // the pet window outranks a browser tab: a tab opened while the window is connected only watches
     const watcher = params.get('role') !== 'pet' || (!fromWindow && this.petConnected && this.petIsWindow);
@@ -216,6 +246,25 @@ export class PetServer {
     }
     this.dressers.add(ws);
     ws.on('close', () => this.dressers.delete(ws));
+  }
+
+  private acceptOverlaySource(ws: WebSocket): void {
+    this.overlaySource?.close(4000, 'replaced');
+    this.overlaySource = ws;
+    this.overlayTold = null;
+    ws.on('message', (data, isBinary) => {
+      if (!isBinary || !this.overlayEnabled) return;
+      for (const viewer of this.overlayViewers) if (viewer.readyState === viewer.OPEN) viewer.send(data, { binary: true });
+    });
+    ws.on('close', () => { if (this.overlaySource === ws) this.overlaySource = null; });
+    this.syncOverlay();
+  }
+
+  private acceptOverlayViewer(ws: WebSocket): void {
+    if (!this.overlayEnabled) { ws.close(4003, 'overlay off'); return; }
+    this.overlayViewers.add(ws);
+    ws.on('close', () => { this.overlayViewers.delete(ws); this.syncOverlay(); });
+    this.syncOverlay();
   }
 
   private async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -267,6 +316,10 @@ export class PetServer {
     }
     if (req.method !== 'GET') { res.writeHead(405).end(); return; }
     if (path === '/') { res.writeHead(302, { location: '/pet' }).end(); return; }
+    if (path === '/overlay') {
+      if (!this.overlayEnabled) { res.writeHead(404).end(); return; }
+      return this.sendPage(res, join(this.opts.webDir, 'overlay.html'));
+    }
     const file = PAGES[path] ?? (path.startsWith('/web/') ? path.slice(5) : null);
     if (!file) { res.writeHead(404).end(); return; }
     const root = normalize(this.opts.webDir).replace(/[\\/]+$/, '') + sep;

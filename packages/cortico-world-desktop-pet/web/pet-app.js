@@ -103,6 +103,35 @@ let windowShown = true;
 function reportVisibility() { if (host) send({ t: 'visibility', hidden: !windowShown }); }
 // the page itself always reads as visible (its window does not throttle it): the window process says when it is hidden
 host?.onShown?.((shown) => { windowShown = shown; reportVisibility(); });
+
+/* ---------- OBS overlay: while the window streams, the part it sends is the pet and its bubbles ---------- */
+const OVERLAY_EVERY_MS = 33;
+let overlayTimer = null, overlayKey = '';
+/** The body's box with room for its halo and what floats above its head, joined with the bubbles shown; null with no body. */
+function overlayRect() {
+  const b = at()?.box;
+  if (!b) return null;
+  // the halo reaches about 40% of the body's width out; emotes and z's float up to its height above
+  const side = Math.max(24, .4 * b.w), top = Math.max(48, b.h);
+  const parts = [{ x: b.x - side, y: b.y - top, width: b.w + 2 * side, height: b.h + top + side }];
+  for (const el of [bubble, heardEl, trail]) if (!el.hidden) parts.push(rectOf(el));
+  const x = Math.max(0, Math.min(...parts.map((r) => r.x))), y = Math.max(0, Math.min(...parts.map((r) => r.y)));
+  const right = Math.min(innerWidth, Math.max(...parts.map((r) => r.x + r.width))), bottom = Math.min(innerHeight, Math.max(...parts.map((r) => r.y + r.height)));
+  return right > x && bottom > y ? { x, y, width: right - x, height: bottom - y } : null;
+}
+host?.onOverlay?.((on) => {
+  clearInterval(overlayTimer);
+  overlayTimer = null;
+  overlayKey = '';
+  if (!on) { host.overlayRect(null); return; }
+  overlayTimer = setInterval(() => {
+    const r = overlayRect();
+    const key = r ? [r.x, r.y, r.width, r.height].map(Math.round).join() : '';
+    if (key === overlayKey) return;
+    overlayKey = key;
+    host.overlayRect(r);
+  }, OVERLAY_EVERY_MS);
+});
 // the text is in before anything is shown
 void useLanguage().then(() => { document.title = t('pet.title'); host?.setLanguage?.(language()); connect(); });
 

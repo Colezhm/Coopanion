@@ -195,6 +195,7 @@ const ja: Translation<PetText> = {
     frameRate: { title: 'フレームレート', description: 'ペットが歩く、運ばれる、ジャンプするときの 1 秒あたりのフレーム数。0 はディスプレイに合わせます。ディスプレイのリフレッシュレートを超える分はディスプレイのレートになります。「ふるまい」ページでは 60、120、144、無制限を選べます。' },
     lockFrameRate: { title: 'フレームレート固定', description: '静止中もフレームレートでペットを描画します。オフのときは、立っている、座っている、眠っているあいだは 1 秒 30 フレームに下がります。' },
     hideWhenFullscreen: { title: '全画面表示中は隠れる', description: 'オンのときは、手前のウィンドウがペットのいる画面いっぱいに表示されているあいだ（ゲーム、全画面の動画、全画面表示のブラウザー）ペットが隠れ、全画面表示が終わると戻ってきます。最大化したウィンドウは対象外です。オフのときは常に最前面に表示されます。' },
+    exportOverlay: { title: 'OBS オーバーレイ', description: 'ペットのウィンドウの画面を透明な背景で /overlay に出し、OBS の「ブラウザ」ソースで使えるようにします。オフのときは出しません。' },
     electronFile: { title: 'Electron 実行ファイル', description: '空欄なら CORTICO_DESKTOP_PET_HOST、次にパネルからインストールしたランタイムを使います。' },
     port: { title: 'ページのポート', description: '使用中のときは次の空きポートに繰り上げます。' },
     touchEnabled: { title: 'ふれあいをイベントにする', description: 'つつく、なでる、持ち上げて投げる。' },
