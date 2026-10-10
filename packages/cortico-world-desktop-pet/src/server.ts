@@ -23,7 +23,7 @@
  * - `/overlay` and `/socket?role=overlay`: the OBS overlay page and its feed, while `overlay()` is on
  *   (404 and a closed socket otherwise). `/socket?role=overlay-source` is the pet window process: it is told
  *   `{ t: 'overlay', on }` (on while the overlay is on and a page watches) and its binary frames
- *   (host/overlay.cjs) go to every overlay page as they are.
+ *   (host/overlay.cjs) go to every overlay page as they are; when it goes, the pages are sent a frame that clears them.
  */
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -256,7 +256,13 @@ export class PetServer {
       if (!isBinary || !this.overlayEnabled) return;
       for (const viewer of this.overlayViewers) if (viewer.readyState === viewer.OPEN) viewer.send(data, { binary: true });
     });
-    ws.on('close', () => { if (this.overlaySource === ws) this.overlaySource = null; });
+    ws.on('close', () => {
+      if (this.overlaySource !== ws) return;
+      this.overlaySource = null;
+      // the window process is gone: the pages must not keep its last picture
+      const clear = Buffer.alloc(24);
+      for (const viewer of this.overlayViewers) if (viewer.readyState === viewer.OPEN) viewer.send(clear, { binary: true });
+    });
     this.syncOverlay();
   }
 

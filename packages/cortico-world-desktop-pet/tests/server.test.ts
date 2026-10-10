@@ -59,6 +59,17 @@ describe('OBS overlay', () => {
     await expect.poll(() => source.texts.at(-1)).toEqual({ t: 'overlay', on: false });
   });
 
+  it('the pages are sent a clearing frame when the window process goes', async () => {
+    const server = await serve({ on: true });
+    const source = await socket(server, 'overlay-source');
+    const viewer = await socket(server, 'overlay');
+    await expect.poll(() => source.texts.at(-1)).toEqual({ t: 'overlay', on: true });
+    source.ws.close();
+    await expect.poll(() => viewer.frames.length).toBe(1);
+    // a header of zeros: no display size and an empty part
+    expect([...new Uint32Array(new Uint8Array(viewer.frames[0]!).buffer)]).toEqual([0, 0, 0, 0, 0, 0]);
+  });
+
   it('turning it off closes the pages watching and stops the stream', async () => {
     const state = { on: true };
     const server = await serve(state);

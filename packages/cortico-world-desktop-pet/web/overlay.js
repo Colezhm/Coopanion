@@ -1,7 +1,7 @@
 /**
  * The OBS overlay: the pet window's picture as the window process sends it through the World
- * (host/overlay.cjs has the frame format). Each frame holds everything drawn, so the layer is cleared
- * and the part put back where it is in the window.
+ * (host/overlay.cjs has the frame format). The layer is the size of the display the window is on, and
+ * each frame holds everything drawn, so the layer is cleared and the part put back where it is on that display.
  */
 const canvas = document.getElementById('layer');
 const ctx = canvas.getContext('2d');
@@ -43,7 +43,8 @@ async function pump() {
 }
 async function draw(buffer) {
   const [W, H, x, y, w, h] = new Uint32Array(buffer.slice(0, 24));
-  if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
+  // 0 × 0: the window process is gone; the layer clears and keeps its size
+  if (W && H && (canvas.width !== W || canvas.height !== H)) { canvas.width = W; canvas.height = H; }
   const pixels = w && h ? await inflate(new Uint8Array(buffer, 24)) : null;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (pixels && pixels.length === w * h * 4) ctx.putImageData(toImageData(pixels, w, h), x, y);
