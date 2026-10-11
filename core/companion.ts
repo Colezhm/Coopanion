@@ -39,7 +39,7 @@
  * `{ type: 'companion:shutdown' }`.
  */
 import { readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { delimiter, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { BotDefinition } from 'cortico/bot.ts';
 import { createBot } from 'cortico/bot.ts';
@@ -390,7 +390,10 @@ export async function main(): Promise<void> {
   };
   /** The app language as the live config has it, Chinese before the config is loaded. */
   const language = () => appLanguage(config?.language);
+  /** Figure pack directories besides the data directory's `figures/`, from the main process (the Steam Workshop's, app/steam.cjs). */
+  const packRoots = (process.env.COOPANION_PACK_ROOTS ?? '').split(delimiter).filter(Boolean);
   const DESKTOP_PET = desktopPetDefinition({
+    packRoots: () => packRoots,
     describeTool: petToolDescriber(language),
     // the menu's header lends pause/resume, settings and quit; its dress tile opens the settings window's dress page, the typing bubble's expand button its chat page
     controls: {
@@ -497,7 +500,7 @@ export async function main(): Promise<void> {
   });
   announceDataDir(loaded.dataDir);
   followPetLook(deployDir, getByPath(loaded.config as unknown as Record<string, unknown>, 'worlds.desktop-pet.skin') as { figure?: string; scheme?: string } | undefined,
-    figurePacks([join(loaded.dataDir, 'figures')]).packs, language());
+    figurePacks([join(loaded.dataDir, 'figures'), ...packRoots]).packs, language());
   consumeBootFlags(loaded.dataDir);
 
   const bot = createBot(loaded, definition, { extensions });
