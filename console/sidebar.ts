@@ -59,9 +59,9 @@ export function mountSidebar(rail: HTMLElement, memo: ConsoleMemo, signal: Abort
 
   const foot = rail.querySelector<HTMLElement>('.railfoot');
   /**
-   * The foot changes layout when the rail folds (a row of keys under the avatar, or one column), which CSS can't
-   * animate: grow or shrink its height and slide the avatar with its name and the keys from where they were (FLIP),
-   * the run state's words riding along with the pause key as they fade.
+   * The foot changes layout when the rail folds (a row of keys over the avatar, or one column), which CSS can't
+   * animate: grow or shrink its height and slide the keys from where they were (FLIP), the run state's words riding
+   * along with the pause key as they fade. The avatar keeps its place; it is in the list in case a layout moves it.
    */
   const flip = (change: () => void): void => {
     const moving = foot && typeof foot.animate === 'function' && !win.matchMedia('(prefers-reduced-motion: reduce)')?.matches
