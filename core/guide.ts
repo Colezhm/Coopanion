@@ -3,6 +3,8 @@
  * at the bottom of the screen, one step at a time in its bubble (the desktop-pet World's
  * `dialog`); no window opens:
  *
+ * 0. the app language, asked in English with each language under its own name, English picked on
+ *    a first start and the language in force when the introduction runs again; the rest speaks the one picked;
  * 1. hello, what to call the person (the desktop-pet World's `user`), and where they heard of
  *    Coopanion (for the usage statistics; one of the buttons skips it);
  * 2. how lively to be (`roam`): while the cards are up Coo shows each one, standing still,
@@ -27,7 +29,7 @@
  * talks to Coo without one, Coo asks whether to connect a model now.
  */
 import { existsSync, writeFileSync } from 'node:fs';
-import type { Language } from 'cortico/core/language.ts';
+import { LANGUAGES, LANGUAGE_NAMES, type Language } from 'cortico/core/language.ts';
 import type { DesktopPetWorld, PetDialog, PetDialogAnswer } from 'cortico-world-desktop-pet';
 import { USER_MAX, capFor, petText } from 'cortico-world-desktop-pet';
 import { VENDOR_ICONS, defaultRegion, localized, siteOf, vendorName, vendorsFor, type Region, type Vendor } from 'cortico-provider-coo';
@@ -36,6 +38,8 @@ import { coreText } from './i18n/index.ts';
 import type { ModelLanguage } from './language.ts';
 
 const PET_GROUP = 'world:desktop-pet';
+/** The app's own settings group, where the app language is (`language`), as the 「习惯」 page saves it. */
+const APP_GROUP = 'companion';
 const USER_KEY = 'worlds.desktop-pet.user';
 const ROAM_KEY = 'worlds.desktop-pet.roam';
 const WAKE_KEY = 'worlds.desktop-pet.touch.wakeOn';
@@ -48,8 +52,15 @@ const OLD_DEFAULT_USERS = ['伙伴', '主人'];
 const MOTIONS = { off: 'still', calm: 'walk', free: 'run' } as const;
 /** Sentence-ending marks a reason comes with, taken off before it goes into a line of the introduction. */
 const trimEnd = (text: string) => text.replace(/[\s.!?。．！？]+$/, '');
-/** Numbered steps, for the dots at the top of the bubble. */
-const STEPS = 6;
+/** Steps, for the dots at the top of the bubble: the language page (step 0) and the six numbered ones. */
+const STEPS = 7;
+/**
+ * The language page's words: English, the language the most people who start Coopanion read, before any
+ * line in the language they pick. Not in core/i18n, since they never follow the app language.
+ */
+const LANGUAGE_PAGE = { ask: 'First things first: which language would you like?', ok: 'Continue' };
+/** How long the introduction waits for the picked language to reach the live config. */
+const LANGUAGE_WAIT_MS = 3000;
 /** How often a step waiting for the pet page looks again, and a download for its progress. */
 const POLL_MS = 500;
 
@@ -235,7 +246,8 @@ export async function runGuide(deps: GuideDeps): Promise<void> {
   const step = (n: number, line: string, d: PetDialog): Promise<PetDialogAnswer> => {
     if (n > reached) { reached = n; deps.track?.('guide_step', { step: n }); }
     at = line;
-    return t.show({ ...d, step: [n, STEPS], closable: true }).then((a) => {
+    // step 0, the language page, is the first dot; the numbers the statistics count (guide_step) stay as they were
+    return t.show({ ...d, step: [n + 1, STEPS], closable: true }).then((a) => {
       transcript.push(...noteStep(d, a, deps.modelLanguage?.() ?? 'zh'));
       if ('closed' in a) throw new Closed();
       return a;
@@ -245,7 +257,19 @@ export async function runGuide(deps: GuideDeps): Promise<void> {
     // a moment for Coo to land after the window opens
     while (!t.connected()) await sleep(POLL_MS);
     await sleep(1800);
-    // the language the introduction started in holds to its end
+    // 0 the language
+    const was = deps.language();
+    const preset: Language = guideDone(deps.doneFile) ? was : 'en';
+    const l = await step(0, 'language', {
+      text: LANGUAGE_PAGE.ask, actions: ['happy'],
+      input: { kind: 'choices', confirm: LANGUAGE_PAGE.ok, value: LANGUAGES.indexOf(preset), options: LANGUAGES.map((code) => ({ label: LANGUAGE_NAMES[code] })) },
+    });
+    const picked = LANGUAGES['index' in l ? l.index : LANGUAGES.indexOf(preset)] ?? preset;
+    if (picked !== was) {
+      await call('/api/config', { group: APP_GROUP, values: { language: picked } }).catch(() => {});
+      for (const until = Date.now() + LANGUAGE_WAIT_MS; deps.language() !== picked && Date.now() < until;) await sleep(100);
+    }
+    // the language picked holds to the introduction's end
     const language = deps.language();
     const S = lines(language);
     const defaultName = petText(language).defaultUser;
@@ -301,7 +325,7 @@ export async function runGuide(deps: GuideDeps): Promise<void> {
     const k = await currentConnection(call);
     if (k.ready) await step(4, 'key-ready', { text: S.keyAlready([k.vendor ? vendorName(k.vendor, language) : '', k.model].filter(Boolean).join(' · ')), actions: ['happy'] });
     else {
-      const ask: Omit<PetDialog, 'input'> = { text: S.askVendor(vendorName(vendorsFor(language).shown[0]!, language)), actions: ['thinking'], step: [4, STEPS] };
+      const ask: Omit<PetDialog, 'input'> = { text: S.askVendor(vendorName(vendorsFor(language).shown[0]!, language)), actions: ['thinking'], step: [5, STEPS] };
       const vendor = await connectLoop((d, line) => step(4, line, d), call, deps.pet, ask, S.keyLater, language);
       if (vendor) deps.track?.('model_connected', { via: 'guide', vendor: vendor.id });
       else await step(4, 'key-later', { text: S.keySkipped, actions: ['sad'] });
@@ -316,7 +340,7 @@ export async function runGuide(deps: GuideDeps): Promise<void> {
         input: { kind: 'buttons', options: [{ label: S.download, primary: true }, { label: S.notNow }] },
       });
       if ('index' in d && d.index === 0) {
-        const bar = deps.pet()?.dialog({ text: S.downloading, step: [5, STEPS], input: { kind: 'progress', label: `${mb} MB` } });
+        const bar = deps.pet()?.dialog({ text: S.downloading, step: [6, STEPS], input: { kind: 'progress', label: `${mb} MB` } });
         void deps.pet()?.installVoice();
         for (;;) {
           await sleep(POLL_MS);
