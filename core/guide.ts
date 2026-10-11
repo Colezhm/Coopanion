@@ -167,6 +167,8 @@ function talker(pet: () => DesktopPetWorld | null) {
 
 /** A service's logo as a data URL for a card in the bubble. */
 const logo = (v: Vendor) => `data:image/svg+xml;base64,${Buffer.from(VENDOR_ICONS[v.id] ?? '').toString('base64')}`;
+/** The 「more」 card's picture: a plus drawn like the logos (the page sets it on the same white tile), so the card lines up with them. */
+const MORE_ICON = `data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#5f6368" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>').toString('base64')}`;
 
 /**
  * The service picked on the cards: the services for `language`, and a last card that shows the
@@ -182,7 +184,7 @@ async function pickVendor(show: (d: PetDialog, at: string) => Promise<PetDialogA
       ...ask,
       input: {
         kind: 'choices', confirm: S.vendorOk, value: Math.max(0, list.indexOf(current ?? list[0]!)),
-        options: [...list.map((v) => ({ label: vendorName(v, language), image: logo(v) })), ...(folded ? [{ label: S.moreVendors }] : [])],
+        options: [...list.map((v) => ({ label: vendorName(v, language), image: logo(v) })), ...(folded ? [{ label: S.moreVendors, image: MORE_ICON }] : [])],
       },
     }, 'vendor');
     if ('closed' in picked) throw new Closed();
@@ -422,26 +424,57 @@ export async function askForKey(deps: Pick<GuideDeps, 'pet' | 'console' | 'track
   const call = api(deps.console, deps.language);
   let lastAsk = Date.now() - ASK_AGAIN_MS + firstAfterMs;
   let asked = false;
+  /**
+   * Its bubbles step aside for the introduction (the console's 「使用向导」 can start it while one is up): none
+   * opens while it runs, and one that is up closes when it starts; either way the ask ends with Closed.
+   */
+  const show = async (d: PetDialog): Promise<Exclude<PetDialogAnswer, { unavailable: true }>> => {
+    for (;;) {
+      while (!t.connected()) { if (running) throw new Closed(); await sleep(POLL_MS); }
+      if (running) throw new Closed();
+      const bubble = deps.pet()!.dialog(d);
+      let settled = false;
+      void (async () => { while (!settled && !running) await sleep(POLL_MS); if (!settled) bubble.close(); })();
+      const a = await bubble.answer;
+      settled = true;
+      if (running) throw new Closed();
+      if (!('unavailable' in a)) return a;
+      await sleep(POLL_MS);
+    }
+  };
   const connect = async (text: string, via: string) => {
-    const vendor = await connectLoop(t.show, call, deps.pet, { text, actions: ['thinking'], closable: true }, lines(deps.language()).askLater, deps.language()).catch(() => null);
+    // a failed call ends this ask only; the introduction taking over ends it too, and the loop waits for it
+    const vendor = await connectLoop(show, call, deps.pet, { text, actions: ['thinking'], closable: true }, lines(deps.language()).askLater, deps.language())
+      .catch((err: unknown) => { if (err instanceof Closed) throw err; return null; });
     if (vendor) deps.track?.('model_connected', { via, vendor: vendor.id });
   };
   while (!keySet()) {
     const ready = t.connected() && !running;
     const S = lines(deps.language());
-    if (ready && talked()) {
-      const a = await t.show({
-        text: S.noModel, actions: ['thinking'], closable: true,
-        input: { kind: 'buttons', options: [{ label: S.noModelGo, primary: true }, { label: S.noModelLater }] },
-      });
-      const go = 'index' in a && a.index === 0;
-      deps.track?.('key_prompt', { answer: go ? 'connect' : 'later' });
-      if (go) await connect(S.askVendor(vendorName(vendorsFor(deps.language()).shown[0]!, deps.language())), 'prompt');
-    } else if (ready && Date.now() - lastAsk >= ASK_AGAIN_MS) {
-      await connect(asked ? S.askAgain : S.askFirst, 'ask');
-    } else {
-      await sleep(KEY_POLL_MS);
-      continue;
+    try {
+      if (ready && talked()) {
+        const a = await show({
+          text: S.noModel, actions: ['thinking'], closable: true,
+          input: { kind: 'buttons', options: [{ label: S.noModelGo, primary: true }, { label: S.noModelLater }] },
+        });
+        const go = 'index' in a && a.index === 0;
+        deps.track?.('key_prompt', { answer: go ? 'connect' : 'later' });
+        if (go) await connect(S.askVendor(vendorName(vendorsFor(deps.language()).shown[0]!, deps.language())), 'prompt');
+      } else if (ready && Date.now() - lastAsk >= ASK_AGAIN_MS) {
+        await connect(asked ? S.askAgain : S.askFirst, 'ask');
+      } else {
+        await sleep(KEY_POLL_MS);
+        continue;
+      }
+    } catch (err) {
+      if (!(err instanceof Closed)) throw err;
+      // the introduction took over (it asks for the key itself): the next ask waits a full while after it;
+      // closed by the person, it counts as an ask like any other
+      if (running) {
+        while (running) await sleep(KEY_POLL_MS);
+        lastAsk = Date.now();
+        continue;
+      }
     }
     asked = true;
     lastAsk = Date.now();
