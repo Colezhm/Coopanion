@@ -70,7 +70,8 @@ export function onBody(layout, p) {
 
 /**
  * The window the halo is drawn in for a body with `layout` (readLayout's) on a `size` stage: its box with HALO_PAD
- * and HALO_REACH around it, in whole pixels inside the stage; null when there is no box to draw around.
+ * around it, and at least HALO_REACH or three times the halo's `reach`, in whole pixels inside the stage; null when
+ * there is no box to draw around.
  */
 export function haloRect(layout, size, reach = 7) {
   const b = layout?.box;
