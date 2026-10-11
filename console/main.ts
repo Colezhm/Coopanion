@@ -65,10 +65,11 @@ export const BASIC_FEATURES: readonly FrameworkFeature[] = [
  */
 export const FEATURES: readonly FrameworkFeature[] = [
   ...BASIC_FEATURES,
-  { ...providersFeature, label: L.model, navMode: 'group', navGroup: L.settings },
-  { ...extensionsFeature, navMode: 'group', navGroup: L.settings },
-  { ...traceFeature, navMode: 'group', navGroup: L.advanced },
-  { ...coreFeature, navMode: 'group', navGroup: L.advanced },
+  // the Model page keeps the providers page's own name (「模型供应商」), so the rail reads as the page's title
+  { ...providersFeature, navMode: 'group', navGroup: L.integrations },
+  { ...extensionsFeature, navMode: 'group', navGroup: L.integrations },
+  { ...traceFeature, navMode: 'group', navGroup: L.diagnostics },
+  { ...coreFeature, navMode: 'group', navGroup: L.diagnostics },
   worldsFeature,
 ];
 
@@ -77,13 +78,20 @@ function navRank(el: Element): number {
   if (el.classList.contains('navgroup-primary')) return 0;
   if (el.classList.contains('navgroup-world-tree')) return 1;
   const label = el.getAttribute('aria-label');
-  if (label === L.settings) return 2;
+  if (label === L.integrations) return 2;
   if (el.classList.contains('navgroup-persona')) return 3;
-  if (label === L.advanced) return 4;
+  if (label === L.diagnostics) return 4;
   return 5;
 }
 
 function orderNav(nav: Element): void {
+  // the persona group's title is the upstream shell's 「Persona & Memory」, not translated there: ours in its place
+  const persona = nav.querySelector<HTMLElement>(':scope > .navgroup-persona');
+  const title = persona?.querySelector(':scope > .stacklabel');
+  if (persona && title && title.textContent !== L.personaMemory) {
+    title.textContent = L.personaMemory;
+    persona.setAttribute('aria-label', L.personaMemory);
+  }
   const groups = [...nav.children];
   const sorted = [...groups].sort((a, b) => navRank(a) - navRank(b));
   if (sorted.every((g, i) => g === groups[i])) return;
