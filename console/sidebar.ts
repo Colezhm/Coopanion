@@ -60,7 +60,8 @@ export function mountSidebar(rail: HTMLElement, memo: ConsoleMemo, signal: Abort
   const foot = rail.querySelector<HTMLElement>('.railfoot');
   /**
    * The foot changes layout when the rail folds (a row of keys under the avatar, or one column), which CSS can't
-   * animate: grow or shrink its height and slide the avatar with its name, the keys and the run state from where they were (FLIP), the words fading as they go.
+   * animate: grow or shrink its height and slide the avatar with its name and the keys from where they were (FLIP),
+   * the run state's words riding along with the pause key as they fade.
    */
   const flip = (change: () => void): void => {
     const moving = foot && typeof foot.animate === 'function' && !win.matchMedia('(prefers-reduced-motion: reduce)')?.matches
@@ -72,10 +73,21 @@ export function mountSidebar(rail: HTMLElement, memo: ConsoleMemo, signal: Abort
     if (!foot || !moving.length) return;
     const options: KeyframeAnimationOptions = { duration: 260, easing: 'cubic-bezier(.22, 1, .36, 1)' };
     foot.animate([{ height: `${height}px`, boxSizing: 'border-box' }, { height: `${foot.getBoundingClientRect().height}px`, boxSizing: 'border-box' }], options);
+    const run = moving.findIndex((el) => el.matches('.rail-run'));
+    const runMove = run < 0 ? null : { x: moving[run]!.getBoundingClientRect().left - before[run]!.left, y: moving[run]!.getBoundingClientRect().top - before[run]!.top };
     moving.forEach((el, i) => {
       const now = el.getBoundingClientRect();
       const dx = before[i]!.left - now.left;
       const dy = before[i]!.top - now.top;
+      // the run state in words rides along with the pause key while it fades: folded it has no place of its own
+      // (it is taken out of the column), so sliding it to where it rests would send it to the corner
+      if (runMove && el.matches('.companion-runstate')) {
+        const [from, to] = collapsed
+          ? [[dx, dy], [dx + runMove.x, dy + runMove.y]]
+          : [[-runMove.x, -runMove.y], [0, 0]];
+        el.animate([{ transform: `translate(${from[0]}px, ${from[1]}px)` }, { transform: `translate(${to[0]}px, ${to[1]}px)` }], options);
+        return;
+      }
       if (dx || dy) el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], options);
     });
   };
