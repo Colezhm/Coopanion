@@ -19,6 +19,7 @@ import { post } from '../../core/api.ts';
 import { LANGUAGE } from '../../core/language.ts';
 import type { FeatureContext, FrameworkFeature } from '../feature.ts';
 import { intro } from '../intro.ts';
+import { revealWhenPainted } from '../frame-reveal.ts';
 import { mountSchemes } from './appearance.ts';
 import { readMode, requestMode } from '../mode.ts';
 import {
@@ -184,6 +185,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
   const petPill = ui.pill('—', 'off');
   pet.el.querySelector(':scope > h3')?.append(petPill);
   const preview = ui.h('iframe', 'home-petframe');
+  const reveal = revealWhenPainted(preview, signal);
   preview.title = S.petTitle;
   const petLine = ui.rowbar();
   petLine.classList.add('home-petactions');
@@ -284,6 +286,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
     hidePet.disabled = !onDesktop;
     if (petState?.url && preview.dataset.src !== petState.url) {
       preview.dataset.src = petState.url;
+      reveal.pend();
       preview.src = petState.url;
     }
   };

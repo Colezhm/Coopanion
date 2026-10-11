@@ -24,3 +24,5 @@
 .pet-voicebody .mountrow .mname{width:min-content; min-width:6.2em}
 .pet-voicebody .mountrow .mdetail{min-width:8em}
 .pet-voicebody .mountrow .macts{flex:0 1 auto; min-width:0; flex-wrap:wrap; justify-content:flex-end}
+/* no rule above the first row (识别引擎); its spacing stays */
+.pet-voicebody > .mountrow:first-child{border-top-color:transparent}

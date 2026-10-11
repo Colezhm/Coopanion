@@ -83,6 +83,10 @@ const zh = {
   overlayLabel: 'OBS 画面',
   overlay: '导出 OBS 画面',
   overlayHint: '在 OBS 添加「浏览器」来源，网址填写这个地址，宽度和高度设为屏幕分辨率。',
+  glow: '外发光',
+  glowOff: '关闭',
+  glowPx: (n: number) => `${n} px`,
+  glowHint: '桌宠和身后颜色相近时，身体周围的浅色外发光延伸多远；滑到最左为关闭。',
 };
 
 export const en: typeof zh = {
@@ -158,6 +162,10 @@ export const en: typeof zh = {
   overlayLabel: 'OBS overlay',
   overlay: 'Export OBS overlay',
   overlayHint: "In OBS, add a Browser source with this address and your screen's resolution as its width and height.",
+  glow: 'Outer glow',
+  glowOff: 'Off',
+  glowPx: (n: number) => `${n} px`,
+  glowHint: 'How far the light glow around the pet reaches when its colors match what is behind it; all the way left turns it off.',
 };
 
 export const S = pick({

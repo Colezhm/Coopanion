@@ -12,6 +12,7 @@ import type { FeatureContext, FrameworkFeature } from '../feature.ts';
 import { applyStoredTheme, disposeThemeStudio, getThemeStudio } from '../../theme/studio.ts';
 import type { InjectedTheme } from '../../../shared/theme.ts';
 import { intro } from '../intro.ts';
+import { revealWhenPainted } from '../frame-reveal.ts';
 import { S } from './strings.ts';
 
 const PET_PAGE = 'world:desktop-pet';
@@ -25,6 +26,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
   root.classList.add('home');
 
   const frame = ui.h('iframe', 'companion-dressframe');
+  const reveal = revealWhenPainted(frame, signal);
   frame.title = S.nav;
   // shown only while the pet is not ready
   const note = ui.h('p', null, S.noPet);
@@ -60,6 +62,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
       frame.dataset.origin = target.origin;
       target.searchParams.set('appearance', appearance());
       target.searchParams.set('fit', '1');
+      reveal.pend();
       frame.src = target.href;
     }
   };
