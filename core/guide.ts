@@ -31,7 +31,7 @@
  */
 import { existsSync, writeFileSync } from 'node:fs';
 import { LANGUAGES, LANGUAGE_NAMES, type Language } from 'cortico/core/language.ts';
-import type { DesktopPetWorld, PetDialog, PetDialogAnswer } from 'cortico-world-desktop-pet';
+import type { DesktopPetWorld, PetDialog, PetDialogAnswer, PetDialogHandle } from 'cortico-world-desktop-pet';
 import { USER_MAX, capFor, petText } from 'cortico-world-desktop-pet';
 import { VENDOR_ICONS, defaultRegion, localized, siteOf, vendorName, vendorsFor, type Region, type Vendor } from 'cortico-provider-coo';
 import { connectVendor, currentConnection, type ConsoleCall } from 'cortico-provider-coo/src/connect.ts';
@@ -65,8 +65,6 @@ const languageCard = (code: Language) => {
   const [, name, region] = /^(.*?)\s*\((.+)\)$/.exec(LANGUAGE_NAMES[code]) ?? [];
   return name && region ? { label: name, note: region } : { label: LANGUAGE_NAMES[code] };
 };
-/** How long the introduction waits for the picked language to reach the live config. */
-const LANGUAGE_WAIT_MS = 3000;
 /** How often a step waiting for the pet page looks again, and a download for its progress. */
 const POLL_MS = 500;
 
@@ -239,11 +237,14 @@ const keyInput = (v: Vendor, region: Region, language: Language, later: string):
 });
 
 let running = false;
+/** askForKey's bubble while it is up; the introduction closes it when it starts. */
+let asking: PetDialogHandle | null = null;
 
 /** Runs the introduction; a second call while it runs does nothing. */
 export async function runGuide(deps: GuideDeps): Promise<void> {
   if (running) return;
   running = true;
+  asking?.close();
   const t = talker(deps.pet);
   const call = api(deps.console, deps.language);
   let reached = 0;
@@ -269,10 +270,9 @@ export async function runGuide(deps: GuideDeps): Promise<void> {
     const was = deps.language();
     const firstStart = !guideDone(deps.doneFile);
     const preset: Language = firstStart ? 'en' : was;
+    // the config API writes the live config before it answers; a failed write leaves the language as it was
     const useLanguage = async (next: Language) => {
-      if (next === deps.language()) return;
-      await call('/api/config', { group: APP_GROUP, values: { language: next } }).catch(() => {});
-      for (const until = Date.now() + LANGUAGE_WAIT_MS; deps.language() !== next && Date.now() < until;) await sleep(100);
+      if (next !== deps.language()) await call('/api/config', { group: APP_GROUP, values: { language: next } }).catch(() => {});
     };
     const l = await step(0, 'language', {
       text: LANGUAGE_PAGE.ask, actions: ['happy'],
@@ -282,7 +282,7 @@ export async function runGuide(deps: GuideDeps): Promise<void> {
       if (err instanceof Closed && firstStart) await useLanguage('en');
       throw err;
     });
-    await useLanguage(LANGUAGES['index' in l ? l.index : LANGUAGES.indexOf(preset)] ?? preset);
+    await useLanguage('index' in l ? LANGUAGES[l.index]! : preset);
     // the language picked holds to the introduction's end
     const language = deps.language();
     const S = lines(language);
@@ -426,17 +426,15 @@ export async function askForKey(deps: Pick<GuideDeps, 'pet' | 'console' | 'track
   let asked = false;
   /**
    * Its bubbles step aside for the introduction (the console's 「使用向导」 can start it while one is up): none
-   * opens while it runs, and one that is up closes when it starts; either way the ask ends with Closed.
+   * opens while it runs, and runGuide closes the one up; either way the ask ends with Closed.
    */
   const show = async (d: PetDialog): Promise<Exclude<PetDialogAnswer, { unavailable: true }>> => {
     for (;;) {
-      while (!t.connected()) { if (running) throw new Closed(); await sleep(POLL_MS); }
+      while (!running && !t.connected()) await sleep(POLL_MS);
       if (running) throw new Closed();
-      const bubble = deps.pet()!.dialog(d);
-      let settled = false;
-      void (async () => { while (!settled && !running) await sleep(POLL_MS); if (!settled) bubble.close(); })();
-      const a = await bubble.answer;
-      settled = true;
+      asking = deps.pet()!.dialog(d);
+      const a = await asking.answer;
+      asking = null;
       if (running) throw new Closed();
       if (!('unavailable' in a)) return a;
       await sleep(POLL_MS);
