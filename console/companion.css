@@ -89,6 +89,8 @@ body.companion-sidebar { display: flex; height: 100dvh; overflow: hidden; }
    bottom, so while its height animates (sidebar.ts) they stay put relative to the window's bottom */
 #rail .railfoot { display: flex; flex: none; flex-wrap: wrap; align-content: flex-end; padding: 12px 16px 16px; gap: 10px; border-top: 1px solid var(--border); overflow: hidden; }
 #rail .rail-who { flex-basis: 100%; }
+/* open, the avatar's left edge is on the line of the nav's active bar (x=13); folded it is centred on the icons again */
+#rail:not(.is-collapsed) .rail-who { margin-left: -6px; }
 #rail .rail-actions { width: 100%; gap: 6px; justify-content: flex-start; }
 #rail .companion-runstate { margin-left: 2px; }
 #rail .rail-action { flex: none; width: 40px; height: 32px; }
