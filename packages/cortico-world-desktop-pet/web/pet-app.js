@@ -1328,6 +1328,17 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ---------- layout ---------- */
+/**
+ * Bubbles up to TAIL_CENTER wide (empty, or a word or two) point their tail from their middle; wider ones
+ * move it over to Coo by TAIL_FOLLOW wide (#139). Between the two it slides, so a bubble growing as the line
+ * types out carries its tail along with it.
+ */
+const TAIL_CENTER = 70, TAIL_FOLLOW = 130;
+/** Where the tail's tip sits along a bubble `bw` wide whose left edge is `x` left of Coo. */
+function tailAt(bw, x) {
+  const k = clamp((bw - TAIL_CENTER) / (TAIL_FOLLOW - TAIL_CENTER), 0, 1);
+  return bw / 2 + (clamp(x, 22, bw - 22) - bw / 2) * k;
+}
 function place(el, a, extraUp, side) {
   const bw = el.offsetWidth, bh = el.offsetHeight;
   const cx = a.x + side * (bw / 2 + 10);
@@ -1335,7 +1346,7 @@ function place(el, a, extraUp, side) {
   const top = Math.max(8, a.y - bh - extraUp);
   el.style.left = f(left) + 'px';
   el.style.top = f(top) + 'px';
-  el.style.setProperty('--tail', f(clamp(a.x - left, 22, bw - 22)) + 'px');
+  el.style.setProperty('--tail', f(tailAt(bw, a.x - left)) + 'px');
   return { left, top, bw, bh };
 }
 function placeTalk(it, a) {
@@ -1344,7 +1355,7 @@ function placeTalk(it, a) {
   const top = Math.max(8, it.pinY - bh - 18);
   bubble.style.left = f(left) + 'px';
   bubble.style.top = f(top) + 'px';
-  bubble.style.setProperty('--tail', f(clamp(a.x - left, 22, bw - 22)) + 'px');
+  bubble.style.setProperty('--tail', f(tailAt(bw, a.x - left)) + 'px');
   return { left, top, bw, bh };
 }
 
