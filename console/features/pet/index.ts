@@ -85,8 +85,8 @@ interface ConfigEntry { group: { id: string }; values?: Record<string, unknown> 
 
 /** The size range (as SCALE_MIN, SCALE_MAX in the World's config.ts) and where the slider's short stretch starts; the frame-rate choices, 0 following the display. */
 const SCALE_MIN = .5, SCALE_SOFT_MAX = 2, SCALE_MAX = 10;
-/** The halo's reach in pixels, as GLOW_MAX in the World's config.ts: 0 turns it off. */
-const GLOW_MAX = 16;
+/** The halo's reach in pixels, as GLOW_MAX and GLOW_DEFAULT in the World's config.ts: 0 turns it off. */
+const GLOW_MAX = 16, GLOW_DEFAULT = 7;
 const FRAME_RATES = [60, 120, 144, 0];
 
 /** While the size slider moves, at most one save per this many milliseconds. */
@@ -131,7 +131,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
   const glowText = ui.h('span', 'companion-rangeval');
   const glowBox = ui.h('div', 'companion-rangebox');
   const glow = scaleSlider(root.ownerDocument, {
-    min: 0, soft: GLOW_MAX, max: GLOW_MAX, step: 1, label: S.glow, format: (v) => glowLabel(v),
+    min: 0, soft: GLOW_MAX, max: GLOW_MAX, step: 1, label: S.glow, format: glowLabel,
     room: () => glowBox.clientWidth - glowText.offsetWidth - 12,
     onInput: () => showGlow(),
     onChange: () => { showGlow(); void save(KEYS.glow, glow.value, GROUP, displayMsg); },
@@ -430,7 +430,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
     }
     if (typeof values[KEYS.roam] === 'string') roam.setValue(values[KEYS.roam] as string);
     if (typeof values[KEYS.scale] === 'number' && !scale.active && active !== scale.el) { scale.set(values[KEYS.scale] as number); showScale(); }
-    if (!glow.active && active !== glow.el) { glow.set(typeof values[KEYS.glow] === 'number' ? values[KEYS.glow] as number : 7); showGlow(); }
+    if (!glow.active && active !== glow.el) { glow.set(typeof values[KEYS.glow] === 'number' ? values[KEYS.glow] as number : GLOW_DEFAULT); showGlow(); }
     if (typeof values[KEYS.frameRate] === 'number') frameRate.setValue(String(values[KEYS.frameRate]));
     if (typeof soundValues[KEYS.sound] === 'boolean') sound.setChecked(soundValues[KEYS.sound] as boolean);
     for (const [kind, c] of kinds) {
