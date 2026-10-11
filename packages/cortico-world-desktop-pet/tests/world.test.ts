@@ -8,6 +8,7 @@ import { renderTemplate } from 'cortico/core/template.ts';
 import { DESKTOP_PET } from '../src/definition.ts';
 import { DESKTOP_PET_DEFAULTS, SELF_DEFAULT, type DesktopPetConfigSection } from '../src/config.ts';
 import { DesktopPetWorld, type DesktopPetWorldOptions, type PetBotControls } from '../src/world.ts';
+import { chatItem } from '../src/chat.ts';
 import { FakeHost } from './helpers/fake-host.ts';
 import { FakePage } from './helpers/page.ts';
 
@@ -559,6 +560,42 @@ describe('chat page', () => {
     await expect.poll(() => chat.last('init')).toBeDefined();
     expect((chat.last('init')!.items as Array<Record<string, unknown>>).map((i) => i.kind === 'say' ? i.beats : i.text))
       .toEqual(['帮我看看这个报错', [{ text: '看到了', mood: { id: 'happy', zh: '开心' } }]]);
+  });
+
+  it('pet_say images show on the chat page as they were when shown, live and in history', async () => {
+    const { world, host } = await mounted();
+    const page = await FakePage.open(origin(world));
+    cleanup.push(() => page.close());
+    const chat = chatSocket(world);
+    host.mem.set('mem:blobs/cat.png', { bytes: Buffer.from('cat-before'), mime: 'image/png' });
+    const shot = host.logBlobs.put(Buffer.from('screen'), 'image/jpeg');
+
+    const out = await tool(world, 'pet_say').handler({ script: '看这个', images: ['mem:blobs/cat.png', shot] }, ctx);
+    expect(out).not.toMatchObject({ failed: true });
+    await expect.poll(() => (chat.last('item')?.item as { kind?: string } | undefined)?.kind).toBe('say');
+    const refs = ((chat.last('item')!.item as { images: Array<{ ref: string }> }).images).map((i) => i.ref);
+    expect(refs.every((r) => r.startsWith('log:'))).toBe(true);
+
+    host.mem.set('mem:blobs/cat.png', { bytes: Buffer.from('cat-after'), mime: 'image/png' });
+    chat.send({ t: 'hello' });
+    await expect.poll(() => chat.last('init')).toBeDefined();
+    const say = (chat.last('init')!.items as Array<{ kind: string; images?: Array<{ ref: string }> }>).find((i) => i.kind === 'say')!;
+    expect(say.images!.map((i) => i.ref)).toEqual(refs);
+    expect(refs.map((r) => Buffer.from(host.blob(r)!.bytes).toString())).toEqual(['cat-before', 'screen']);
+  });
+
+  it('pet_say with only images needs no pet window; an unreadable or non-image handle stores nothing', async () => {
+    const { world, host } = await mounted();
+    const shot = host.logBlobs.put(Buffer.from('screen'), 'image/png');
+    const notes = host.logBlobs.put(Buffer.from('text'), 'text/plain');
+
+    expect(await tool(world, 'pet_say').handler({ script: '', images: ['log:00000000deadbeef.png'] }, ctx)).toMatchObject({ failed: true });
+    expect(await tool(world, 'pet_say').handler({ script: '', images: [notes] }, ctx)).toMatchObject({ failed: true });
+    expect(host.stored).toHaveLength(0);
+
+    expect(await tool(world, 'pet_say').handler({ script: '', images: [shot] }, ctx)).not.toMatchObject({ failed: true });
+    await expect.poll(() => host.stored.length).toBe(1);
+    expect(chatItem(host.stored[0]!)).toMatchObject({ kind: 'say', beats: [], images: [{ mime: 'image/png' }] });
   });
 
   it('shows the figure and dress switches the person makes, not the ones the bot makes', async () => {

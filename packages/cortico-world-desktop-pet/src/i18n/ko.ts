@@ -173,7 +173,6 @@ const ko: Translation<PetText> = {
       'pet.chat': '앱에 대화 페이지가 있으면 그에 대한 설명, 없으면 빈 값',
       'pet.reply': '앱 언어가 중국어 간체도 영어도 아닐 때 봇에게 그 언어로 말하라고 알리는 한 줄, 그 외에는 빈 값',
     },
-    noImage: '해당 이미지가 없습니다',
     noGuide: '이 앱에는 시작 안내가 없습니다',
     unknownMethod: (name: string) => `알 수 없는 메서드 ${name}`,
   },

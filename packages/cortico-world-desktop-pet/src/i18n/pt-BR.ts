@@ -173,7 +173,6 @@ const ptBR: Translation<PetText> = {
       'pet.chat': 'Uma nota sobre a página de chat quando o app tem uma; vazio caso contrário',
       'pet.reply': 'Uma linha que diz ao bot em que idioma falar quando o idioma do app não é chinês simplificado nem inglês; vazio caso contrário',
     },
-    noImage: 'Essa imagem não existe',
     noGuide: 'Este app não tem introdução',
     unknownMethod: (name: string) => `Método desconhecido ${name}`,
   },

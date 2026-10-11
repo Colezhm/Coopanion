@@ -173,7 +173,6 @@ const zhHant: Translation<PetText> = {
       'pet.chat': '應用程式提供對話頁時，對它的說明；沒有時為空',
       'pet.reply': '應用程式語言既不是簡體中文也不是英文時，讓 bot 用那種語言說話的一句；否則為空',
     },
-    noImage: '沒有這張圖',
     noGuide: '這個應用程式沒有引導',
     unknownMethod: (name: string) => `未知的方法 ${name}`,
   },

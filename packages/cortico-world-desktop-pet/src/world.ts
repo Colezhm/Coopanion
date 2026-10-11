@@ -58,7 +58,7 @@ export function desktopPetPanelDecls(language: Language = 'zh'): WorldPanelDecl[
   return [
     { id: 'pet', ...p.pet, getMethods: ['state'] },
     { id: 'voice', ...p.voice, getMethods: ['state'] },
-    { id: 'chat', ...p.chat, getMethods: ['blob'] },
+    { id: 'chat', ...p.chat },
   ];
 }
 
@@ -1126,11 +1126,11 @@ export class DesktopPetWorld implements World {
   }
 
   /** Stores what the pet said or did for the chat page; never delivered to the bot. Resolves to its cursor. */
-  private async record(meta: Record<string, unknown>, text: string): Promise<number | null> {
+  private async record(meta: Record<string, unknown>, text: string, blobs: BlobInput[] = []): Promise<number | null> {
     const host = this.host;
     if (!host) return null;
     try {
-      const e = await host.pushEvent({ type: SELF_TYPE, source: this.id, senderKey: SELF_TYPE, ts: nowIso(this.opts.timezone), text, meta }, { deliver: false });
+      const e = await host.pushEvent({ type: SELF_TYPE, source: this.id, senderKey: SELF_TYPE, ts: nowIso(this.opts.timezone), text, meta, ...(blobs.length ? { blobs } : {}) }, { deliver: false });
       const item = chatItem(e);
       if (item) this.chat.broadcast({ t: 'item', item });
       return e.cursor;
@@ -1466,21 +1466,40 @@ export class DesktopPetWorld implements World {
 
   private async say(args: Record<string, unknown>): Promise<ToolOutcome> {
     const script = typeof args.script === 'string' ? args.script : '';
+    const shown = this.shownImages(args.images);
+    if (!shown.ok) return { text: shown.reason, failed: true };
     const { beats, dropped } = parseScript(script, this.vocab());
-    if (!beats.some((b) => b.text || b.actions.length || b.anchors.length)) {
-      return { text: this.t.sayEmpty, failed: true };
-    }
-    const id = nextId('s');
-    if (!this.server.sendPet({ t: 'say', id, beats })) return this.notConnected('pet_say');
+    const spoken = beats.some((b) => b.text || b.actions.length || b.anchors.length);
+    if (!spoken && shown.blobs.length === 0) return { text: this.t.sayEmpty, failed: true };
+    if (spoken && !this.server.sendPet({ t: 'say', id: nextId('s'), beats })) return this.notConnected('pet_say');
     void this.closeActivity();
-    void this.record({ kind: 'say', beats: beats.map((b) => ({ text: b.text, ...moodOf(b.actions, this.vocab()) })) }, beats.map((b) => b.text).join(''));
+    void this.record({ kind: 'say', beats: beats.map((b) => ({ text: b.text, ...moodOf(b.actions, this.vocab()) })) }, beats.map((b) => b.text).join(''), shown.blobs);
+    if (!spoken) return { text: this.t.imagesShown(shown.blobs.length, this.chat.size > 0) };
     const now = Date.now();
     const selfSec = estimateSeconds(beats);
     const waitSec = Math.max(0, (this.busyUntil - now) / 1000);
     this.busyUntil = Math.max(now, this.busyUntil) + selfSec * 1000;
     const replaced = this.ask?.question ?? null;
     if (this.ask) this.setAsk(null);
-    return { text: this.t.sayReceipt({ waitSec, selfSec, chatOpen: this.chat.size > 0, replaced, dropped }) };
+    return { text: this.t.sayReceipt({ waitSec, selfSec, chatOpen: this.chat.size > 0, replaced, dropped, images: shown.blobs.length }) };
+  }
+
+  /**
+   * The images of a `pet_say`: each handle is read through the host and attached again as bytes,
+   * so the stored line keeps the picture it showed after a Memory file changes.
+   */
+  private shownImages(raw: unknown): { ok: true; blobs: BlobInput[] } | { ok: false; reason: string } {
+    if (raw === undefined) return { ok: true, blobs: [] };
+    if (!Array.isArray(raw) || raw.some((h) => typeof h !== 'string')) return { ok: false, reason: this.t.imagesNotHandles };
+    if (raw.length > IMAGES_MAX) return { ok: false, reason: this.t.tooManyImages(IMAGES_MAX) };
+    const blobs: BlobInput[] = [];
+    for (const [i, handle] of (raw as string[]).entries()) {
+      const got = this.host?.blob(handle);
+      if (!got) return { ok: false, reason: this.t.imageMissing(handle) };
+      if (!got.mime.startsWith('image/')) return { ok: false, reason: this.t.imageNotImage(handle, got.mime) };
+      blobs.push({ bytes: got.bytes, mime: got.mime, fallbackText: this.t.shownImage(i + 1, raw.length) });
+    }
+    return { ok: true, blobs };
   }
 
   private async askUser(args: Record<string, unknown>): Promise<ToolOutcome> {
@@ -1689,12 +1708,6 @@ export class DesktopPetWorld implements World {
   }
 
   private async invoke(panel: string, method: string, args: unknown[]): Promise<unknown> {
-    if (panel === 'chat' && method === 'blob') {
-      const handle = typeof args[0] === 'string' && args[0].startsWith('log:') ? args[0] : null;
-      const blob = handle ? this.host?.blob(handle) : null;
-      if (!blob) throw new Error(this.ui.console.noImage);
-      return { $binary: { mime: blob.mime, base64: Buffer.from(blob.bytes).toString('base64') } };
-    }
     if (panel === 'pet') {
       switch (method) {
         case 'state': return this.petState();

@@ -199,7 +199,6 @@ const en: PetText = {
       'pet.chat': 'A note on the chat page when the app has one; empty otherwise',
       'pet.reply': 'A line telling the bot which language to talk in when the app language is neither Simplified Chinese nor English; empty otherwise',
     },
-    noImage: 'No such image',
     noGuide: 'This app has no introduction',
     unknownMethod: (name: string) => `Unknown method ${name}`,
   },

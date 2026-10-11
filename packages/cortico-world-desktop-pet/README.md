@@ -18,7 +18,7 @@ bot 在屏幕底边有一个小身体,由一个形象包提供(见下文):内置
 
 | 工具 | 作用 | 回执 |
 |---|---|---|
-| `pet_say(script)` | 冒气泡说话;`【词】` 先做动作再换新气泡,`<词>` 打字到那里时做 | 立即返回,报约显示多久、前面排了多久 |
+| `pet_say(script, images?)` | 冒气泡说话;`【词】` 先做动作再换新气泡,`<词>` 打字到那里时做。`images` 是附件句柄,图片只显示在对话页;只有图片时不要求桌宠窗口在线 | 立即返回,报约显示多久、前面排了多久 |
 | `pet_ask(question, options, allowOwnAnswer)` | 提问气泡,最多 3 个选项,默认再加一格自己写 | 立即返回;回答以 `[回答]` 事件送达 |
 | `pet_walk_to(to, run)` | 走(跑)到桌宠所在屏幕横向 0–1 处,或 `left` `center` `right` `cursor` | 走到或被打断才返回,最多 30 秒;`interruptible`,收到 interrupt 时停在原地并写明位置 |
 | `pet_act(actions)` | 不说话,依次做一串表情或动作 | 立即返回;词表里标着保持的词(Coo 的 `sit` `sleep`)保持到下个动作 |
@@ -290,7 +290,7 @@ Windows 上经 koffi 轮询 Win32 `GetAsyncKeyState` 读取;macOS 上轮询 Core
 控制台页 `world:desktop-pet` 的 `chat` 面板是一条推送连接(`src/chat.ts`),应用拿它做对话页:
 
 - 页面发 `send` 的文字和图片作为 `desktop-pet.message` 投递;送达前在页面上排队,`now` 让它以 interrupt 立即送达,`withdraw` 撤回(需要宿主提供 `promotePending` / `withdrawPending`);World 的 `onEventsSettled` 告诉页面何时送达。
-- `pet_say` 的每一拍、`pet_ask` 的问题、两句话之间调用过的工具名记为 `desktop-pet.self` 事件,只落库不投递;`hello` 时 World 从事件库还原历史,排过队的消息放在送达的位置。`blob`(GET)取消息里的图片。
+- `pet_say` 的每一拍、`pet_ask` 的问题、两句话之间调用过的工具名记为 `desktop-pet.self` 事件,只落库不投递;`hello` 时 World 从事件库还原历史,排过队的消息放在送达的位置。`pet_say` 的图片按句柄读出字节后重新附在这条事件上,存成 `log:` 附件。页面经控制台的 `/api/blob` 取消息里的图片。
 - `pet_ask` 在页面上也能回答,回答后桌宠上的气泡关掉。页面还收到 Core 的运行阶段(`phase`)与暂停状态。
 - `controls.openChat` 借出后,打字气泡多一个展开钮,带着草稿打开对话页;环境提示词的 `{{pet.chat}}` 也只在这时说明对话页。
 

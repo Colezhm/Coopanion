@@ -15,11 +15,12 @@ export const petToolDecls = (language: Language = 'zh'): Array<Omit<ToolDef, 'ha
   {
     name: 'pet_say',
     tags: ['speak'],
-    description: 'Say something in a speech bubble above the pet. Expressions and motions go into the script as markers: 【…】 plays them first and then starts a new bubble; <…> plays them when the typing reaches that point. The receipt says roughly how long it stays on screen; fails when the pet window is not connected.',
+    description: 'Say something in a speech bubble above the pet. Expressions and motions go into the script as markers: 【…】 plays them first and then starts a new bubble; <…> plays them when the typing reaches that point. The receipt says roughly how long it stays on screen; a non-empty script fails when the pet window is not connected.',
     parameters: {
       type: 'object',
       properties: {
-        script: { type: 'string', description: 'What to say, with optional 【expression, motion】 and <expression> markers. One or two sentences per bubble. Do not call this when you have nothing to say.' },
+        script: { type: 'string', description: 'What to say, with optional 【expression, motion】 and <expression> markers. One or two sentences per bubble. May be empty when images carry the message. Do not call this when you have nothing to say.' },
+        images: { type: 'array', items: { type: 'string' }, description: 'Images to show the person with this line, each given by the handle that starts a [blob …] line in your context. They appear on the chat page only, not in the bubble.' },
       },
       required: ['script'],
     },

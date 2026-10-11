@@ -173,7 +173,6 @@ const it: Translation<PetText> = {
       'pet.chat': "Una nota sulla pagina chat quando l'app ne ha una; altrimenti vuoto",
       'pet.reply': "Una riga che dice al bot in che lingua parlare quando la lingua dell'app non è né il cinese semplificato né l'inglese; altrimenti vuoto",
     },
-    noImage: 'Immagine inesistente',
     noGuide: "Quest'app non ha un'introduzione",
     unknownMethod: (name: string) => `Metodo sconosciuto ${name}`,
   },

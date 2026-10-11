@@ -20,7 +20,7 @@ const CHAT_TYPES = new Set(['desktop-pet.message', 'desktop-pet.speech', 'deskto
 /** Tools whose work shows as the pet's own lines, not as steps. */
 export const SPOKEN_TOOLS = new Set(['pet_say', 'pet_ask']);
 
-/** One image of a message: `ref` is the attachment handle the page fetches through the `blob` method. */
+/** One image of a message: `ref` is the attachment handle; the page fetches its bytes from the console's `/api/blob`. */
 export interface WireImage { ref: string; mime: string; name?: string }
 
 /** A touch as the chat page tells it: `poke`, `pet`, `throw`, `drop` or `crash`, how many times, and whether it woke the pet or the pet crashed. */
@@ -38,12 +38,15 @@ export type ChatItem =
   /** `text` for touches stored before they were stored as `touch`. */
   | { kind: 'touch'; cursor: number; ts: string; touch?: ChatTouch; text?: string }
   | { kind: 'figure'; cursor: number; ts: string; figure: ChatFigure }
-  | { kind: 'say'; cursor: number; ts: string; beats: SayBeat[] }
+  | { kind: 'say'; cursor: number; ts: string; beats: SayBeat[]; images?: WireImage[] }
   | { kind: 'ask'; cursor: number; ts: string; askId: string; question: string; options: string[]; own: boolean }
   | { kind: 'activity'; cursor: number; ts: string; steps: string[]; ms: number };
 
 type Meta = Record<string, unknown>;
 const str = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
+
+const wireImages = (e: EventEnvelope): WireImage[] => (e.blobs ?? []).filter((b) => b.mime.startsWith('image/'))
+  .map((b) => ({ ref: b.handle, mime: b.mime, ...(b.name ? { name: b.name } : {}) }));
 
 /** A stored event as the chat shows it; null for events the chat leaves out. */
 export function chatItem(e: EventEnvelope): ChatItem | null {
@@ -55,8 +58,7 @@ export function chatItem(e: EventEnvelope): ChatItem | null {
     case 'desktop-pet.speech': {
       const text = str(m.text);
       if (text === undefined) return null;
-      const images = (e.blobs ?? []).filter((b) => b.mime.startsWith('image/'))
-        .map((b) => ({ ref: b.handle, mime: b.mime, ...(b.name ? { name: b.name } : {}) }));
+      const images = wireImages(e);
       const via = e.type === 'desktop-pet.speech' ? 'voice' : m.via === 'chat' ? 'chat' : 'bubble';
       return { kind: 'user', ...base, via, text, ...(images.length ? { images } : {}) };
     }
@@ -86,7 +88,8 @@ export function chatItem(e: EventEnvelope): ChatItem | null {
     default: {
       if (m.kind === 'say' && Array.isArray(m.beats)) {
         const beats = (m.beats as Meta[]).flatMap((b) => (typeof b.text === 'string' && b.text ? [{ text: b.text, ...(b.mood && typeof b.mood === 'object' ? { mood: b.mood as Record<string, string> } : {}) }] : []));
-        return beats.length ? { kind: 'say', ...base, beats } : null;
+        const images = wireImages(e);
+        return beats.length || images.length ? { kind: 'say', ...base, beats, ...(images.length ? { images } : {}) } : null;
       }
       if (m.kind === 'ask' && str(m.askId) && str(m.question)) {
         const options = Array.isArray(m.options) ? m.options.filter((o): o is string => typeof o === 'string') : [];

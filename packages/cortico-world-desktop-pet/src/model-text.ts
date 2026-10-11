@@ -22,6 +22,8 @@ interface SayReceipt {
   replaced: string | null;
   /** Markers left out: not in the vocabulary. */
   dropped: string[];
+  /** Images shown with it on the chat page. */
+  images: number;
 }
 
 interface AskReceipt {
@@ -87,11 +89,21 @@ const zh = {
     exited: (code: number | null) => `窗口进程退出(退出码 ${code})`,
   },
 
-  sayEmpty: '[pet_say 没执行] 脚本是空的。不想说话就不调用。',
+  sayEmpty: '[pet_say 没执行] 脚本是空的,也没带图片。不想说话就不调用。',
   sayReceipt: (r: SayReceipt) => `${r.waitSec > .5 ? `已排队,前面还有约 ${Math.round(r.waitSec)} 秒` : '已开始显示'},这段约 ${Math.round(r.selfSec)} 秒。`
     + (r.chatOpen ? '对话页开着,这段也显示在那里。' : '')
+    + (r.images ? `附带的 ${r.images} 张图片只显示在对话页。` : '')
     + (r.replaced !== null ? `替换了还没回答的提问「${r.replaced}」。` : '')
     + (r.dropped.length ? `\n[执行参数] 当前形象的词表里没有这些标记,已略过:${r.dropped.join('、')}。` : ''),
+
+  /** `pet_say` with images and an empty script. */
+  imagesShown: (n: number, chatOpen: boolean) => `${n} 张图片已显示在对话页${chatOpen ? '' : ',对话页现在没有打开'}。`,
+  /** fallbackText of an image `pet_say` showed; that event is stored, never delivered. */
+  shownImage: (i: number, total: number) => `[对话页上展示的图片 ${i}/${total}]`,
+  imagesNotHandles: '[pet_say 没执行] images 要填附件句柄组成的数组。',
+  tooManyImages: (max: number) => `[pet_say 没执行] images 最多 ${max} 个。`,
+  imageMissing: (handle: string) => `[pet_say 没执行] 读不到附件 ${handle}。images 填上下文里 [blob …] 行开头的句柄。`,
+  imageNotImage: (handle: string, mime: string) => `[pet_say 没执行] ${handle} 是 ${mime},不是图片。`,
 
   askEmpty: '[pet_ask 没执行] question 是空的。',
   askNoWay: '[pet_ask 没执行] 没有选项,又不允许自己写,没法作答。',
@@ -135,7 +147,7 @@ const zh = {
   /** `{{pet.self}}` while the person allows no change. */
   selfNone: (user: string) => `${user}在「习惯」页把「自主配置权限」设成了「禁止」,现在这些你都改不了,\`pet_quiet\` 也用不了。`,
   /** `{{pet.chat}}`, when the app has a chat page. */
-  chatPage: (_user: string) => '应用的「对话」页按时间列出这些气泡、对方的话,以及你两句话之间调用过的工具名;对方也能在那里打字、发图片(同样是 `[打字]` 事件,图片接在正文后),回答 `pet_ask`。',
+  chatPage: (_user: string) => '应用的「对话」页按时间列出这些气泡、对方的话,以及你两句话之间调用过的工具名;对方也能在那里打字、发图片(同样是 `[打字]` 事件,图片接在正文后),回答 `pet_ask`。`pet_say` 带的 `images` 只显示在对话页,头顶气泡不显示。',
   /** `{{pet.reply}}`: the language to talk to the person in, named by the app. */
   reply: (user: string, language: string) => `对${user}说的话,气泡、提问和选项,都用${language}。`,
 };
@@ -188,15 +200,23 @@ const en: typeof zh = {
     exited: (code) => `The window process exited (exit code ${code})`,
   },
 
-  sayEmpty: '[pet_say not run] The script is empty. Do not call it when you have nothing to say.',
+  sayEmpty: '[pet_say not run] The script is empty and there are no images. Do not call it when you have nothing to say.',
   sayReceipt: (r) => [
     r.waitSec > .5
       ? `Queued behind about ${Math.round(r.waitSec)} s of earlier lines; this one takes about ${Math.round(r.selfSec)} s.`
       : `Showing now; this one takes about ${Math.round(r.selfSec)} s.`,
     r.chatOpen ? 'The chat page is open and shows it too.' : '',
+    r.images ? `The ${r.images} image${r.images > 1 ? 's' : ''} with it show only on the chat page.` : '',
     r.replaced !== null ? `Replaced the unanswered question "${r.replaced}".` : '',
   ].filter(Boolean).join(' ')
     + (r.dropped.length ? `\n[arguments] These markers are not in the current figure's vocabulary and were skipped: ${r.dropped.join(', ')}.` : ''),
+
+  imagesShown: (n, chatOpen) => `${n} image${n > 1 ? 's' : ''} shown on the chat page${chatOpen ? '' : ', which is not open right now'}.`,
+  shownImage: (i, total) => `[image ${i}/${total} shown on the chat page]`,
+  imagesNotHandles: '[pet_say not run] images takes an array of attachment handles.',
+  tooManyImages: (max) => `[pet_say not run] images takes at most ${max} handles.`,
+  imageMissing: (handle) => `[pet_say not run] No attachment ${handle}. Put the handle that starts a [blob …] line in your context into images.`,
+  imageNotImage: (handle, mime) => `[pet_say not run] ${handle} is ${mime}, not an image.`,
 
   askEmpty: '[pet_ask not run] question is empty.',
   askNoWay: '[pet_ask not run] No options and no own answer allowed, so there is no way to answer.',
@@ -238,7 +258,7 @@ const en: typeof zh = {
     : `Right now these take effect at once: ${direct.join(', ')}; these are first asked of ${user} in a bubble: ${asked.join(', ')}.`),
   selfNone: (user) => `${user} set "Self-adjustment" to "Off" on the Habits page, so right now you can change none of these, and \`pet_quiet\` does not work either.`,
   // the English template puts these right after a sentence, so they start with a space
-  chatPage: (user) => ` The app's Chat page lists these bubbles in time order, with what ${user} said and the names of the tools you called between two lines; ${user} can also type and send images there (they arrive as \`[typed]\` events too, images after the text) and answer \`pet_ask\`.`,
+  chatPage: (user) => ` The app's Chat page lists these bubbles in time order, with what ${user} said and the names of the tools you called between two lines; ${user} can also type and send images there (they arrive as \`[typed]\` events too, images after the text) and answer \`pet_ask\`. The \`images\` of \`pet_say\` show only on the Chat page, not in the bubble.`,
   reply: (user, language) => ` Talk to ${user} in ${language}: bubbles, questions and options alike.`,
 };
 

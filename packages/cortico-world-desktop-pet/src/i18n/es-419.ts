@@ -173,7 +173,6 @@ const es419: Translation<PetText> = {
       'pet.chat': 'Una nota sobre la página de chat cuando la app tiene una; vacío en otro caso',
       'pet.reply': 'Una línea que le dice al bot en qué idioma hablar cuando el idioma de la app no es chino simplificado ni inglés; vacío en otro caso',
     },
-    noImage: 'No existe esa imagen',
     noGuide: 'Esta app no tiene introducción',
     unknownMethod: (name: string) => `Método desconocido ${name}`,
   },

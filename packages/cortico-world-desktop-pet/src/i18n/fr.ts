@@ -173,7 +173,6 @@ const fr: Translation<PetText> = {
       'pet.chat': "Une note sur la page de discussion quand l'application en a une ; vide sinon",
       'pet.reply': "Une ligne qui indique au bot dans quelle langue parler quand la langue de l'application n'est ni le chinois simplifié ni l'anglais ; vide sinon",
     },
-    noImage: 'Image introuvable',
     noGuide: "Cette application n'a pas d'introduction",
     unknownMethod: (name: string) => `Méthode inconnue ${name}`,
   },

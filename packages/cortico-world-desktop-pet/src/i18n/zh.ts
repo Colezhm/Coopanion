@@ -196,7 +196,6 @@ export default {
       'pet.chat': '应用提供对话页时，对它的说明；没有时为空',
       'pet.reply': '应用语言既不是简体中文也不是英文时，让 bot 用那种语言说话的一句；否则为空',
     } as Record<string, string>,
-    noImage: '没有这张图',
     noGuide: '这个应用没有引导',
     unknownMethod: (name: string) => `未知方法 ${name}`,
   },

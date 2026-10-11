@@ -173,7 +173,6 @@ const ja: Translation<PetText> = {
       'pet.chat': 'アプリにチャットページがある場合はその説明、ない場合は空',
       'pet.reply': 'アプリの言語が簡体字中国語でも英語でもないとき、その言語で話すようボットに伝える一文。それ以外は空',
     },
-    noImage: 'その画像はありません',
     noGuide: 'このアプリにはガイドがありません',
     unknownMethod: (name: string) => `不明なメソッド ${name}`,
   },
