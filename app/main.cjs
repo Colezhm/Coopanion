@@ -9,8 +9,13 @@
  * - `--pet-host --pet-url=… --parent-pid=…`: the desktop pet's transparent window, started by
  *   the desktop-pet World through `CORTICO_DESKTOP_PET_HOST`. It uses its own profile directory.
  *
+ * A build is for one channel, `coopanion.channel` in the app's package.json (scripts/pack.ts): `github`
+ * (the default) updates itself from the GitHub releases; `steam` is installed and updated by Steam, does
+ * not run the updater, and reads figure packs from the Steam Workshop (`steam.cjs`).
+ *
  * Every file the app writes lives under one data directory: on Windows `<install dir>\data` when
- * packaged (the uninstaller leaves it, and nothing goes to AppData); on macOS
+ * packaged (the uninstaller leaves it, and nothing goes to AppData), except the Steam build, whose
+ * install directory Steam deletes on uninstall: `%APPDATA%\Coopanion`; on macOS
  * `~/Library/Application Support/Coopanion`, since the .app is not a place to write; on Linux
  * `~/.config/Coopanion` (an AppImage is mounted read-only, a deb installs under /opt); from
  * source `build/data`; or `CORTICO_COMPANION_DATA`. It holds `home/` (deployment, endpoint,
@@ -41,9 +46,12 @@ if (LINUX) app.commandLine.appendSwitch('ozone-platform', 'x11');
 app.commandLine.appendSwitch('enable-unsafe-swiftshader');
 const APP_ROOT = app.getAppPath();
 const ICONS = join(__dirname, 'icons');
+/** The build's channel and, for `steam`, its Steam app id (see the module header). */
+const BUILD = JSON.parse(readFileSync(join(APP_ROOT, 'package.json'), 'utf8')).coopanion ?? {};
+const STEAM = BUILD.channel === 'steam';
 const DATA = process.env.CORTICO_COMPANION_DATA
   || (!app.isPackaged ? join(APP_ROOT, 'build', 'data')
-    : MAC || LINUX ? join(app.getPath('appData'), 'Coopanion') : join(dirname(process.execPath), 'data'));
+    : MAC || LINUX || STEAM ? join(app.getPath('appData'), 'Coopanion') : join(dirname(process.execPath), 'data'));
 
 /**
  * An install made through the installer's pages sits in %LOCALAPPDATA%\Programs\Coopanion: the "only for me"
@@ -82,7 +90,7 @@ function restoreStrandedData() {
   appendFileSync(join(DATA, 'logs', 'data-restore.log'), `${new Date().toISOString()} ${line}\n`);
   return false;
 }
-const askStranded = app.isPackaged && process.platform === 'win32' && !process.env.CORTICO_COMPANION_DATA
+const askStranded = app.isPackaged && process.platform === 'win32' && !STEAM && !process.env.CORTICO_COMPANION_DATA
   && !process.argv.includes('--pet-host') && restoreStrandedData();
 
 // before anything asks Electron for a path: the single-instance lock and the profile live in userData
@@ -347,10 +355,12 @@ app.whenReady().then(() => {
   core.opts.env.COOPANION_SYSTEM_LANGUAGE = system;
   language = configuredLanguage(join(userData, 'home')) ?? system;
   if (askStranded && askRestoreStranded()) return;
+  // figure packs from the Workshop: more pack directories for the desktop-pet World (core/companion.ts)
+  if (STEAM) core.opts.env.COOPANION_PACK_ROOTS = require('./steam.cjs').workshopPackRoots(BUILD.steamAppId, join(userData, 'logs')).join(delimiter);
   buildTray();
   noteAutostart();
   core.start();
-  updater = startUpdater({
+  if (!STEAM) updater = startUpdater({
     logDir: join(userData, 'logs'),
     tell: (step) => { updateStep = { type: 'companion:update', ...step }; core.send(updateStep); },
   });
