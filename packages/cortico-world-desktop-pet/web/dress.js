@@ -21,7 +21,7 @@ import {
   PALETTES, HEADS, SIDES, GLASSES, NECKS, ACC_COLORS, LINKED, NO_BODY, ROLES,
 } from './coo/coo.js';
 import { loadBody } from './body-host.js';
-import { dressFloor, glowColor, lightWall, modeButton, setGlow } from './stage.js';
+import { announcePainted, dressFloor, glowColor, lightWall, modeButton, setGlow } from './stage.js';
 
 import { bindAppearance } from './appearance.js';
 bindAppearance(document, window);
@@ -476,7 +476,7 @@ function connect() {
   ws.onmessage = (e) => {
     const m = JSON.parse(e.data);
     if ((m.t === 'init' || m.t === 'prefs') && (m.theme === 'dark' || m.theme === 'light') && m.theme !== theme) { theme = m.theme; showTheme(); modeBtn.show(theme); body?.set({ theme }); }
-    if (m.t === 'init') loadPacks();
+    if (m.t === 'init') { loadPacks(); announcePainted(); }
     if ((m.t === 'init' || m.t === 'prefs') && m.skin && JSON.stringify(normalizeSkin(m.skin)) !== JSON.stringify(skin)) apply(normalizeSkin(m.skin), false);
     if ((m.t === 'init' || m.t === 'prefs') && typeof m.language === 'string' && m.language !== language()) void useLanguage(m.language).then(() => { showText(); render(); });
   };

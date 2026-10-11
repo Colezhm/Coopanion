@@ -177,7 +177,7 @@ function openSettings(path = '') {
     return;
   }
   settings = new BrowserWindow({
-    width: 1180, height: 800, minWidth: 880, minHeight: 600,
+    width: 1200, height: 800, minWidth: 880, minHeight: 600,
     title: 'Coopanion', icon: join(ICONS, 'icon.png'), autoHideMenuBar: true, show: false,
     backgroundColor: '#f4f5f4',
     webPreferences: { preload: join(__dirname, 'settings-preload.cjs'), contextIsolation: true, sandbox: true, spellcheck: false },

@@ -20,6 +20,8 @@ export function mountSchemes(ctx: FeatureContext): HTMLElement {
   // the card: its own title and the schemes; Cortico's note says the choice stays in this browser, which the deployment's /api/theme makes untrue
   schemes!.querySelector(':scope > h3')!.replaceChildren(S.schemeTitle);
   schemes!.querySelector(':scope > .sheetbody > .sh-desc')!.remove();
+  // the picked scheme's name right of the light/dark switch says what the highlighted card already shows
+  schemes!.querySelector('.theme-current')?.remove();
   schemes!.classList.add('home-schemes');
 
   // 调色盘: the palette card's body on the left, the specimen's on the right

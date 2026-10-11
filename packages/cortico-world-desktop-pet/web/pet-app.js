@@ -15,7 +15,7 @@ import { language, t, useLanguage } from './i18n.js';
 import { createSfx } from './sound.js';
 import { COO_CSS, mini, normalizeSkin, skinCss } from './coo/coo.js';
 import { loadBody } from './body-host.js';
-import { dressFloor, glowColor, lightWall, modeButton, setGlow } from './stage.js';
+import { announcePainted, dressFloor, glowColor, lightWall, modeButton, setGlow } from './stage.js';
 import { bindAppearance } from './appearance.js';
 
 const $ = (s) => document.querySelector(s);
@@ -266,7 +266,7 @@ async function switchLanguage(code) {
 
 function onOrder(m) {
   switch (m.t) {
-    case 'init': restorePosition(m.startX); applyPrefs(m); break;
+    case 'init': restorePosition(m.startX); applyPrefs(m); if (!host) announcePainted(); break;
     case 'prefs': applyPrefs(m); break;
     case 'watching': watching = true; stopMic(); break;
     // the settings window's 「在桌面上隐藏」: the same as the menu's 「隐藏」
