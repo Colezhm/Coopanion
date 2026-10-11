@@ -25,6 +25,8 @@ const zhHant: Translation<CoreText> = {
   },
 
   quit: '結束應用程式',
+
+  noticeLabel: '應用程式通知',
   cuaYes: '可以',
   cuaNo: '這次不行',
 

@@ -25,6 +25,8 @@ const ko: Translation<CoreText> = {
   },
 
   quit: '앱 종료',
+
+  noticeLabel: '앱 알림',
   cuaYes: '예',
   cuaNo: '이번에는 아니요',
 

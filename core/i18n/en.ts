@@ -33,6 +33,7 @@ const en: CoreText = {
 
   /** The power button in the pet menu's header. */
   quit: 'Quit app',
+  noticeLabel: 'App notifications',
   /** The two buttons in the bubble when computer use asks for permission. */
   cuaYes: 'Yes',
   cuaNo: 'Not this time',

@@ -25,6 +25,8 @@ const ptBR: Translation<CoreText> = {
   },
 
   quit: 'Sair do app',
+
+  noticeLabel: 'Notificações do app',
   cuaYes: 'Sim',
   cuaNo: 'Desta vez não',
 

@@ -22,7 +22,7 @@ const zh = {
 
 export const en: typeof zh = {
   collapseSidebar: 'Collapse sidebar', expandSidebar: 'Expand sidebar',
-  trace: 'Run trace', integrations: 'Integrations', personaMemory: 'Persona & Memory', diagnostics: 'Diagnostics',
+  trace: 'Run trace', integrations: 'Integrations', personaMemory: 'Persona & Memory', diagnostics: 'Troubleshooting',
   toAdvanced: 'Advanced mode', toAdvancedHint: 'Show all of Cortico: models, extensions, Worlds, memory and diagnostics',
   toNormal: 'Back to normal mode', toNormalHint: 'Show only the pages about the pet',
   featureLoadFailed: (label: string) => `"${label}" failed to load`,

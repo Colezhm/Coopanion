@@ -25,6 +25,8 @@ const ja: Translation<CoreText> = {
   },
 
   quit: 'アプリを終了',
+
+  noticeLabel: 'アプリの通知',
   cuaYes: 'はい',
   cuaNo: '今回は許可しない',
 

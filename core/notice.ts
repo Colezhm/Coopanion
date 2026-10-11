@@ -58,6 +58,8 @@ export interface NoticeAssembly {
   guiding: () => boolean;
   /** The instance, once created, for the introduction to hand its record to. */
   onCreate?: (world: NoticeWorld) => void;
+  /** Its name in the console's rail, in the app language (core/i18n `noticeLabel`). */
+  label?: () => string;
 }
 
 type Version = [number, number, number];
@@ -445,7 +447,8 @@ export class NoticeWorld implements World {
 export function noticeDefinition(assembly: NoticeAssembly): WorldDefinition<WorldSection> {
   return {
     id: NOTICE_ID,
-    label: '应用通知',
+    // read when Core assembles the Worlds, in the app language of that moment
+    get label() { return assembly.label?.() ?? '应用通知'; },
     defaults: () => ({ enabled: false }),
     create: (ctx) => {
       const world = new NoticeWorld(assembly, ctx.timezone);

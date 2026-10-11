@@ -25,6 +25,8 @@ const es419: Translation<CoreText> = {
   },
 
   quit: 'Salir de la app',
+
+  noticeLabel: 'Notificaciones de la app',
   cuaYes: 'Sí',
   cuaNo: 'Esta vez no',
 
