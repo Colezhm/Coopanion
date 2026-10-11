@@ -80,7 +80,7 @@ writeFileSync(join(OUT, 'package.json'), JSON.stringify({
 run('npm', ['install', '--omit=dev', '--no-package-lock', '--no-audit', '--no-fund', '--loglevel=error', `--os=${process.platform}`, `--cpu=${ARCH}`], OUT);
 if (STEAM) {
   // steamworks.js carries the Steam library of every platform; this build loads its own platform's
-  const own = { win32: 'win64', linux: 'linux64', darwin: 'osx' }[process.platform as string];
+  const own = process.platform === 'win32' ? 'win64' : 'linux64';
   const dist = join(OUT, 'node_modules', 'steamworks.js', 'dist');
   for (const dir of ['win64', 'linux64', 'osx']) if (dir !== own) rmSync(join(dist, dir), { recursive: true, force: true });
 }
