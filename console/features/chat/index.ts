@@ -8,7 +8,7 @@
  * Everything shown comes from the World's stream (packages/cortico-world-desktop-pet/src/chat.ts);
  * the phase line is Core's RunPhase as the World passes it on.
  */
-import { panelRoute, panelStreamRoute } from '../../../shared/console-protocol.ts';
+import { panelStreamRoute } from '../../../shared/console-protocol.ts';
 import type { ConsoleImageAttachment } from '../../../shared/client-panel.ts';
 import { baseLanguage } from '../../../../core/language.ts';
 import { LANGUAGE } from '../../core/language.ts';
@@ -30,7 +30,7 @@ type ChatItem =
   | { kind: 'answer'; cursor: number; ts: string; askId: string; index?: number; text?: string; dismissed?: true }
   | { kind: 'touch'; cursor: number; ts: string; touch?: Touch; text?: string }
   | { kind: 'figure'; cursor: number; ts: string; figure: { kind: string; name: Record<string, string> } }
-  | { kind: 'say'; cursor: number; ts: string; beats: SayBeat[] }
+  | { kind: 'say'; cursor: number; ts: string; beats: SayBeat[]; images?: WireImage[] }
   | { kind: 'ask'; cursor: number; ts: string; askId: string; question: string; options: string[]; own: boolean }
   | { kind: 'activity'; cursor: number; ts: string; steps: string[]; ms: number };
 type UserItem = Extract<ChatItem, { kind: 'user' }>;
@@ -49,7 +49,7 @@ function activityTitle(steps: readonly string[]): string {
 const localName = (names: Record<string, string>): string => names[LANGUAGE] ?? names[baseLanguage(LANGUAGE)] ?? names.id ?? '';
 
 const AVATAR_URL = '/api/avatar';
-const blobUrl = (ref: string): string => `${panelRoute(PET_PAGE, 'chat', 'blob')}?args=${encodeURIComponent(JSON.stringify([ref]))}`;
+const blobUrl = (ref: string): string => `/api/blob?handle=${encodeURIComponent(ref)}`;
 
 async function mount(ctx: FeatureContext): Promise<void> {
   const { ui, root } = ctx;
@@ -149,15 +149,21 @@ async function mount(ctx: FeatureContext): Promise<void> {
   const nearBottom = (): boolean => scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 80;
   const toBottom = (): void => { scroll.scrollTop = scroll.scrollHeight; };
 
+  // whether the last render kept the thread at the bottom; a thumbnail that loads after it grows the thread
+  let stuck = false;
+  /** One image of a message; a click opens the picture over the page. */
+  const thumb = (img: WireImage): HTMLElement => {
+    const pic = ui.h('img', 'chat-thumb');
+    pic.src = blobUrl(img.ref);
+    pic.alt = img.name ?? '';
+    pic.addEventListener('load', () => { if (stuck) toBottom(); }, { signal: ctx.signal });
+    pic.addEventListener('click', () => ui.lightbox(pic.src, pic.alt), { signal: ctx.signal });
+    return pic;
+  };
+
   const userNode = (it: UserItem): HTMLElement => {
     const el = ui.h('div', 'msg-user');
-    for (const img of it.images ?? []) {
-      const pic = doc.createElement('img');
-      pic.className = 'chat-thumb';
-      pic.src = blobUrl(img.ref);
-      pic.alt = img.name ?? '';
-      el.append(pic);
-    }
+    for (const img of it.images ?? []) el.append(thumb(img));
     if (it.text) el.append(ui.h('div', 'bubble', it.text));
     if (it.via === 'voice') el.append(ui.h('span', 'via', S.voice));
     if (discarded.has(it.cursor)) el.append(ui.h('span', 'via bad', S.discarded));
@@ -255,6 +261,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
           if (beat.mood) row.append(ui.h('span', 'mood', localName(beat.mood)));
           body.append(row);
         }
+        for (const img of it.images ?? []) body.append(thumb(img));
       } else if (it.kind === 'ask') body.append(askNode(it, it.askId === openAsk));
       else if (it.kind === 'activity' && shownSteps(it.steps).length) body.append(activityNode(String(it.cursor), shownSteps(it.steps), S.seconds(Math.max(1, Math.round(it.ms / 1000))), false));
     }
@@ -272,6 +279,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
       const input = [...thread.querySelectorAll<HTMLInputElement>('input[data-ask]')].find((x) => x.dataset.ask === caret.askId);
       if (input && !input.disabled) { input.focus(); input.setSelectionRange(caret.start, caret.end); }
     }
+    stuck = stick;
     if (stick) toBottom();
   };
   const busy = (): boolean => phase?.state === 'model' || phase?.state === 'delivering';

@@ -22,7 +22,7 @@
 :root[data-color-mode="dark"] .chatview { --chat-coo-bg: var(--sheet-2); }
 .chatview .msg-user .via { font-size: 11.5px; color: var(--ink-dim); }
 .chatview .msg-user .via.bad { color: var(--danger); }
-.chat-thumb { max-width: 220px; max-height: 160px; border-radius: 10px; border: 1px solid var(--line); object-fit: cover; }
+.chat-thumb { max-width: 220px; max-height: 160px; border-radius: 10px; border: 1px solid var(--line); object-fit: cover; cursor: zoom-in; }
 
 /* 桌宠:头像 + 一拍一个气泡,左上角尖,其余圆角,白底无描边 */
 .chatview .msg-coo { display: flex; gap: 14px; align-items: flex-start; }

@@ -216,7 +216,7 @@ Click the tray icon, or right-click Coo and click the gear. The window opens in 
 | Voice input   | On/off, recognizer, model download, talk key, microphone, listening mode                                          |
 | System prompt | Coo's system prompt; the persona is the CONSTITUTION section. Save with Ctrl+S and apply with **Reload current session**; **Clear and restart** drops the current conversation |
 | Usage & cost  | Tokens used and money spent per day                                                                               |
-| Chat          | The current conversation; you can also talk to Coo from here                                                      |
+| Chat          | The current conversation, with the images Coo shows; you can also talk to Coo from here                           |
 
 <p align="center"><img src="image/README/habits-en.png" alt="Habits" width="720"></p>
 <p align="center"><img src="image/README/dress-en.png" alt="Dress up" width="720"></p>
