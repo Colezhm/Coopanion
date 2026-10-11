@@ -9,7 +9,7 @@
  *   底栏两种模式都只有运行状态、暂停/继续与关机;高级模式再接上 Cortico 除「设置」页以外的全部页面。左栏底部的开关
  *   切换模式,页面也可以经 requestMode 请求换;左栏只建一次,换模式时只藏起或露出普通模式不列的项;
  * - 空路由打开「开始」;
- * - 左上角是 Coopanion 的标志与字母(两块,居中对齐,左栏窄时字母跟着缩),下面是版本与项目地址,有新 Release 时再加一行下载链接(features/release.ts);
+ * - 左栏可折叠为图标导航,Coopanion 字标的两个 o 移入 C 内;展开时显示版本与项目地址及新 Release 链接;
  * - 左栏各组按「桌宠四页 · 对话 → World → 设置 → Persona & Memory → 高级」重排。
  * 其余逐字沿用上游。
  */
@@ -42,8 +42,8 @@ import { traceFeature } from './features/trace.ts';
 import { promptsWithClearFeature } from './features/clear-session.ts';
 import { mountRelease } from './features/release.ts';
 import { onModeRequest, readMode, writeMode, type ConsoleMode } from './features/mode.ts';
-import { brandMark, icon } from './ui/icons.ts';
-import { coopanionLettering } from './branding.ts';
+import { icon } from './ui/icons.ts';
+import { mountSidebar } from './sidebar.ts';
 import { L } from './strings.ts';
 import type { ConsoleMemo } from '../shared/client-panel.ts';
 
@@ -195,16 +195,8 @@ export function boot(doc: Document = document): { dispose(): void } {
   shellLife.own({ dispose: () => { shell.dispose(); shell.el.remove(); } });
   doc.body.insertBefore(shell.el, doc.body.firstChild);
 
-  const brand = shell.el.querySelector('.brand');
-  if (brand) {
-    // the mark and the letters side by side, centred on each other; the letters shrink with a narrow rail
-    const lockup = ui.h('div', 'companion-lockup');
-    lockup.setAttribute('role', 'img');
-    lockup.setAttribute('aria-label', 'Coopanion');
-    lockup.append(brandMark(doc, 'brandmark companion-mark'), coopanionLettering(doc));
-    brand.replaceChildren(lockup);
-    mountRelease(doc, brand, shellLife.signal);
-  }
+  const brandMeta = mountSidebar(shell.el, memo, shellLife.signal);
+  mountRelease(doc, brandMeta, shellLife.signal);
 
   /** 普通模式下藏起不在 BASIC_FEATURES 里的项(含 manifest 的页),项都藏起来的组也藏起来;每次导航重画后再排一遍。 */
   const basicRoutes = new Set(BASIC_FEATURES.map((f) => f.route));
@@ -234,6 +226,7 @@ export function boot(doc: Document = document): { dispose(): void } {
   const renderMode = (): void => {
     const advanced = mode === 'advanced';
     toggle.title = advanced ? L.toNormalHint : L.toAdvancedHint;
+    toggle.setAttribute('aria-label', advanced ? L.toNormal : L.toAdvanced);
     toggle.replaceChildren(icon(doc, advanced ? 'eye-off' : 'settings', 'navicon'), ui.h('span', 'lbl', advanced ? L.toNormal : L.toAdvanced));
     doc.body.classList.toggle('companion-normal', !advanced);
     filterNav();
