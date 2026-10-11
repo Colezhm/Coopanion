@@ -13,17 +13,29 @@ export function mountSidebar(rail: HTMLElement, memo: ConsoleMemo, signal: Abort
   const nav = rail.querySelector<HTMLElement>('nav.stack')!;
   const content = doc.getElementById('kernel-root');
   nav.id = 'companion-navigation';
+  // the logo, the version centred under it (and a new release's link when there is one), then the collapse button
   const tools = doc.createElement('div');
   tools.className = 'companion-sidebar-tools';
   const meta = doc.createElement('div');
   meta.className = 'companion-brand-meta';
+  // a new release's link sits in a box that folds to nothing with the rail (its row eases from 1fr to 0fr), so the
+  // button under it goes back up to where it is with no link, whatever height the link has
+  const release = doc.createElement('div');
+  release.className = 'companion-release';
+  const releaseInner = doc.createElement('div');
+  release.append(releaseInner);
   const toggle = doc.createElement('button');
   toggle.type = 'button';
   toggle.className = 'companion-sidebar-toggle';
   toggle.setAttribute('aria-controls', nav.id);
   toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/><path class="companion-sidebar-chevron" d="m16 9-3 3 3 3"/></svg>';
-  tools.append(toggle, meta);
-  brand.replaceChildren(sidebarBrand(doc), tools);
+  const toggleLabel = doc.createElement('span');
+  toggleLabel.className = 'lbl';
+  // the words only show on the open rail, where the button folds it: they stay put while the rail folds
+  toggleLabel.textContent = L.collapseSidebar;
+  toggle.append(toggleLabel);
+  tools.append(toggle);
+  brand.replaceChildren(sidebarBrand(doc), meta, tools);
 
   const backdrop = doc.createElement('button');
   backdrop.type = 'button';
@@ -45,7 +57,31 @@ export function mountSidebar(rail: HTMLElement, memo: ConsoleMemo, signal: Abort
   doc.body.append(tooltip);
   const hideTip = (): void => { tooltip.hidden = true; };
 
-  const render = (next: boolean): void => {
+  const foot = rail.querySelector<HTMLElement>('.railfoot');
+  /**
+   * The foot changes layout when the rail folds (a row of keys under the avatar, or one column), which CSS can't
+   * animate: grow or shrink its height and slide the avatar with its name, the keys and the run state from where they were (FLIP), the words fading as they go.
+   */
+  const flip = (change: () => void): void => {
+    const moving = foot && typeof foot.animate === 'function' && !win.matchMedia('(prefers-reduced-motion: reduce)')?.matches
+      ? Array.from(foot.querySelectorAll<HTMLElement>('.rail-who, .rail-action, .companion-runstate')).filter((el) => !el.hidden)
+      : [];
+    const before = moving.map((el) => el.getBoundingClientRect());
+    const height = foot?.getBoundingClientRect().height ?? 0;
+    change();
+    if (!foot || !moving.length) return;
+    const options: KeyframeAnimationOptions = { duration: 260, easing: 'cubic-bezier(.22, 1, .36, 1)' };
+    foot.animate([{ height: `${height}px`, boxSizing: 'border-box' }, { height: `${foot.getBoundingClientRect().height}px`, boxSizing: 'border-box' }], options);
+    moving.forEach((el, i) => {
+      const now = el.getBoundingClientRect();
+      const dx = before[i]!.left - now.left;
+      const dy = before[i]!.top - now.top;
+      if (dx || dy) el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], options);
+    });
+  };
+
+  const render = (next: boolean, animate = false): void => {
+    if (animate && next !== collapsed) { flip(() => render(next)); return; }
     collapsed = next;
     rail.classList.toggle('is-collapsed', collapsed);
     toggle.setAttribute('aria-expanded', String(!collapsed));
@@ -62,9 +98,9 @@ export function mountSidebar(rail: HTMLElement, memo: ConsoleMemo, signal: Abort
       preference = !collapsed;
       memo.set(COLLAPSED_KEY, preference);
     }
-    render(!collapsed);
+    render(!collapsed, true);
   }, { signal });
-  const close = (): void => { render(true); toggle.focus(); };
+  const close = (): void => { render(true, true); toggle.focus(); };
   backdrop.addEventListener('click', close, { signal });
   doc.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
@@ -72,7 +108,7 @@ export function mountSidebar(rail: HTMLElement, memo: ConsoleMemo, signal: Abort
     if (narrow.matches && !collapsed) close();
   }, { signal });
   nav.addEventListener('click', (event) => {
-    if (narrow.matches && (event.target as Element).closest('a.navitem')) render(true);
+    if (narrow.matches && (event.target as Element).closest('a.navitem')) render(true, true);
   }, { signal });
   compact.addEventListener('change', resize, { signal });
   narrow.addEventListener('change', resize, { signal });
@@ -90,11 +126,15 @@ export function mountSidebar(rail: HTMLElement, memo: ConsoleMemo, signal: Abort
     const newItems = records.some((record) => record.target === nav || Array.from(record.addedNodes).some((node) =>
       node.nodeType === 1 && ((node as Element).matches('.navitem, .navgroup') || (node as Element).querySelector('.navitem'))));
     if (newItems) { prepareNav(); hideTip(); }
-    // The framework release check appends directly to the shell's brand container.
-    for (const hint of brand.querySelectorAll(':scope > .release-hint')) meta.append(hint);
+    // The framework release check appends directly to the shell's brand container, the app's own to `meta`.
+    for (const hint of [...brand.querySelectorAll(':scope > .release-hint'), ...meta.querySelectorAll(':scope > .release-hint')]) {
+      releaseInner.append(hint);
+      if (!release.isConnected) meta.append(release);
+    }
   });
   observer.observe(nav, { childList: true, subtree: true });
   observer.observe(brand, { childList: true });
+  observer.observe(meta, { childList: true });
   prepareNav();
 
   const showTip = (event: Event): void => {

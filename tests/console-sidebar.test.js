@@ -137,7 +137,7 @@ describe('console sidebar', () => {
     update.className = 'release-hint';
     shell.el.querySelector('.brand').append(update);
     await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(update.parentElement).toBe(meta);
+    expect(update.closest('.companion-release')?.parentElement).toBe(meta);
     dispose();
     queries.get('(max-width: 1000px)').set(true);
     expect(toggle.getAttribute('aria-expanded')).toBe('true');

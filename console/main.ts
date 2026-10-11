@@ -201,38 +201,83 @@ export function boot(doc: Document = document): { dispose(): void } {
   /** 普通模式下藏起不在 BASIC_FEATURES 里的项(含 manifest 的页),项都藏起来的组也藏起来;每次导航重画后再排一遍。 */
   const basicRoutes = new Set(BASIC_FEATURES.map((f) => f.route));
   const nav = shell.el.querySelector('nav.stack');
-  const filterNav = (): void => {
+  /** How long an entry takes to fade in or out when the mode changes (companion.css `.companion-enter`, `.companion-leave`). */
+  const FADE_MS = 200;
+  /** Shows or hides one entry; on a mode change it fades, at once otherwise (a redraw of the nav). */
+  const showEntry = (el: HTMLElement, show: boolean, animate: boolean): void => {
+    el.classList.remove('companion-enter', 'companion-leave');
+    if (!animate || show === !el.hidden) { el.hidden = !show; return; }
+    if (show) {
+      el.hidden = false;
+      void el.offsetWidth;
+      el.classList.add('companion-enter');
+      el.addEventListener('animationend', () => el.classList.remove('companion-enter'), { once: true });
+    } else {
+      el.classList.add('companion-leave');
+      setTimeout(() => { if (el.classList.contains('companion-leave')) { el.classList.remove('companion-leave'); el.hidden = true; } }, FADE_MS);
+    }
+  };
+  const filterNav = (animate = false): void => {
     if (!nav) return;
     orderNav(nav);
     const normal = mode === 'normal';
-    for (const item of nav.querySelectorAll<HTMLAnchorElement>('a.navitem')) {
-      const head = (item.getAttribute('href') ?? '').replace(/^#\/?/, '').split('/')[0];
-      item.hidden = normal && !basicRoutes.has(head ?? '');
-    }
+    const shown = (item: Element) => !normal || basicRoutes.has((item.getAttribute('href') ?? '').replace(/^#\/?/, '').split('/')[0] ?? '');
+    const fading = animate && !nav.querySelector('.companion-leave');
     for (const group of nav.querySelectorAll<HTMLElement>('.navgroup')) {
-      group.hidden = normal && !group.querySelector('a.navitem:not([hidden])');
+      const items = [...group.querySelectorAll<HTMLAnchorElement>('a.navitem')];
+      const any = items.some(shown);
+      // a group that goes as a whole fades as a whole, its entries untouched until it is gone (hiding them first
+      // left its bare section titles fading out); inside a group that stays, each entry fades on its own
+      if (!(animate && !any && !group.hidden)) for (const item of items) showEntry(item, shown(item), animate && any);
+      showEntry(group, any, animate);
+    }
+    // entries going out shorten the list: scroll to where it will end up while they fade, rather than jump there after
+    if (fading && nav.querySelector('.companion-leave')) {
+      const from = nav.scrollTop;
+      // where the list ends without them: hide them for one synchronous measurement (no paint in between), then put them back
+      const leaving = [...nav.querySelectorAll<HTMLElement>('.companion-leave')];
+      for (const el of leaving) el.style.display = 'none';
+      const to = Math.max(0, Math.min(from, nav.scrollHeight - nav.clientHeight));
+      for (const el of leaving) el.style.display = '';
+      nav.scrollTop = from;
+      if (to < from) {
+        const start = performance.now();
+        const step = (now: number): void => {
+          const k = Math.min(1, (now - start) / FADE_MS);
+          nav.scrollTop = from + (to - from) * (1 - (1 - k) ** 3);
+          if (k < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }
     }
   };
   if (nav) {
-    const observer = new MutationObserver(filterNav);
+    const observer = new MutationObserver(() => filterNav());
     observer.observe(nav, { childList: true, subtree: true });
     shellLife.own({ dispose: () => observer.disconnect() });
   }
 
   const toggle = ui.h('button', 'companion-mode');
   toggle.type = 'button';
-  toggle.addEventListener('click', () => setMode(mode === 'advanced' ? 'normal' : 'advanced'), { signal: shellLife.signal });
+  toggle.addEventListener('click', () => {
+    // a short press animation on the button itself
+    toggle.classList.remove('companion-pressed');
+    void toggle.offsetWidth;
+    toggle.classList.add('companion-pressed');
+    setMode(mode === 'advanced' ? 'normal' : 'advanced');
+  }, { signal: shellLife.signal });
+  toggle.addEventListener('animationend', () => toggle.classList.remove('companion-pressed'), { signal: shellLife.signal });
   shell.el.insertBefore(toggle, shell.el.querySelector('.railfoot'));
-  const renderMode = (): void => {
+  const renderMode = (animate = false): void => {
     const advanced = mode === 'advanced';
     toggle.title = advanced ? L.toNormalHint : L.toAdvancedHint;
     toggle.setAttribute('aria-label', advanced ? L.toNormal : L.toAdvanced);
     toggle.replaceChildren(icon(doc, advanced ? 'eye-off' : 'settings', 'navicon'), ui.h('span', 'lbl', advanced ? L.toNormal : L.toAdvanced));
     doc.body.classList.toggle('companion-normal', !advanced);
-    filterNav();
+    filterNav(animate);
   };
 
-  // the run state in words left of the pause/resume key, in the key's color; a click on it is a click on the key
+  // the run state in words right of the pause/resume key, in the key's color; a click on it is a click on the key
   const run = shell.el.querySelector<HTMLButtonElement>('.rail-run');
   if (run) {
     const state = ui.h('span', 'companion-runstate');
@@ -244,7 +289,10 @@ export function boot(doc: Document = document): { dispose(): void } {
       state.hidden = capabilities.run !== true;
     };
     state.addEventListener('click', () => run.click(), { signal: shellLife.signal });
-    run.before(state);
+    // left to right: shut down, pause/resume, then the state in words
+    const shutdown = shell.el.querySelector('.rail-shutdown');
+    if (shutdown) run.before(shutdown);
+    run.after(state);
     const observer = new MutationObserver(show);
     observer.observe(run, { attributes: true, attributeFilter: ['class', 'disabled'] });
     shellLife.own({ dispose: () => observer.disconnect() });
@@ -255,8 +303,8 @@ export function boot(doc: Document = document): { dispose(): void } {
     if (next === mode) return;
     mode = next;
     writeMode(mode);
-    renderMode();
-    apply(router.route);
+    renderMode(true);
+    // the page open now stays, even one the normal mode does not list; the next page picked is checked as usual
   };
   renderMode();
   shell.setRoute(router.route);
