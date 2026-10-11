@@ -1,5 +1,5 @@
 /**
- * The DeepSeek whale maid as a figure for the kit (web/kit/body.js): a sprite rig drawn with kit/rig.js.
+ * The DeepSeek whale maid as a figure for the kit (web/kit/body.js): a sprite rig drawn with the kit's createRig (kit/rig.js).
  *
  * She stands the way Coo does, three-quarters on and facing right; the kit mirrors the whole
  * group when she turns. The kit runs the body (walking, jumping, dragging, faces); this file turns
@@ -14,8 +14,6 @@
  * Rig space = the kit's logo space: x=128 under the body, soles at y=256.
  * model.json keeps the master drawing's pixel frame for the face sprites; U/V convert.
  */
-import { createRig } from '../kit/rig.js';
-
 const f1 = n => Math.round(n * 100) / 100;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, k) => a + (b - a) * k;
@@ -75,8 +73,11 @@ function loadImage(url) {
  * `opts.scheme` picks a colour scheme (model.schemes; default the original); `opts.model` (model.json
  * already parsed) and `opts.asset(path)` (a texture's URL) are for pages that bundle the files;
  * `opts.loadImage` is the figure frame's (figure-frame.js), which loads images WebGL may read there.
+ * `opts.kit` is the frame's kit, whose `createRig` draws her; without it (a page that imports this file
+ * from the package) the package's own kit/rig.js does. A pack installed elsewhere has no ../kit/.
  */
 export async function createWhaleFigure(base = new URL('./', import.meta.url), opts = {}) {
+  const createRig = opts.kit?.createRig ?? (await import('../kit/rig.js')).createRig;
   const model = opts.model || await (await fetch(new URL('model.json', base))).json();
   const asset = opts.asset || (p => new URL(p, base));
   const load = opts.loadImage || loadImage;

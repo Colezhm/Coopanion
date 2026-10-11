@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { figurePacks, lookOf, lookPatch, readManifest } from '../src/packs.ts';
+import { BUILTIN_PACKS, figurePacks, lookOf, lookPatch, readManifest, scanPacks } from '../src/packs.ts';
 
 function pack(manifest: Record<string, unknown>, files: string[] = []): string {
   const dir = mkdtempSync(join(tmpdir(), 'pack-'));
@@ -36,6 +36,16 @@ describe('figure packs', () => {
     const { packs, problems } = figurePacks([root]);
     expect(packs.filter((p) => p.id === 'whale' || p.id === 'coo').map((p) => p.builtin)).toEqual([true, true]);
     expect(problems).toHaveLength(2);
+  });
+
+  it('with a built-in pack\'s directory left out of the app, an installed pack with its id loads in its place', () => {
+    const root = mkdtempSync(join(tmpdir(), 'packs-'));
+    mkdirSync(join(root, '3401'));
+    writeFileSync(join(root, '3401', 'figure.json'), JSON.stringify({ ...base, id: 'whale' }));
+    const builtin = BUILTIN_PACKS.map((b) => (b.base === '/web/whale/' ? { ...b, dir: join(root, 'not-shipped') } : b));
+    const { packs, problems } = scanPacks(builtin, [root]);
+    expect(problems).toEqual([]);
+    expect(packs.map((p) => [p.id, p.builtin, p.base])).toEqual([['coo', true, '/web/coo/'], ['whale', false, '/packs/whale/']]);
   });
 
   it('refuses a word name a script could never write: a marker\'s separator in it, longer than an inline marker, or naming two words', () => {

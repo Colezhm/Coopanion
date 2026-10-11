@@ -258,7 +258,11 @@ export function figurePacks(roots: readonly string[], language: Language = 'zh')
   return scanPacks(BUILTIN_PACKS, roots, petText(language).packs);
 }
 
-/** The built-in packs (`builtin`: directory → URL path), then each pack directory under `roots`. */
+/**
+ * The built-in packs (`builtin`: directory → URL path), then each pack directory under `roots`. An app may
+ * ship the World without a built-in pack's directory (the whale's): that pack is not there, and one
+ * installed with its id loads in its place.
+ */
 export function scanPacks(builtin: ReadonlyArray<{ dir: string; base: string }>, roots: readonly string[], t: PackText = petText().packs): PackScan {
   const packs: FigurePack[] = [];
   const problems: PackProblem[] = [];
@@ -271,7 +275,7 @@ export function scanPacks(builtin: ReadonlyArray<{ dir: string; base: string }>,
     for (const reason of skipped) problems.push({ dir, reason, loaded: true });
     packs.push({ id: m.id, dir, base: base(m.id), builtin: isBuiltin, manifest: m });
   };
-  for (const b of builtin) add(b.dir, () => b.base, true);
+  for (const b of builtin) if (existsSync(b.dir)) add(b.dir, () => b.base, true);
   for (const root of roots) {
     if (!existsSync(root)) continue;
     for (const e of readdirSync(root, { withFileTypes: true })) {
