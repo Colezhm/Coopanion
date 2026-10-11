@@ -1,5 +1,6 @@
 /**
  * The pet's size slider: `min`–`soft` on the main stretch, then a short stretch past a divider for `soft`–`max`.
+ * With `soft` at `max` it is one plain stretch in whole `step`s (the 外发光 slider), drawn the same way.
  * While the value is past the divider the short stretch widens (and the whole bar a little, as far as the row
  * allows), the main stretch gives way; back at `soft` or below it shrinks again. Both are animated. The value
  * stays where it is while the bar changes under it: a drag goes on from the thumb, not from where the pointer
@@ -17,6 +18,10 @@ export interface ScaleSliderOptions {
   soft: number;
   max: number;
   label: string;
+  /** One step of the value; the size slider's default moves by .05, and .1 past the divider. */
+  step?: number;
+  /** The value as read aloud; the size slider's default is a percentage. */
+  format?(value: number): string;
   /** Pixels the bar may take in its row. */
   room(): number;
   /** While the value changes (dragging, keys). */
@@ -54,16 +59,22 @@ export function scaleSlider(doc: Document, o: ScaleSliderOptions): ScaleSlider {
   let dragging = false, lastX = 0, offset = 0;
   const reduced = () => doc.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
-  const step = (v: number, up: boolean) => (v > o.soft || (up && v >= o.soft) ? .1 : .05);
+  /** No stretch past a divider: `soft` is the end. */
+  const single = o.soft >= o.max;
+  const fine = o.step ?? .05, coarse = o.step ?? .1;
+  const step = (v: number, up: boolean) => (v > o.soft || (up && v >= o.soft) ? coarse : fine);
   const snap = (v: number) => {
     const c = Math.min(o.max, Math.max(o.min, v));
-    return c <= o.soft ? Math.round(c * 20) / 20 : Math.round(c * 10) / 10;
+    const by = c <= o.soft ? fine : coarse;
+    return Number((Math.round(c / by) * by).toFixed(4));
   };
+  if (single) { tail.hidden = true; divider.hidden = true; }
 
   /** The bar's width and its main stretch, in pixels, for the current `k`. */
   function layout(): { width: number; mainW: number; tailW: number } {
     const room = o.room() || EXPANDED.width;
     const cw = Math.min(COLLAPSED.width, room), ew = Math.min(EXPANDED.width, room);
+    if (single) return { width: cw, mainW: cw, tailW: 0 };
     const e = ease(k);
     const width = cw + (ew - cw) * e;
     const mainW = cw * COLLAPSED.main + (ew * EXPANDED.main - cw * COLLAPSED.main) * e;
@@ -74,7 +85,8 @@ export function scaleSlider(doc: Document, o: ScaleSliderOptions): ScaleSlider {
     : l.mainW + ((v - o.soft) / (o.max - o.soft)) * l.tailW);
   const valueAt = (x: number, l = layout()) => (x <= l.mainW
     ? o.min + (Math.max(0, x) / l.mainW) * (o.soft - o.min)
-    : o.soft + (Math.min(l.tailW, x - l.mainW) / l.tailW) * (o.max - o.soft));
+    // with no stretch past the divider (tailW 0), beyond the bar's end is its end, not 0/0
+    : l.tailW > 0 ? o.soft + (Math.min(l.tailW, x - l.mainW) / l.tailW) * (o.max - o.soft) : o.soft);
 
   function draw(): void {
     const l = layout();
@@ -87,7 +99,7 @@ export function scaleSlider(doc: Document, o: ScaleSliderOptions): ScaleSlider {
     thumb.style.left = `${x}px`;
     el.classList.toggle('past', value > o.soft);
     el.setAttribute('aria-valuenow', String(value));
-    el.setAttribute('aria-valuetext', `${Math.round(value * 100)}%`);
+    el.setAttribute('aria-valuetext', o.format?.(value) ?? `${Math.round(value * 100)}%`);
   }
 
   function tick(now: number): void {
@@ -136,7 +148,7 @@ export function scaleSlider(doc: Document, o: ScaleSliderOptions): ScaleSlider {
     const keys: Record<string, () => number> = {
       ArrowRight: () => value + step(value, true), ArrowUp: () => value + step(value, true),
       ArrowLeft: () => value - step(value, false), ArrowDown: () => value - step(value, false),
-      PageUp: () => value + .5, PageDown: () => value - .5, Home: () => o.min, End: () => o.max,
+      PageUp: () => value + coarse * 5, PageDown: () => value - coarse * 5, Home: () => o.min, End: () => o.max,
     };
     const next = keys[e.key];
     if (!next) return;

@@ -25,6 +25,8 @@ const it: Translation<CoreText> = {
   },
 
   quit: "Esci dall'app",
+
+  noticeLabel: "Notifiche dell'app",
   cuaYes: 'Sì',
   cuaNo: 'Non stavolta',
 

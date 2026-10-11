@@ -216,6 +216,7 @@ export default {
     selfAdjust: { title: '自主配置权限', description: 'off 禁止：不能自己改设置，也不能临时安静；default 默认：形象、配色、走动和打呼直接改，大小、音效、夜间模式、悬停按钮和称呼先征得你同意；any 任意：都直接改；custom 自定义：按「习惯」页里的勾选，勾上的直接改，其余先征得你同意。' },
     windowEnabled: { title: '启动时打开桌宠窗口' },
     scale: { title: '大小' },
+    glow: { title: '外发光', description: '桌宠和身后的颜色相近时，身体周围出现的浅色外发光向外延伸多少像素；0 为关闭。' },
     frameRate: { title: '帧率', description: '走动、被拎着、跳起时每秒画多少帧；0 跟随显示器刷新率。超过显示器刷新率时按显示器的。「习惯」页可选 60、120、144 和不限。' },
     lockFrameRate: { title: '帧率锁定', description: '静止时也按「帧率」画桌宠。关着时站着、坐着、睡着降到每秒 30 帧。' },
     hideWhenFullscreen: { title: '全屏时自动隐藏', description: '开着时，前台窗口全屏铺满桌宠所在的那块屏（游戏、全屏视频、浏览器全屏）就把它藏起来，退出全屏放回来；最大化的窗口不算。关着时一直浮在上面。' },

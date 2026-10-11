@@ -204,6 +204,8 @@ The tray icon (menu bar on Mac, status bar on Linux) has a menu to open the sett
 
 ## Settings window
 
+The sidebar button switches between full labels and an icon rail and remembers your choice. Hover or focus an icon to see its name. The Coopanion wordmark folds into the Coo logo: both o letters move inside the C. Narrow windows start with the icon rail; expanding it on a small screen overlays the page.
+
 Click the tray icon, or right-click Coo and click the gear. The window opens in **normal mode**, which shows only the pages about the pet:
 
 | Page          | What is there                                                                                                    |
@@ -219,9 +221,9 @@ Click the tray icon, or right-click Coo and click the gear. The window opens in 
 <p align="center"><img src="image/README/habits-en.png" alt="Habits" width="720"></p>
 <p align="center"><img src="image/README/dress-en.png" alt="Dress up" width="720"></p>
 
-The current version is shown at the top left, with a download link below it when a newer release is out. The Windows build and the AppImage download new versions in the background; Coo then asks in its bubble whether to restart and update, or the update installs the next time you quit. If a download stalls, get it from GitHub yourself. On Mac and with the deb, download new versions by hand. After an update, Coo tells you what the new version brings; when you change what it calls you, its dress, walking, computer use or similar settings here, it hears about it and responds.
+The expanded sidebar shows the current version at the top left, with a download link below it when a newer release is out. The Windows build and the AppImage download new versions in the background; Coo then asks in its bubble whether to restart and update, or the update installs the next time you quit. If a download stalls, get it from GitHub yourself. On Mac and with the deb, download new versions by hand. After an update, Coo tells you what the new version brings; when you change what it calls you, its dress, walking, computer use or similar settings here, it hears about it and responds.
 
-**Advanced mode** at the bottom left shows every page (Worlds, models, extensions, memory, diagnostics); **Back to normal mode** hides them again.
+**Advanced mode** at the bottom left shows every page (Worlds, models, extensions, memory, diagnostics); **Back to normal mode** hides them again. In normal mode, expand the sidebar to show the Advanced mode button.
 
 ### Changing the model
 

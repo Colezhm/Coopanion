@@ -31,6 +31,8 @@ const ru: Translation<CoreText> = {
   },
 
   quit: 'Выйти из приложения',
+
+  noticeLabel: 'Уведомления приложения',
   cuaYes: 'Да',
   cuaNo: 'В этот раз нет',
 

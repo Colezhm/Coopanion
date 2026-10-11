@@ -115,3 +115,13 @@ export function modeButton(parent, getTheme, onSwitch, save = (theme) => fetch('
   parent.append(b);
   return { el: b, show };
 }
+
+/**
+ * Tells the settings window embedding this page that it has drawn itself in its own colors (`companion:painted`),
+ * two frames after the call: the window keeps the frame hidden until then, so it does not flash the browser's
+ * default white or the page's starting theme. The message carries nothing, so any origin may read it.
+ */
+export function announcePainted() {
+  if (window.parent === window) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => window.parent.postMessage({ type: 'companion:painted' }, '*')));
+}

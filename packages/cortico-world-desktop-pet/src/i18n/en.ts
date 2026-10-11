@@ -219,6 +219,7 @@ const en: PetText = {
     selfAdjust: { title: 'Self-adjustment', description: 'off: it cannot change its settings or keep quiet for a while. default: figure, dress, walking and snoring change directly; size, sounds, night mode, hover buttons and what it calls you wait for your consent. any: everything changes directly. custom: as ticked on the Habits page; ticked items change directly, the rest wait for your consent.' },
     windowEnabled: { title: 'Open the pet window at start' },
     scale: { title: 'Size' },
+    glow: { title: 'Outer glow', description: 'How many pixels the light glow around the pet reaches when its colors match what is behind it; 0 turns it off.' },
     frameRate: { title: 'Frame rate', description: 'Frames a second while the pet walks, is carried or jumps; 0 follows the display. Above the display\'s refresh rate the display\'s rate applies. The Habits page offers 60, 120, 144 and Unlimited.' },
     lockFrameRate: { title: 'Lock frame rate', description: 'Draws the pet at the frame rate at rest too. When off, it drops to 30 frames a second while standing, sitting or asleep.' },
     hideWhenFullscreen: { title: 'Hide during full screen', description: 'When on, the pet hides while the window in front fills the screen it is on (a game, a full-screen video, a browser in full screen) and comes back when full screen ends; a maximized window does not count. When off, it always stays on top.' },

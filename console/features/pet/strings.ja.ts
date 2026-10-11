@@ -73,4 +73,8 @@ export const S: Partial<typeof en> = {
   overlayLabel: 'OBS オーバーレイ',
   overlay: 'OBS オーバーレイを出力',
   overlayHint: 'OBS で「ブラウザ」ソースを追加し、この URL を入力して、幅と高さを画面の解像度にします。',
+  glow: '外側の光',
+  glowOff: 'オフ',
+  glowPx: (n: number) => `${n} px`,
+  glowHint: 'ペットの色が背景と近いときに体のまわりに出る淡い光の広がり。左端でオフ。',
 };

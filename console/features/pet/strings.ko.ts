@@ -73,4 +73,8 @@ export const S: Partial<typeof en> = {
   overlayLabel: 'OBS 오버레이',
   overlay: 'OBS 오버레이 내보내기',
   overlayHint: 'OBS에서 「브라우저」 소스를 추가하고 이 주소를 입력한 뒤 너비와 높이를 화면 해상도로 맞추세요.',
+  glow: '외곽 빛',
+  glowOff: '끔',
+  glowPx: (n: number) => `${n} px`,
+  glowHint: '펫과 배경의 색이 비슷할 때 몸 주위에 생기는 옅은 빛이 퍼지는 정도. 맨 왼쪽은 끔.',
 };

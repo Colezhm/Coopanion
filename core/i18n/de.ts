@@ -25,6 +25,8 @@ const de: Translation<CoreText> = {
   },
 
   quit: 'App beenden',
+
+  noticeLabel: 'App-Benachrichtigungen',
   cuaYes: 'Ja',
   cuaNo: 'Diesmal nicht',
 

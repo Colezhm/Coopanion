@@ -31,7 +31,7 @@
  * system's, handed to the Core as `COOPANION_SYSTEM_LANGUAGE`. The settings window's preload keeps the
  * console in the app language (`settings-preload.cjs`).
  */
-const { app, BrowserWindow, Menu, Notification, Tray, dialog, ipcMain, nativeImage, shell } = require('electron');
+const { app, BrowserWindow, Menu, Notification, Tray, dialog, ipcMain, nativeImage, screen, shell } = require('electron');
 const { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmdirSync, rmSync, writeFileSync } = require('node:fs');
 const { delimiter, dirname, join } = require('node:path');
 
@@ -176,8 +176,10 @@ function openSettings(path = '') {
     if (url && path) settings.loadURL(url);
     return;
   }
+  // 1200 wide keeps the 开始 page's model list on two rows; a smaller screen gets its work area
+  const area = screen.getPrimaryDisplay().workAreaSize;
   settings = new BrowserWindow({
-    width: 1180, height: 800, minWidth: 880, minHeight: 600,
+    width: Math.min(1200, area.width), height: Math.min(800, area.height), minWidth: 880, minHeight: 600,
     title: 'Coopanion', icon: join(ICONS, 'icon.png'), autoHideMenuBar: true, show: false,
     backgroundColor: '#f4f5f4',
     webPreferences: { preload: join(__dirname, 'settings-preload.cjs'), contextIsolation: true, sandbox: true, spellcheck: false },

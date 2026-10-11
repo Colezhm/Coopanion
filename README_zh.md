@@ -202,6 +202,8 @@ irm https://raw.githubusercontent.com/Pal-AI-Lab/Coopanion/main/installer/instal
 
 ## 设置窗口
 
+侧栏按钮可在完整名称和图标导航之间切换，并记住选择。悬停或用键盘聚焦图标可查看名称。Coopanion 字标折叠时，两个 o 移入 C 内，组成 Coo 标志。窄窗口默认折叠；小屏幕上展开侧栏会覆盖页面。
+
 点托盘图标，或右键 Coo 点齿轮，打开设置窗口。默认是**普通模式**，只有和桌宠相关的页面：
 
 | 页面       | 内容                                                                                                      |
@@ -217,9 +219,9 @@ irm https://raw.githubusercontent.com/Pal-AI-Lab/Coopanion/main/installer/instal
 <p align="center"><img src="image/README/habits-zh.png" alt="Habits" width="720"></p>
 <p align="center"><img src="image/README/dress-zh.png" alt="Dress up" width="720"></p>
 
-左上角显示当前版本，有新版本时下面会出现下载链接。Windows 版和 AppImage 会在后台自动下载新版本，下好后 Coo 会在气泡里问你要不要重启更新，不急的话下次退出时自动装上；下载卡住时可以去 GitHub 手动下载。Mac 版和 deb 仍需手动下载。更新之后，Coo 会告诉你新版本有什么变化；你在这里改了称呼、装扮、走动或电脑操作这些设置，它也会知道并回应。
+展开侧栏后，左上角显示当前版本，有新版本时下面会出现下载链接。Windows 版和 AppImage 会在后台自动下载新版本，下好后 Coo 会在气泡里问你要不要重启更新，不急的话下次退出时自动装上；下载卡住时可以去 GitHub 手动下载。Mac 版和 deb 仍需手动下载。更新之后，Coo 会告诉你新版本有什么变化；你在这里改了称呼、装扮、走动或电脑操作这些设置，它也会知道并回应。
 
-左栏底部的「**高级模式**」显示全部页面（World、模型、扩展、记忆、运行诊断），「回到普通模式」收起。
+左栏底部的「**高级模式**」显示全部页面（World、模型、扩展、记忆、运行诊断），「回到普通模式」收起。普通模式折叠侧栏时隐藏「高级模式」按钮，展开后显示。
 
 ### 换模型
 

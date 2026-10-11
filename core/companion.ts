@@ -443,6 +443,7 @@ export async function main(): Promise<void> {
     petConnected: () => (pet as DesktopPetWorld | null)?.petState().connected === true,
     guiding: () => guiding,
     onCreate: (world) => { notice = world; },
+    label: () => coreText(language()).noticeLabel,
   });
   /** Coopanion's config group; the console reads this object, retitled in place when the app language changes. */
   const settingsGroup = companionGroup('zh');

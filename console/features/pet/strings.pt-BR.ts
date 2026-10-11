@@ -73,4 +73,8 @@ export const S: Partial<typeof en> = {
   overlayLabel: 'Overlay do OBS',
   overlay: 'Exportar overlay do OBS',
   overlayHint: 'No OBS, adicione uma fonte “Navegador” com este endereço e a resolução da sua tela como largura e altura.',
+  glow: 'Brilho externo',
+  glowOff: 'Desligado',
+  glowPx: (n: number) => `${n} px`,
+  glowHint: 'Até onde vai o brilho claro em volta do pet quando as cores dele se parecem com o fundo; todo à esquerda desliga.',
 };

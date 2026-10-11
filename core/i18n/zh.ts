@@ -30,6 +30,8 @@ export default {
 
   /** 桌宠菜单头上的电源键 */
   quit: '退出应用',
+  /** 左栏里应用通知这个 World 的名字 */
+  noticeLabel: '应用通知',
   /** 电脑操作征求同意时气泡里的两个按钮 */
   cuaYes: '可以',
   cuaNo: '这次不行',

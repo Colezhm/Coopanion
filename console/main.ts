@@ -9,7 +9,7 @@
  *   底栏两种模式都只有运行状态、暂停/继续与关机;高级模式再接上 Cortico 除「设置」页以外的全部页面。左栏底部的开关
  *   切换模式,页面也可以经 requestMode 请求换;左栏只建一次,换模式时只藏起或露出普通模式不列的项;
  * - 空路由打开「开始」;
- * - 左上角是 Coopanion 的标志与字母(两块,居中对齐,左栏窄时字母跟着缩),下面是版本与项目地址,有新 Release 时再加一行下载链接(features/release.ts);
+ * - 左栏可折叠为图标导航,Coopanion 字标的两个 o 移入 C 内;展开时显示版本与项目地址及新 Release 链接;
  * - 左栏各组按「桌宠四页 · 对话 → World → 设置 → Persona & Memory → 高级」重排。
  * 其余逐字沿用上游。
  */
@@ -42,8 +42,8 @@ import { traceFeature } from './features/trace.ts';
 import { promptsWithClearFeature } from './features/clear-session.ts';
 import { mountRelease } from './features/release.ts';
 import { onModeRequest, readMode, writeMode, type ConsoleMode } from './features/mode.ts';
-import { brandMark, icon } from './ui/icons.ts';
-import { coopanionLettering } from './branding.ts';
+import { icon } from './ui/icons.ts';
+import { mountSidebar } from './sidebar.ts';
 import { L } from './strings.ts';
 import type { ConsoleMemo } from '../shared/client-panel.ts';
 
@@ -65,10 +65,11 @@ export const BASIC_FEATURES: readonly FrameworkFeature[] = [
  */
 export const FEATURES: readonly FrameworkFeature[] = [
   ...BASIC_FEATURES,
-  { ...providersFeature, label: L.model, navMode: 'group', navGroup: L.settings },
-  { ...extensionsFeature, navMode: 'group', navGroup: L.settings },
-  { ...traceFeature, navMode: 'group', navGroup: L.advanced },
-  { ...coreFeature, navMode: 'group', navGroup: L.advanced },
+  // the Model page keeps the providers page's own name (「模型供应商」), so the rail reads as the page's title
+  { ...providersFeature, navMode: 'group', navGroup: L.integrations },
+  { ...extensionsFeature, navMode: 'group', navGroup: L.integrations },
+  { ...traceFeature, navMode: 'group', navGroup: L.diagnostics },
+  { ...coreFeature, navMode: 'group', navGroup: L.diagnostics },
   worldsFeature,
 ];
 
@@ -77,13 +78,20 @@ function navRank(el: Element): number {
   if (el.classList.contains('navgroup-primary')) return 0;
   if (el.classList.contains('navgroup-world-tree')) return 1;
   const label = el.getAttribute('aria-label');
-  if (label === L.settings) return 2;
+  if (label === L.integrations) return 2;
   if (el.classList.contains('navgroup-persona')) return 3;
-  if (label === L.advanced) return 4;
+  if (label === L.diagnostics) return 4;
   return 5;
 }
 
 function orderNav(nav: Element): void {
+  // the persona group's title is the upstream shell's 「Persona & Memory」, not translated there: ours in its place
+  const persona = nav.querySelector<HTMLElement>(':scope > .navgroup-persona');
+  const title = persona?.querySelector(':scope > .stacklabel');
+  if (persona && title && title.textContent !== L.personaMemory) {
+    title.textContent = L.personaMemory;
+    persona.setAttribute('aria-label', L.personaMemory);
+  }
   const groups = [...nav.children];
   const sorted = [...groups].sort((a, b) => navRank(a) - navRank(b));
   if (sorted.every((g, i) => g === groups[i])) return;
@@ -195,51 +203,89 @@ export function boot(doc: Document = document): { dispose(): void } {
   shellLife.own({ dispose: () => { shell.dispose(); shell.el.remove(); } });
   doc.body.insertBefore(shell.el, doc.body.firstChild);
 
-  const brand = shell.el.querySelector('.brand');
-  if (brand) {
-    // the mark and the letters side by side, centred on each other; the letters shrink with a narrow rail
-    const lockup = ui.h('div', 'companion-lockup');
-    lockup.setAttribute('role', 'img');
-    lockup.setAttribute('aria-label', 'Coopanion');
-    lockup.append(brandMark(doc, 'brandmark companion-mark'), coopanionLettering(doc));
-    brand.replaceChildren(lockup);
-    mountRelease(doc, brand, shellLife.signal);
-  }
+  const brandMeta = mountSidebar(shell.el, memo, shellLife.signal);
+  mountRelease(doc, brandMeta, shellLife.signal);
 
   /** 普通模式下藏起不在 BASIC_FEATURES 里的项(含 manifest 的页),项都藏起来的组也藏起来;每次导航重画后再排一遍。 */
   const basicRoutes = new Set(BASIC_FEATURES.map((f) => f.route));
   const nav = shell.el.querySelector('nav.stack');
-  const filterNav = (): void => {
+  /** How long an entry takes to fade in or out when the mode changes (companion.css `.companion-enter`, `.companion-leave`). */
+  const FADE_MS = 200;
+  /** Shows or hides one entry; on a mode change it fades, at once otherwise (a redraw of the nav). */
+  const showEntry = (el: HTMLElement, show: boolean, animate: boolean): void => {
+    el.classList.remove('companion-enter', 'companion-leave');
+    if (!animate || show === !el.hidden) { el.hidden = !show; return; }
+    if (show) {
+      el.hidden = false;
+      void el.offsetWidth;
+      el.classList.add('companion-enter');
+      el.addEventListener('animationend', () => el.classList.remove('companion-enter'), { once: true });
+    } else {
+      el.classList.add('companion-leave');
+      setTimeout(() => { if (el.classList.contains('companion-leave')) { el.classList.remove('companion-leave'); el.hidden = true; } }, FADE_MS);
+    }
+  };
+  const filterNav = (animate = false): void => {
     if (!nav) return;
     orderNav(nav);
     const normal = mode === 'normal';
-    for (const item of nav.querySelectorAll<HTMLAnchorElement>('a.navitem')) {
-      const head = (item.getAttribute('href') ?? '').replace(/^#\/?/, '').split('/')[0];
-      item.hidden = normal && !basicRoutes.has(head ?? '');
-    }
+    const shown = (item: Element) => !normal || basicRoutes.has((item.getAttribute('href') ?? '').replace(/^#\/?/, '').split('/')[0] ?? '');
+    const fading = animate && !nav.querySelector('.companion-leave');
     for (const group of nav.querySelectorAll<HTMLElement>('.navgroup')) {
-      group.hidden = normal && !group.querySelector('a.navitem:not([hidden])');
+      const items = [...group.querySelectorAll<HTMLAnchorElement>('a.navitem')];
+      const any = items.some(shown);
+      // a group that goes as a whole fades as a whole, its entries untouched until it is gone (hiding them first
+      // left its bare section titles fading out); inside a group that stays, each entry fades on its own
+      if (!(animate && !any && !group.hidden)) for (const item of items) showEntry(item, shown(item), animate && any);
+      showEntry(group, any, animate);
+    }
+    // entries going out shorten the list: scroll to where it will end up while they fade, rather than jump there after
+    if (fading && nav.querySelector('.companion-leave')) {
+      const from = nav.scrollTop;
+      // where the list ends without them: hide them for one synchronous measurement (no paint in between), then put them back
+      const leaving = [...nav.querySelectorAll<HTMLElement>('.companion-leave')];
+      for (const el of leaving) el.style.display = 'none';
+      const to = Math.max(0, Math.min(from, nav.scrollHeight - nav.clientHeight));
+      for (const el of leaving) el.style.display = '';
+      nav.scrollTop = from;
+      if (to < from && !doc.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) {
+        const start = performance.now();
+        const step = (now: number): void => {
+          const k = Math.min(1, (now - start) / FADE_MS);
+          nav.scrollTop = from + (to - from) * (1 - (1 - k) ** 3);
+          if (k < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      } else nav.scrollTop = to;
     }
   };
   if (nav) {
-    const observer = new MutationObserver(filterNav);
+    const observer = new MutationObserver(() => filterNav());
     observer.observe(nav, { childList: true, subtree: true });
     shellLife.own({ dispose: () => observer.disconnect() });
   }
 
   const toggle = ui.h('button', 'companion-mode');
   toggle.type = 'button';
-  toggle.addEventListener('click', () => setMode(mode === 'advanced' ? 'normal' : 'advanced'), { signal: shellLife.signal });
+  toggle.addEventListener('click', () => {
+    // a short press animation on the button itself
+    toggle.classList.remove('companion-pressed');
+    void toggle.offsetWidth;
+    toggle.classList.add('companion-pressed');
+    setMode(mode === 'advanced' ? 'normal' : 'advanced');
+  }, { signal: shellLife.signal });
+  toggle.addEventListener('animationend', () => toggle.classList.remove('companion-pressed'), { signal: shellLife.signal });
   shell.el.insertBefore(toggle, shell.el.querySelector('.railfoot'));
-  const renderMode = (): void => {
+  const renderMode = (animate = false): void => {
     const advanced = mode === 'advanced';
     toggle.title = advanced ? L.toNormalHint : L.toAdvancedHint;
+    toggle.setAttribute('aria-label', advanced ? L.toNormal : L.toAdvanced);
     toggle.replaceChildren(icon(doc, advanced ? 'eye-off' : 'settings', 'navicon'), ui.h('span', 'lbl', advanced ? L.toNormal : L.toAdvanced));
     doc.body.classList.toggle('companion-normal', !advanced);
-    filterNav();
+    filterNav(animate);
   };
 
-  // the run state in words left of the pause/resume key, in the key's color; a click on it is a click on the key
+  // the run state in words right of the pause/resume key, in the key's color; a click on it is a click on the key
   const run = shell.el.querySelector<HTMLButtonElement>('.rail-run');
   if (run) {
     const state = ui.h('span', 'companion-runstate');
@@ -251,7 +297,10 @@ export function boot(doc: Document = document): { dispose(): void } {
       state.hidden = capabilities.run !== true;
     };
     state.addEventListener('click', () => run.click(), { signal: shellLife.signal });
-    run.before(state);
+    // left to right: shut down, pause/resume, then the state in words
+    const shutdown = shell.el.querySelector('.rail-shutdown');
+    if (shutdown) run.before(shutdown);
+    run.after(state);
     const observer = new MutationObserver(show);
     observer.observe(run, { attributes: true, attributeFilter: ['class', 'disabled'] });
     shellLife.own({ dispose: () => observer.disconnect() });
@@ -262,8 +311,8 @@ export function boot(doc: Document = document): { dispose(): void } {
     if (next === mode) return;
     mode = next;
     writeMode(mode);
-    renderMode();
-    apply(router.route);
+    renderMode(true);
+    // the page open now stays, even one the normal mode does not list; the next page picked is checked as usual
   };
   renderMode();
   shell.setRoute(router.route);

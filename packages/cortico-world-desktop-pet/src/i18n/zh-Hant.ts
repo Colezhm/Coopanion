@@ -192,6 +192,7 @@ const zhHant: Translation<PetText> = {
     selfAdjust: { title: '自主設定權限', description: 'off 禁止：不能自己改設定，也不能臨時安靜；default 預設：形象、配色、走動和打呼直接改，大小、音效、夜間模式、懸停按鈕和稱呼先徵得你同意；any 任意：都直接改；custom 自訂：照「習慣」頁裡的勾選，勾上的直接改，其餘先徵得你同意。' },
     windowEnabled: { title: '啟動時開啟桌寵視窗' },
     scale: { title: '大小' },
+    glow: { title: '外發光', description: '桌寵和身後的顏色相近時，身體周圍出現的淺色外發光向外延伸多少像素；0 為關閉。' },
     frameRate: { title: '幀率', description: '走動、被拎著、跳起時每秒畫幾幀；0 跟隨螢幕更新率。超過螢幕更新率時以螢幕的為準。「習慣」頁可選 60、120、144 和不限。' },
     lockFrameRate: { title: '幀率鎖定', description: '靜止時也依「幀率」繪製桌寵。關閉時站著、坐著、睡著會降到每秒 30 幀。' },
     hideWhenFullscreen: { title: '全螢幕時自動隱藏', description: '開啟時，前景視窗以全螢幕鋪滿桌寵所在的那個螢幕（遊戲、全螢幕影片、瀏覽器全螢幕）就把它藏起來，離開全螢幕後再放回來；最大化的視窗不算。關閉時一律浮在最上層。' },

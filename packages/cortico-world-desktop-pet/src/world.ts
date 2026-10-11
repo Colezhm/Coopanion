@@ -759,6 +759,7 @@ export class DesktopPetWorld implements World {
       hoverButtons: hoverButtonList(this.cfg.hoverButtons),
       doubleClickChat: this.cfg.doubleClickChat,
       scale: this.cfg.window.scale,
+      glow: this.cfg.window.glow,
       frameRate: this.cfg.window.frameRate,
       lockFrameRate: this.cfg.window.lockFrameRate,
       hideWhenFullscreen: this.cfg.window.hideWhenFullscreen,
