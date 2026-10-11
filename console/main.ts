@@ -240,7 +240,7 @@ export function boot(doc: Document = document): { dispose(): void } {
       const to = Math.max(0, Math.min(from, nav.scrollHeight - nav.clientHeight));
       for (const el of leaving) el.style.display = '';
       nav.scrollTop = from;
-      if (to < from) {
+      if (to < from && !doc.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) {
         const start = performance.now();
         const step = (now: number): void => {
           const k = Math.min(1, (now - start) / FADE_MS);
@@ -248,7 +248,7 @@ export function boot(doc: Document = document): { dispose(): void } {
           if (k < 1) requestAnimationFrame(step);
         };
         requestAnimationFrame(step);
-      }
+      } else nav.scrollTop = to;
     }
   };
   if (nav) {
