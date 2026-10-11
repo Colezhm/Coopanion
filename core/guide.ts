@@ -4,7 +4,8 @@
  * `dialog`); no window opens:
  *
  * 0. the app language, asked in English with each language under its own name, English picked on
- *    a first start and the language in force when the introduction runs again; the rest speaks the one picked;
+ *    a first start and the language in force when the introduction runs again; the rest speaks the one picked.
+ *    Closed here on a first start, the app is in English;
  * 1. hello, what to call the person (the desktop-pet World's `user`), and where they heard of
  *    Coopanion (for the usage statistics; one of the buttons skips it);
  * 2. how lively to be (`roam`): while the cards are up Coo shows each one, standing still,
@@ -59,6 +60,11 @@ const STEPS = 7;
  * line in the language they pick. Not in core/i18n, since they never follow the app language.
  */
 const LANGUAGE_PAGE = { ask: 'First things first: which language would you like?', ok: 'Continue' };
+/** A language's card: its name, and the region in its name (「Español (Latinoamérica)」) on a smaller second line, so it fits the card. */
+const languageCard = (code: Language) => {
+  const [, name, region] = /^(.*?)\s*\((.+)\)$/.exec(LANGUAGE_NAMES[code]) ?? [];
+  return name && region ? { label: name, note: region } : { label: LANGUAGE_NAMES[code] };
+};
 /** How long the introduction waits for the picked language to reach the live config. */
 const LANGUAGE_WAIT_MS = 3000;
 /** How often a step waiting for the pet page looks again, and a download for its progress. */
@@ -259,16 +265,22 @@ export async function runGuide(deps: GuideDeps): Promise<void> {
     await sleep(1800);
     // 0 the language
     const was = deps.language();
-    const preset: Language = guideDone(deps.doneFile) ? was : 'en';
+    const firstStart = !guideDone(deps.doneFile);
+    const preset: Language = firstStart ? 'en' : was;
+    const useLanguage = async (next: Language) => {
+      if (next === deps.language()) return;
+      await call('/api/config', { group: APP_GROUP, values: { language: next } }).catch(() => {});
+      for (const until = Date.now() + LANGUAGE_WAIT_MS; deps.language() !== next && Date.now() < until;) await sleep(100);
+    };
     const l = await step(0, 'language', {
       text: LANGUAGE_PAGE.ask, actions: ['happy'],
-      input: { kind: 'choices', confirm: LANGUAGE_PAGE.ok, value: LANGUAGES.indexOf(preset), options: LANGUAGES.map((code) => ({ label: LANGUAGE_NAMES[code] })) },
+      input: { kind: 'choices', confirm: LANGUAGE_PAGE.ok, value: LANGUAGES.indexOf(preset), options: LANGUAGES.map(languageCard) },
+    }).catch(async (err: unknown) => {
+      // closed on a first start without a pick: English, the language the page asked in; run again, it stays as it was
+      if (err instanceof Closed && firstStart) await useLanguage('en');
+      throw err;
     });
-    const picked = LANGUAGES['index' in l ? l.index : LANGUAGES.indexOf(preset)] ?? preset;
-    if (picked !== was) {
-      await call('/api/config', { group: APP_GROUP, values: { language: picked } }).catch(() => {});
-      for (const until = Date.now() + LANGUAGE_WAIT_MS; deps.language() !== picked && Date.now() < until;) await sleep(100);
-    }
+    await useLanguage(LANGUAGES['index' in l ? l.index : LANGUAGES.indexOf(preset)] ?? preset);
     // the language picked holds to the introduction's end
     const language = deps.language();
     const S = lines(language);

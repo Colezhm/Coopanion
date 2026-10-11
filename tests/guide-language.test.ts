@@ -45,10 +45,28 @@ describe('the introduction asks for the language first', () => {
     expect(first.input?.kind).toBe('choices');
     expect(first.input?.kind === 'choices' && first.input.value).toBe(LANGUAGES.indexOf('en'));
     expect(first.text).toMatch(/language/);
+    // a region in the name goes on the card's smaller second line
+    const options = first.input?.kind === 'choices' ? first.input.options : [];
+    expect(options[LANGUAGES.indexOf('es-419')]).toEqual({ label: 'Español', note: 'Latinoamérica' });
+    expect(options[LANGUAGES.indexOf('en')]).toEqual({ label: 'English' });
     expect(saved).toContainEqual({ group: 'companion', values: { language: 'zh' } });
     // the next line, the hello, is in the language picked, and the dots moved on by one
     expect(shown[1]!.text).toBe(coreText('zh').guide.hello);
     expect(shown[1]!.step).toEqual([2, 7]);
+  }, 10_000);
+
+  it('leaves the app in English when the language page is closed on a first start', async () => {
+    const { run, shown, saved } = setup('zh', [{ closed: true }]);
+    await run;
+    expect(saved).toContainEqual({ group: 'companion', values: { language: 'en' } });
+    // the closing line comes in English
+    expect(shown.at(-1)!.text).toBe(coreText('en').guide.closed);
+  }, 10_000);
+
+  it('keeps the language when the page is closed on a later run', async () => {
+    const { run, saved } = setup('zh', [{ closed: true }], true);
+    await run;
+    expect(saved.filter((b) => (b as { group: string }).group === 'companion')).toEqual([]);
   }, 10_000);
 
   it('offers the language in force when it runs again, and saves nothing when it is kept', async () => {
