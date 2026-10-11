@@ -64,7 +64,7 @@ export function scaleSlider(doc: Document, o: ScaleSliderOptions): ScaleSlider {
   const fine = o.step ?? .05, coarse = o.step ?? .1;
   const step = (v: number, up: boolean) => (v > o.soft || (up && v >= o.soft) ? coarse : fine);
   const snap = (v: number) => {
-    const c = Number.isFinite(v) ? Math.min(o.max, Math.max(o.min, v)) : value;
+    const c = Math.min(o.max, Math.max(o.min, v));
     const by = c <= o.soft ? fine : coarse;
     return Number((Math.round(c / by) * by).toFixed(4));
   };

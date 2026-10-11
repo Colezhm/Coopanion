@@ -236,8 +236,7 @@ function applyPrefs(p) {
   if (typeof p.sound === 'boolean') { prefs.sound = p.sound; sfx.set(p.sound); }
   if (p.sounds && typeof p.sounds === 'object') sfx.configure({ kinds: p.sounds, snoreSeconds: p.sounds.snoreSeconds });
   if (p.theme === 'dark' || p.theme === 'light') { prefs.theme = p.theme; applyTheme(p.theme); modeBtn?.show(p.theme); body?.set({ theme: p.theme }); }
-  // the setting's range (config.ts GLOW_MAX), whatever a hand-edited config holds
-  if (typeof p.glow === 'number' && Number.isFinite(p.glow)) prefs.glow = clamp(p.glow, 0, 16);
+  if (typeof p.glow === 'number') prefs.glow = p.glow;
   if (typeof p.scale === 'number') { prefs.scale = p.scale; body?.set({ bounds: bounds() }); }
   if (typeof p.rememberPosition === 'boolean') { prefs.rememberPosition = p.rememberPosition; reportPosition(); }
   if (typeof p.user === 'string') prefs.user = p.user;
@@ -1430,17 +1429,7 @@ async function probeBackdrop() {
   const x = Math.max(0, far.x), y = Math.max(0, far.y);
   const rect = { x, y, width: Math.min(innerWidth, far.x + far.width) - x, height: Math.min(innerHeight, far.y + far.height) - y };
   const covers = [bubble, heardEl, menu, tools].filter((el) => !el.hidden).map((el) => shadowed(rectOf(el)));
-  const skip = [near, ...covers];
-  // how much of the ring the bubbles leave to look at: with little of it left, what is left may not say much
-  let ring = 0, open = 0;
-  for (let j = 0; j < 16; j++) for (let i = 0; i < 16; i++) {
-    const p = { x: rect.x + (i + .5) * rect.width / 16, y: rect.y + (j + .5) * rect.height / 16 };
-    const inside = (r) => p.x >= r.x && p.x < r.x + r.width && p.y >= r.y && p.y < r.y + r.height;
-    if (inside(near)) continue;
-    ring++;
-    if (!covers.some(inside)) open++;
-  }
-  const px = await host.sampleBackdrop(rect, skip);
+  const px = await host.sampleBackdrop(rect, [near, ...covers]);
   // this platform cannot read the screen cheaply: the halo just stays
   if (px === null) { backdrop.on = true; backdrop.fixed = true; return; }
   const n = px.length / 3;
@@ -1452,8 +1441,8 @@ async function probeBackdrop() {
     if (Math.hypot(l - L, a - A, b - B) < SAME_COLOR) same++;
   }
   const share = same / n;
-  // with most of the ring under bubbles the halo may come on, but does not go off: it stays as it was before they opened
-  if (backdrop.on && open < ring * .5) return;
+  // while the page's own bubbles cover part of the ring the halo may come on, but does not go off
+  if (backdrop.on && covers.length) return;
   backdrop.on = backdrop.on ? share >= HALO_OFF : share > HALO_ON;
 }
 function stepBackdrop(dt) {
@@ -1465,7 +1454,7 @@ function stepBackdrop(dt) {
   const k = backdrop.k + ((backdrop.on ? 1 : 0) - backdrop.k) * Math.min(1, dt * 6);
   backdrop.k = k < .005 ? 0 : k;
   // the body is in its own frame: it takes the halo as a CSS filter
-  body?.setHalo(prefs.glow > 0 ? backdrop.k * HALO_STRENGTH : 0, prefs.glow);
+  body?.setHalo(backdrop.k * HALO_STRENGTH, prefs.glow);
 }
 
 /* ---------- loop ---------- */

@@ -179,9 +179,9 @@ export function loadBody({ layer, pack, start, theme, bounds, onEvent, onSound, 
       },
       /**
        * The light halo behind the body (pet-app's backdrop), as a CSS filter on the frame's window cut down to
-       * the body's surroundings (haloRect), so it blurs only those; 0 removes it. Called once a frame: it follows the body.
+       * the body's surroundings (haloRect), so it blurs only those; a `k` or `reach` of 0 removes it. Called once a frame: it follows the body.
        */
-      setHalo(k, reach = 7) {
+      setHalo(k, reach) {
         const r = k && reach > 0 ? haloRect(layout, size, reach) : null;
         const c = r ? `rgba(184,184,184,${k.toFixed(2)})` : '';
         // two blurs, the inner one 3/7 of the outer (the halo's look at the default reach of 7)
