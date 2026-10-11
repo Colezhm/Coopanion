@@ -1342,10 +1342,10 @@ function place(el, a, extraUp, side) {
 }
 function placeTalk(it, a) {
   const bw = bubble.offsetWidth, bh = bubble.offsetHeight;
-  // picked up, Coo takes the bubble along until it has landed from the throw or the drop, and it stays where Coo
-  // came down; the hops and strolls of stepTalkMotion's demo are Coo's own and leave it where it was
+  // picked up, or still falling when the bubble opened, Coo takes the bubble along until it has landed, and it
+  // stays where Coo came down; the hops and strolls of stepTalkMotion's demo (talk.motion) are Coo's own and leave it be
   const mode = at()?.mode;
-  if (mode === 'drag') it.carried = true;
+  if (mode === 'drag' || (FLYING.has(mode) && !talk.motion)) it.carried = true;
   if (it.carried) { it.pinX = a.x; it.pinY = a.y; if (!FLYING.has(mode)) it.carried = false; }
   const left = clamp(it.pinX - bw / 2, 10, Math.max(10, innerWidth - bw - 10));
   const top = Math.max(8, it.pinY - bh - 18);
