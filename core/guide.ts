@@ -3,9 +3,8 @@
  * at the bottom of the screen, one step at a time in its bubble (the desktop-pet World's
  * `dialog`); no window opens:
  *
- * 0. the app language, asked in English with each language under its own name, English picked on
- *    a first start and the language in force when the introduction runs again; the rest speaks the one picked.
- *    Closed here on a first start, the app is in English;
+ * 0. the app language, asked in English with each language under its own name and the language in force
+ *    picked (the system's on a first start); the rest speaks the one picked;
  * 1. hello, what to call the person (the desktop-pet World's `user`), and where they heard of
  *    Coopanion (for the usage statistics; one of the buttons skips it);
  * 2. how lively to be (`roam`): while the cards are up Coo shows each one, standing still,
@@ -267,22 +266,14 @@ export async function runGuide(deps: GuideDeps): Promise<void> {
     while (!t.connected()) await sleep(POLL_MS);
     await sleep(1800);
     // 0 the language
-    const was = deps.language();
-    const firstStart = !guideDone(deps.doneFile);
-    const preset: Language = firstStart ? 'en' : was;
-    // the config API writes the live config before it answers; a failed write leaves the language as it was
-    const useLanguage = async (next: Language) => {
-      if (next !== deps.language()) await call('/api/config', { group: APP_GROUP, values: { language: next } }).catch(() => {});
-    };
+    const current = deps.language();
     const l = await step(0, 'language', {
       text: LANGUAGE_PAGE.ask, actions: ['happy'],
-      input: { kind: 'choices', confirm: LANGUAGE_PAGE.ok, value: LANGUAGES.indexOf(preset), options: LANGUAGES.map(languageCard) },
-    }).catch(async (err: unknown) => {
-      // closed on a first start without a pick: English, the language the page asked in; run again, it stays as it was
-      if (err instanceof Closed && firstStart) await useLanguage('en');
-      throw err;
+      input: { kind: 'choices', confirm: LANGUAGE_PAGE.ok, value: LANGUAGES.indexOf(current), options: LANGUAGES.map(languageCard) },
     });
-    await useLanguage('index' in l ? LANGUAGES[l.index]! : preset);
+    const picked = 'index' in l ? LANGUAGES[l.index]! : current;
+    // the config API writes the live config before it answers; a failed write leaves the language as it was
+    if (picked !== current) await call('/api/config', { group: APP_GROUP, values: { language: picked } }).catch(() => {});
     // the language picked holds to the introduction's end
     const language = deps.language();
     const S = lines(language);

@@ -37,13 +37,13 @@ function setup(start: Language, answers: PetDialogAnswer[], done = false) {
 afterEach(() => { vi.unstubAllGlobals(); });
 
 describe('the introduction asks for the language first', () => {
-  it('asks in English with English picked on a first start, then speaks the language picked', async () => {
+  it('asks in English with the language in force picked, then speaks the language picked', async () => {
     const { run, shown, saved } = setup('ja', [{ index: LANGUAGES.indexOf('zh') }]);
     await run;
     const first = shown[0]!;
     expect(first.step).toEqual([1, 7]);
     expect(first.input?.kind).toBe('choices');
-    expect(first.input?.kind === 'choices' && first.input.value).toBe(LANGUAGES.indexOf('en'));
+    expect(first.input?.kind === 'choices' && first.input.value).toBe(LANGUAGES.indexOf('ja'));
     expect(first.text).toMatch(/language/);
     // a region in the name goes on the card's smaller second line
     const options = first.input?.kind === 'choices' ? first.input.options : [];
@@ -55,25 +55,16 @@ describe('the introduction asks for the language first', () => {
     expect(shown[1]!.step).toEqual([2, 7]);
   }, 10_000);
 
-  it('leaves the app in English when the language page is closed on a first start', async () => {
+  it('keeps the language when the page is closed', async () => {
     const { run, shown, saved } = setup('zh', [{ closed: true }]);
     await run;
-    expect(saved).toContainEqual({ group: 'companion', values: { language: 'en' } });
-    // the closing line comes in English
-    expect(shown.at(-1)!.text).toBe(coreText('en').guide.closed);
-  }, 10_000);
-
-  it('keeps the language when the page is closed on a later run', async () => {
-    const { run, saved } = setup('zh', [{ closed: true }], true);
-    await run;
     expect(saved.filter((b) => (b as { group: string }).group === 'companion')).toEqual([]);
+    expect(shown.at(-1)!.text).toBe(coreText('zh').guide.closed);
   }, 10_000);
 
-  it('offers the language in force when it runs again, and saves nothing when it is kept', async () => {
+  it('saves nothing when the language in force is kept', async () => {
     const { run, shown, saved } = setup('de', [{ index: LANGUAGES.indexOf('de') }], true);
     await run;
-    const first = shown[0]!;
-    expect(first.input?.kind === 'choices' && first.input.value).toBe(LANGUAGES.indexOf('de'));
     expect(saved.filter((b) => (b as { group: string }).group === 'companion')).toEqual([]);
     expect(shown[1]!.text).toBe(coreText('de').guide.hello);
   }, 10_000);
