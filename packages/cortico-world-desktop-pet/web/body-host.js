@@ -70,12 +70,15 @@ export function onBody(layout, p) {
 
 /**
  * The window the halo is drawn in for a body with `layout` (readLayout's) on a `size` stage: its box with HALO_PAD
- * and HALO_REACH around it, in whole pixels inside the stage; null when there is no box to draw around.
+ * around it, and at least HALO_REACH or three times the halo's `reach`, in whole pixels inside the stage; null when
+ * there is no box to draw around.
  */
-export function haloRect(layout, size) {
+export function haloRect(layout, size, reach = 7) {
   const b = layout?.box;
   if (!b || !(b.w > 0) || !(b.h > 0)) return null;
-  const px = Math.max(HALO_REACH, b.w * HALO_PAD), py = Math.max(HALO_REACH, b.h * HALO_PAD);
+  // the drop shadows spread about three times their blur: a wider halo needs a wider window
+  const room = Math.max(HALO_REACH, reach * 3);
+  const px = Math.max(room, b.w * HALO_PAD), py = Math.max(room, b.h * HALO_PAD);
   const x = Math.max(0, Math.floor(b.x - px)), y = Math.max(0, Math.floor(b.y - py));
   const w = Math.min(Math.ceil(size.W), Math.ceil(b.x + b.w + px)) - x, h = Math.min(Math.ceil(size.H), Math.ceil(b.y + b.h + py)) - y;
   return w > 0 && h > 0 ? { x, y, w, h } : null;
@@ -176,16 +179,18 @@ export function loadBody({ layer, pack, start, theme, bounds, onEvent, onSound, 
       },
       /**
        * The light halo behind the body (pet-app's backdrop), as a CSS filter on the frame's window cut down to
-       * the body's surroundings (haloRect), so it blurs only those; 0 removes it. Called once a frame: it follows the body.
+       * the body's surroundings (haloRect), so it blurs only those; a `k` or `reach` of 0 removes it. Called once a frame: it follows the body.
        */
-      setHalo(k) {
-        const r = k ? haloRect(layout, size) : null;
+      setHalo(k, reach) {
+        const r = k && reach > 0 ? haloRect(layout, size, reach) : null;
         const c = r ? `rgba(184,184,184,${k.toFixed(2)})` : '';
-        const at = r ? `${r.x},${r.y},${r.w},${r.h},${c}` : '';
+        // two blurs, the inner one 3/7 of the outer (the halo's look at the default reach of 7)
+        const inner = Math.max(1, Math.round(reach * 3 / 7));
+        const at = r ? `${r.x},${r.y},${r.w},${r.h},${c},${reach}` : '';
         if (at === haloAt) return;
         haloAt = at;
         if (!r) { clip.removeAttribute('style'); frame.removeAttribute('style'); return; }
-        Object.assign(clip.style, { inset: 'auto', left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, height: `${r.h}px`, overflow: 'hidden', filter: `drop-shadow(0 0 3px ${c}) drop-shadow(0 0 7px ${c})` });
+        Object.assign(clip.style, { inset: 'auto', left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, height: `${r.h}px`, overflow: 'hidden', filter: `drop-shadow(0 0 ${inner}px ${c}) drop-shadow(0 0 ${reach}px ${c})` });
         // the frame keeps the stage's size and place, so the body inside it neither moves nor resizes
         Object.assign(frame.style, { inset: 'auto', left: `${-r.x}px`, top: `${-r.y}px`, width: `${size.W}px`, height: `${size.H}px` });
       },

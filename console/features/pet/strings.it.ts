@@ -73,4 +73,8 @@ export const S: Partial<typeof en> = {
   overlayLabel: 'Overlay OBS',
   overlay: "Esporta l'overlay OBS",
   overlayHint: 'In OBS aggiungi una sorgente «Browser» con questo indirizzo e la risoluzione dello schermo come larghezza e altezza.',
+  glow: 'Bagliore esterno',
+  glowOff: 'Spento',
+  glowPx: (n: number) => `${n} px`,
+  glowHint: "Quanto si estende il bagliore chiaro attorno all'animaletto quando i suoi colori somigliano allo sfondo; tutto a sinistra lo spegne.",
 };

@@ -82,6 +82,8 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), [contentedita
 .companion-runstate { margin-right: 2px; font: 600 12.5px/1 var(--sans); color: var(--accent); white-space: nowrap; cursor: pointer; }
 .companion-runstate.paused { color: var(--warn); }
 .companion-runstate[hidden] { display: none; }
+/* the run state is written once, left of the key; Cortico's line under the bot name stays hidden */
+.rail-runstate { display: none; }
 .rail-run.paused { color: var(--warn); }
 .rail-run.paused:hover { color: var(--warn); }
 

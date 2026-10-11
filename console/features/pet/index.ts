@@ -43,6 +43,7 @@ const KEYS = {
   user: `${K}.user`,
   roam: `${K}.roam`,
   scale: `${K}.window.scale`,
+  glow: `${K}.window.glow`,
   lockFps: `${K}.window.lockFrameRate`,
   frameRate: `${K}.window.frameRate`,
   hideFullscreen: `${K}.window.hideWhenFullscreen`,
@@ -84,6 +85,8 @@ interface ConfigEntry { group: { id: string }; values?: Record<string, unknown> 
 
 /** The size range (as SCALE_MIN, SCALE_MAX in the World's config.ts) and where the slider's short stretch starts; the frame-rate choices, 0 following the display. */
 const SCALE_MIN = .5, SCALE_SOFT_MAX = 2, SCALE_MAX = 10;
+/** The halo's reach in pixels, as GLOW_MAX and GLOW_DEFAULT in the World's config.ts: 0 turns it off. */
+const GLOW_MAX = 16, GLOW_DEFAULT = 7;
 const FRAME_RATES = [60, 120, 144, 0];
 
 /** While the size slider moves, at most one save per this many milliseconds. */
@@ -123,6 +126,19 @@ async function mount(ctx: FeatureContext): Promise<void> {
   });
   scaleBox.append(scale.el, scaleText);
   new ResizeObserver(() => scale.relayout()).observe(scaleBox);
+  // 外发光: the same slider in whole pixels, 0 (off) to GLOW_MAX; saved once a drag or a key press ends
+  const glowLabel = (v: number) => (v > 0 ? S.glowPx(v) : S.glowOff);
+  const glowText = ui.h('span', 'companion-rangeval');
+  const glowBox = ui.h('div', 'companion-rangebox');
+  const glow = scaleSlider(root.ownerDocument, {
+    min: 0, soft: GLOW_MAX, max: GLOW_MAX, step: 1, label: S.glow, format: glowLabel,
+    room: () => glowBox.clientWidth - glowText.offsetWidth - 12,
+    onInput: () => showGlow(),
+    onChange: () => { showGlow(); void save(KEYS.glow, glow.value, GROUP, displayMsg); },
+  });
+  glowBox.append(glow.el, glowText);
+  new ResizeObserver(() => glow.relayout()).observe(glowBox);
+  const showGlow = () => { glowText.textContent = glowLabel(glow.value); };
   const frameRate = ui.segmented(FRAME_RATES.map((n) => ({ value: String(n), label: n ? String(n) : S.frameUnlimited })),
     { size: 'sm', onSelect: (v) => void save(KEYS.frameRate, Number(v), GROUP, displayMsg) });
   const lockFps = ui.checkbox(S.lockFps, { onChange: (on) => void save(KEYS.lockFps, on, GROUP, displayMsg) });
@@ -284,6 +300,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
   const display = ui.sheet({ title: S.groupDisplay });
   display.body.append(
     row(S.scale, scaleBox),
+    row(S.glow, glowBox, S.glowHint),
     row(S.frameRate, frameRate.el, S.frameRateHint),
     row('', lockFps.el, S.lockFpsHint),
     hideFullscreenRow,
@@ -413,6 +430,7 @@ async function mount(ctx: FeatureContext): Promise<void> {
     }
     if (typeof values[KEYS.roam] === 'string') roam.setValue(values[KEYS.roam] as string);
     if (typeof values[KEYS.scale] === 'number' && !scale.active && active !== scale.el) { scale.set(values[KEYS.scale] as number); showScale(); }
+    if (!glow.active && active !== glow.el) { glow.set(typeof values[KEYS.glow] === 'number' ? values[KEYS.glow] as number : GLOW_DEFAULT); showGlow(); }
     if (typeof values[KEYS.frameRate] === 'number') frameRate.setValue(String(values[KEYS.frameRate]));
     if (typeof soundValues[KEYS.sound] === 'boolean') sound.setChecked(soundValues[KEYS.sound] as boolean);
     for (const [kind, c] of kinds) {

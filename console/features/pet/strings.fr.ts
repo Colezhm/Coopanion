@@ -73,4 +73,8 @@ export const S: Partial<typeof en> = {
   overlayLabel: 'Overlay OBS',
   overlay: "Exporter l'overlay OBS",
   overlayHint: 'Dans OBS, ajoutez une source « Navigateur » avec cette adresse et la résolution de votre écran comme largeur et hauteur.',
+  glow: 'Halo',
+  glowOff: 'Désactivé',
+  glowPx: (n: number) => `${n} px`,
+  glowHint: "Portée du halo clair autour du compagnon quand ses couleurs se confondent avec l'arrière-plan ; tout à gauche le désactive.",
 };

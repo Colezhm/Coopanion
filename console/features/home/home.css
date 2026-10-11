@@ -51,8 +51,9 @@
 /* 开关下面跟着的一行(OBS 画面的地址) */
 .companion-switchbox > .companion-rangebox { margin-top: 8px; }
 .companion-switchbox > .companion-rangebox > input { flex: 1; max-width: 320px; }
-/* 大小的滑杆没有文字基线:这一行按垂直居中对齐 */
-.companion-row:has(.companion-scale) { align-items: center; }
+/* 大小、外发光的滑杆没有文字基线:顶端对齐,左栏名称下移 4px(滑杆框上方的内边距),两者中线对齐;下面的说明不影响它 */
+.companion-row:has(.companion-scale) { align-items: start; }
+.companion-row:has(.companion-scale) > .companion-label { padding-top: 4px; }
 /* 悬停按钮的第一行是图标:左栏名称对着图标的中线 */
 .companion-row:has(.companion-hoverpick) { align-items: start; }
 .companion-row:has(.companion-hoverpick) > .companion-label { padding-top: 10px; }

@@ -178,6 +178,10 @@ describe('what the page holds a pack to', () => {
     expect(haloRect(readLayout({ box: { x: 2, y: 10, w: 20, h: 20 } }, size), size)).toEqual({ x: 0, y: 0, w: 46, h: 54 });
     expect(haloRect(readLayout({ box: { x: 10, y: 10, w: 0, h: 0 } }, size), size)).toBe(null);
     expect(haloRect(null, size)).toBe(null);
+    // a wider glow (the 外发光 setting) needs a wider window: three times its reach, at least the default's
+    const small = readLayout({ box: { x: 100, y: 100, w: 20, h: 20 } }, size);
+    expect(haloRect(small, size)).toEqual({ x: 76, y: 76, w: 68, h: 68 });
+    expect(haloRect(small, size, 16)).toEqual({ x: 52, y: 52, w: 116, h: 116 });
   });
 
   it('a touch counts only right after pointer input, a crash only after a throw', () => {
