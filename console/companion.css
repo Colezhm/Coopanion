@@ -204,7 +204,7 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), [contentedita
 .companion-runstate { font: 600 12.5px/1 var(--sans); color: var(--accent); white-space: nowrap; cursor: pointer; }
 .companion-runstate.paused { color: var(--warn); }
 .companion-runstate[hidden] { display: none; }
-/* the run state is written once, left of the key; Cortico's line under the bot name stays hidden */
+/* the run state is written once, beside the key; Cortico's line under the bot name stays hidden */
 .rail-runstate { display: none; }
 .rail-run.paused { color: var(--warn); }
 .rail-run.paused:hover { color: var(--warn); }
@@ -219,9 +219,9 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), [contentedita
 #rail .companion-mode.companion-pressed { animation: companion-press 260ms ease; }
 #rail .companion-mode.companion-pressed .navicon { animation: companion-turn 320ms cubic-bezier(.22, 1, .36, 1); }
 #rail .companion-mode:active { transform: scale(.97); }
-@media (prefers-reduced-motion: reduce) { #rail .companion-enter, #rail .companion-leave, #rail .companion-mode.companion-pressed, #rail .companion-mode.companion-pressed .navicon { animation: none; } }
-/* with less motion asked for, the rail folds at once: its width, the logo, the words, the link under the version */
+/* with less motion asked for, the rail folds at once (its width, the logo, the words, the link under the version) and modes change without fading */
 @media (prefers-reduced-motion: reduce) {
+  #rail .companion-enter, #rail .companion-leave, #rail .companion-mode.companion-pressed, #rail .companion-mode.companion-pressed .navicon { animation: none; }
   #rail { --rail-motion: 0s linear; }
   #rail .lbl, #rail .rail-name, #rail .rail-rename, #rail .companion-runstate, #rail .stacklabel, .companion-brand-meta { transition: none; }
 }
