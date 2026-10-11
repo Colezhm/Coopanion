@@ -69,6 +69,8 @@ export function mountSidebar(rail: HTMLElement, memo: ConsoleMemo, signal: Abort
       : [];
     const before = moving.map((el) => el.getBoundingClientRect());
     const height = foot?.getBoundingClientRect().height ?? 0;
+    // clicked again mid-way: start from where things are on screen now, and measure the new layout without the old animations
+    for (const el of foot && moving.length ? [foot, ...moving] : []) for (const a of el.getAnimations()) a.cancel();
     change();
     if (!foot || !moving.length) return;
     const options: KeyframeAnimationOptions = { duration: 260, easing: 'cubic-bezier(.22, 1, .36, 1)' };

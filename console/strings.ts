@@ -16,7 +16,7 @@ const zh = {
   toNormal: '回到普通模式', toNormalHint: '只显示关于桌宠的页面',
   /** feature 挂载抛错时那张错误卡的标题 */
   featureLoadFailed: (label: string) => `「${label}」加载失败`,
-  /** 左下角暂停/继续键左边的运行状态 */
+  /** 左下角暂停/继续键右边的运行状态 */
   running: '运行中', paused: '已暂停',
 };
 
