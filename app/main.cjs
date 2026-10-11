@@ -176,10 +176,10 @@ function openSettings(path = '') {
     if (url && path) settings.loadURL(url);
     return;
   }
-  // 1200 wide keeps the 开始 page's model list on two rows; a smaller screen gets its work area, no less than the minimum
+  // 1200 wide keeps the 开始 page's model list on two rows; a smaller screen gets its work area
   const area = screen.getPrimaryDisplay().workAreaSize;
   settings = new BrowserWindow({
-    width: Math.max(880, Math.min(1200, area.width)), height: Math.max(600, Math.min(800, area.height)), minWidth: 880, minHeight: 600,
+    width: Math.min(1200, area.width), height: Math.min(800, area.height), minWidth: 880, minHeight: 600,
     title: 'Coopanion', icon: join(ICONS, 'icon.png'), autoHideMenuBar: true, show: false,
     backgroundColor: '#f4f5f4',
     webPreferences: { preload: join(__dirname, 'settings-preload.cjs'), contextIsolation: true, sandbox: true, spellcheck: false },

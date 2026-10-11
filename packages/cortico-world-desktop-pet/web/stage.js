@@ -116,17 +116,12 @@ export function modeButton(parent, getTheme, onSwitch, save = (theme) => fetch('
   return { el: b, show };
 }
 
-let painted = false;
 /**
  * Tells the settings window embedding this page that it has drawn itself in its own colors (`companion:painted`),
- * once, two frames after the call: the window keeps the frame hidden until then, so it does not flash the
- * browser's default white or the page's starting theme. Sent to the embedding page's origin when the referrer names it.
+ * two frames after the call: the window keeps the frame hidden until then, so it does not flash the browser's
+ * default white or the page's starting theme. The message carries nothing, so any origin may read it.
  */
 export function announcePainted() {
-  if (painted || window.parent === window) return;
-  painted = true;
-  // the embedding page's origin when the referrer gives it; the message carries nothing, so with no referrer it goes to any
-  let origin = '*';
-  try { if (document.referrer) origin = new URL(document.referrer).origin; } catch { origin = '*'; }
-  requestAnimationFrame(() => requestAnimationFrame(() => window.parent.postMessage({ type: 'companion:painted' }, origin)));
+  if (window.parent === window) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => window.parent.postMessage({ type: 'companion:painted' }, '*')));
 }
