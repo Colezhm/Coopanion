@@ -1,8 +1,8 @@
 /**
  * 字标下面那一行:当前版本与项目地址;GitHub 上最新的正式 Release 比当前版本新时,再多一行去下载的链接。
- * 版本号由 scripts/stage.ts 从 package.json 写进 app-version.ts。查询失败就只显示当前版本。
+ * Steam 版由 Steam 更新,不查。版本号与渠道由 scripts/stage.ts 写进 app-version.ts。查询失败就只显示当前版本。
  */
-import { APP_VERSION } from '../app-version.ts';
+import { APP_CHANNEL, APP_VERSION } from '../app-version.ts';
 import { S } from './strings.ts';
 
 export const REPO_URL = 'https://github.com/Pal-AI-Lab/Coopanion';
@@ -58,6 +58,7 @@ export function mountRelease(doc: Document, brand: Element, signal: AbortSignal)
   const repo = link(doc, 'companion-version', `v${APP_VERSION} · GitHub`, REPO_URL);
   repo.title = S.repoHint;
   brand.appendChild(repo);
+  if (APP_CHANNEL === 'steam') return;
   void checkRelease().then((update) => {
     if (signal.aborted || !update) return;
     brand.appendChild(link(doc, 'release-hint', S.update(update.version), update.url));
