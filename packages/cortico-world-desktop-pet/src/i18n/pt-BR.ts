@@ -192,6 +192,7 @@ const ptBR: Translation<PetText> = {
     selfAdjust: { title: 'Autoajuste', description: 'off: não pode mudar as próprias configurações nem fazer silêncio por um tempo. default: personagem, visual, passeios e ronco mudam direto; tamanho, sons, modo noturno, botões ao passar o mouse e como chama você esperam seu consentimento. any: tudo muda direto. custom: conforme marcado na página Hábitos; o que estiver marcado muda direto e o resto espera seu consentimento.' },
     windowEnabled: { title: 'Abrir a janela do pet ao iniciar' },
     scale: { title: 'Tamanho' },
+    glow: { title: 'Brilho externo', description: 'Quantos pixels o brilho claro em volta do pet alcança quando as cores dele se parecem com o fundo; 0 desliga.' },
     frameRate: { title: 'Taxa de quadros', description: 'Quadros por segundo enquanto o pet anda ou pula, ou enquanto você carrega o pet; 0 segue a tela. Acima da taxa de atualização da tela, vale a da tela. A página Hábitos oferece 60, 120, 144 e Sem limite.' },
     lockFrameRate: { title: 'Travar taxa de quadros', description: 'Desenha o pet nessa taxa também em repouso. Desligado, cai para 30 quadros por segundo quando está em pé, na posição sentada ou dormindo.' },
     hideWhenFullscreen: { title: 'Ocultar em tela cheia', description: 'Ligado, o pet se esconde enquanto a janela em primeiro plano ocupa toda a tela onde o pet está (um jogo, um vídeo em tela cheia, um navegador em tela cheia) e volta quando a tela cheia termina; uma janela maximizada não conta. Desligado, fica sempre por cima.' },

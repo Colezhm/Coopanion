@@ -73,4 +73,8 @@ export const S: Partial<typeof en> = {
   overlayLabel: 'OBS 畫面',
   overlay: '匯出 OBS 畫面',
   overlayHint: '在 OBS 新增「瀏覽器」來源，網址填寫這個位址，寬度和高度設為螢幕解析度。',
+  glow: '外發光',
+  glowOff: '關閉',
+  glowPx: (n: number) => `${n} px`,
+  glowHint: '桌寵和身後顏色相近時，身體周圍的淺色外發光延伸多遠；滑到最左為關閉。',
 };

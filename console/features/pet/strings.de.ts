@@ -73,4 +73,8 @@ export const S: Partial<typeof en> = {
   overlayLabel: 'OBS-Overlay',
   overlay: 'OBS-Overlay ausgeben',
   overlayHint: 'Füge in OBS eine „Browser“-Quelle mit dieser Adresse hinzu und setze Breite und Höhe auf die Bildschirmauflösung.',
+  glow: 'Leuchtrand',
+  glowOff: 'Aus',
+  glowPx: (n: number) => `${n} px`,
+  glowHint: 'Wie weit der helle Schein um das Haustier reicht, wenn seine Farben dem Hintergrund ähneln; ganz links schaltet ihn aus.',
 };
