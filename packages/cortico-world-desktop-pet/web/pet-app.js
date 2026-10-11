@@ -236,7 +236,8 @@ function applyPrefs(p) {
   if (typeof p.sound === 'boolean') { prefs.sound = p.sound; sfx.set(p.sound); }
   if (p.sounds && typeof p.sounds === 'object') sfx.configure({ kinds: p.sounds, snoreSeconds: p.sounds.snoreSeconds });
   if (p.theme === 'dark' || p.theme === 'light') { prefs.theme = p.theme; applyTheme(p.theme); modeBtn?.show(p.theme); body?.set({ theme: p.theme }); }
-  if (typeof p.glow === 'number' && p.glow >= 0) prefs.glow = p.glow;
+  // the setting's range (config.ts GLOW_MAX), whatever a hand-edited config holds
+  if (typeof p.glow === 'number' && Number.isFinite(p.glow)) prefs.glow = clamp(p.glow, 0, 16);
   if (typeof p.scale === 'number') { prefs.scale = p.scale; body?.set({ bounds: bounds() }); }
   if (typeof p.rememberPosition === 'boolean') { prefs.rememberPosition = p.rememberPosition; reportPosition(); }
   if (typeof p.user === 'string') prefs.user = p.user;
@@ -1341,9 +1342,11 @@ function place(el, a, extraUp, side) {
 }
 function placeTalk(it, a) {
   const bw = bubble.offsetWidth, bh = bubble.offsetHeight;
-  // carried, thrown or falling, Coo takes the bubble along and it stays where Coo lands; walking about
-  // (stepTalkMotion's strolls around it), it stays put
-  if (FLYING.has(at()?.mode)) { it.pinX = a.x; it.pinY = a.y; }
+  // picked up, Coo takes the bubble along until it has landed from the throw or the drop, and it stays where Coo
+  // came down; the hops and strolls of stepTalkMotion's demo are Coo's own and leave it where it was
+  const mode = at()?.mode;
+  if (mode === 'drag') it.carried = true;
+  if (it.carried) { it.pinX = a.x; it.pinY = a.y; if (!FLYING.has(mode)) it.carried = false; }
   const left = clamp(it.pinX - bw / 2, 10, Math.max(10, innerWidth - bw - 10));
   const top = Math.max(8, it.pinY - bh - 18);
   bubble.style.left = f(left) + 'px';
@@ -1422,7 +1425,8 @@ async function probeBackdrop() {
   const l = at(), ink = inkRgb(), b = l?.box;
   if (!ink || !b || FLYING.has(l.mode)) return;
   const S = bounds().S;
-  const near = inflate({ x: b.x, y: b.y, width: b.w, height: b.h }, 4 + 34 * S), far = inflate(near, 8 + 40 * S);
+  // the ring starts past the halo, so a wide one (prefs.glow) is not taken for the screen behind
+  const near = inflate({ x: b.x, y: b.y, width: b.w, height: b.h }, Math.max(4 + 34 * S, 4 + 2 * prefs.glow)), far = inflate(near, 8 + 40 * S);
   const x = Math.max(0, far.x), y = Math.max(0, far.y);
   const rect = { x, y, width: Math.min(innerWidth, far.x + far.width) - x, height: Math.min(innerHeight, far.y + far.height) - y };
   const covers = [bubble, heardEl, menu, tools].filter((el) => !el.hidden).map((el) => shadowed(rectOf(el)));
@@ -1454,7 +1458,7 @@ async function probeBackdrop() {
 }
 function stepBackdrop(dt) {
   const now = performance.now() / 1000;
-  if (host?.sampleBackdrop && !backdrop.fixed && !backdrop.busy && now >= backdrop.next && document.visibilityState === 'visible') {
+  if (host?.sampleBackdrop && prefs.glow > 0 && !backdrop.fixed && !backdrop.busy && now >= backdrop.next && document.visibilityState === 'visible') {
     backdrop.busy = true;
     probeBackdrop().catch(() => {}).finally(() => { backdrop.busy = false; backdrop.next = performance.now() / 1000 + BACKDROP_EVERY; });
   }
