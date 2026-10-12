@@ -94,7 +94,6 @@ const ko: Translation<PetText> = {
     badOption: (axis: string, got: string) => `axes.${axis}에 잘못된 옵션이 있습니다: ${got}`,
     badPreset: (got: string) => `presets에 잘못된 항목이 있습니다: ${got}`,
     presetMissing: (preset: string, axis: string) => `presets.${preset}에 ${axis}의 옵션이 선택되어 있지 않습니다`,
-    badPresetThumb: (preset: string) => `presets.${preset}.thumb 경로가 잘못되었습니다`,
     vocabNotArray: 'vocab은 배열이어야 합니다',
     badWordId: (got: string) => `vocab에 잘못된 id가 있습니다: ${got}`,
     unknownKind: (id: string, kind: string) => `vocab.${id}.kind가 ${kind}인데 이 버전은 알지 못하므로 봇에게 이 단어를 주지 않습니다`,

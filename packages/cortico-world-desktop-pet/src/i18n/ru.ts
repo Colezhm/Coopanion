@@ -100,7 +100,6 @@ const ru: Translation<PetText> = {
     badOption: (axis: string, got: string) => `Недопустимый вариант в axes.${axis}: ${got}`,
     badPreset: (got: string) => `Недопустимый элемент в presets: ${got}`,
     presetMissing: (preset: string, axis: string) => `presets.${preset} не выбирает вариант для ${axis}`,
-    badPresetThumb: (preset: string) => `Недопустимый путь presets.${preset}.thumb`,
     vocabNotArray: 'vocab должен быть массивом',
     badWordId: (got: string) => `Недопустимый id в vocab: ${got}`,
     unknownKind: (id: string, kind: string) => `vocab.${id}.kind равно ${kind}; эта версия такого не знает, и бот не получит это слово`,

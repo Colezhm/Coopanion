@@ -64,7 +64,6 @@ export interface FigurePreset {
   /** The option of each axis. */
   pick: Record<string, string>;
   name?: Names;
-  thumb?: string;
   /** Colours the sleep z's and the listening and thinking marks. */
   accent?: string;
   console?: { light: ConsoleHues; dark: ConsoleHues };
@@ -218,10 +217,9 @@ export function readManifest(dir: string, builtin = false, skipped: string[] = [
     const pick = p?.pick as Record<string, unknown> | undefined;
     if (typeof p?.id !== 'string' || !ID.test(p.id) || !pick || typeof pick !== 'object') return t.badPreset(JSON.stringify(p?.id));
     for (const a of axes) if (!a.options.some((o) => o.id === pick[a.id])) return t.presetMissing(p.id, a.id);
-    if (p.thumb !== undefined && !inside(p.thumb)) return t.badPresetThumb(p.id);
     presets.push({
       id: p.id, pick: Object.fromEntries(axes.map((a) => [a.id, pick[a.id] as string])),
-      ...(namesOf(p.name) ? { name: namesOf(p.name)! } : {}), ...(p.thumb ? { thumb: p.thumb as string } : {}),
+      ...(namesOf(p.name) ? { name: namesOf(p.name)! } : {}),
       ...(typeof p.accent === 'string' ? { accent: p.accent } : {}),
       ...(p.console && typeof p.console === 'object' ? { console: p.console as FigurePreset['console'] } : {}),
     });

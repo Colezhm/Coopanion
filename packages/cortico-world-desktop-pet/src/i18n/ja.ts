@@ -94,7 +94,6 @@ const ja: Translation<PetText> = {
     badOption: (axis: string, got: string) => `axes.${axis} に無効な選択肢があります：${got}`,
     badPreset: (got: string) => `presets に無効な項目があります：${got}`,
     presetMissing: (preset: string, axis: string) => `presets.${preset} で ${axis} の選択肢が選ばれていません`,
-    badPresetThumb: (preset: string) => `presets.${preset}.thumb のパスが無効です`,
     vocabNotArray: 'vocab は配列である必要があります',
     badWordId: (got: string) => `vocab に無効な id があります：${got}`,
     unknownKind: (id: string, kind: string) => `vocab.${id}.kind の ${kind} はこのバージョンでは不明なため、この語はボットに渡されません`,

@@ -94,7 +94,6 @@ const es419: Translation<PetText> = {
     badOption: (axis: string, got: string) => `Opción no válida en axes.${axis}: ${got}`,
     badPreset: (got: string) => `Entrada no válida en presets: ${got}`,
     presetMissing: (preset: string, axis: string) => `presets.${preset} no elige ninguna opción para ${axis}`,
-    badPresetThumb: (preset: string) => `La ruta de presets.${preset}.thumb no es válida`,
     vocabNotArray: 'vocab debe ser un arreglo',
     badWordId: (got: string) => `id no válido en vocab: ${got}`,
     unknownKind: (id: string, kind: string) => `vocab.${id}.kind es ${kind}, que esta versión no conoce; el bot no recibe esta palabra`,

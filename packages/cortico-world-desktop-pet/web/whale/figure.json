@@ -191,7 +191,6 @@
         "zh": "DeepSeek",
         "en": "DeepSeek"
       },
-      "thumb": "thumbs/deepseek.png",
       "accent": "#4D6BFE",
       "console": {
         "light": {
@@ -222,7 +221,6 @@
         "zh": "DeepSeek Harness",
         "en": "DeepSeek Harness"
       },
-      "thumb": "thumbs/harness.png",
       "accent": "#555555",
       "console": {
         "light": {
@@ -253,7 +251,6 @@
         "zh": "ChatGPT",
         "en": "ChatGPT"
       },
-      "thumb": "thumbs/chatgpt.png",
       "accent": "#303030",
       "console": {
         "light": {
@@ -284,7 +281,6 @@
         "zh": "Claude",
         "en": "Claude"
       },
-      "thumb": "thumbs/claude.png",
       "accent": "#D97757",
       "console": {
         "light": {
@@ -315,7 +311,6 @@
         "zh": "Gemini",
         "en": "Gemini"
       },
-      "thumb": "thumbs/gemini.png",
       "accent": "#4285F4",
       "console": {
         "light": {
@@ -347,7 +342,6 @@
         "zh-Hant": "千問",
         "en": "Qwen"
       },
-      "thumb": "thumbs/qwen.png",
       "accent": "#7F69F0",
       "console": {
         "light": {
@@ -378,7 +372,6 @@
         "zh": "Kimi",
         "en": "Kimi"
       },
-      "thumb": "thumbs/kimi.png",
       "accent": "#007CFF",
       "console": {
         "light": {
@@ -409,7 +402,6 @@
         "zh": "MiniMax",
         "en": "MiniMax"
       },
-      "thumb": "thumbs/minimax.png",
       "accent": "#D92D7A",
       "console": {
         "light": {

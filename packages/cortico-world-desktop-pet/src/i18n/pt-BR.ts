@@ -94,7 +94,6 @@ const ptBR: Translation<PetText> = {
     badOption: (axis: string, got: string) => `Opção inválida em axes.${axis}: ${got}`,
     badPreset: (got: string) => `Item inválido em presets: ${got}`,
     presetMissing: (preset: string, axis: string) => `presets.${preset} não escolhe nenhuma opção para ${axis}`,
-    badPresetThumb: (preset: string) => `O caminho de presets.${preset}.thumb é inválido`,
     vocabNotArray: 'vocab deve ser um array',
     badWordId: (got: string) => `id inválido em vocab: ${got}`,
     unknownKind: (id: string, kind: string) => `vocab.${id}.kind é ${kind}, que esta versão não conhece; o bot não recebe esta palavra`,

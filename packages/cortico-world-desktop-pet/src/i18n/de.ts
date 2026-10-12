@@ -94,7 +94,6 @@ const de: Translation<PetText> = {
     badOption: (axis: string, got: string) => `Ungültige Option in axes.${axis}: ${got}`,
     badPreset: (got: string) => `Ungültiger Eintrag in presets: ${got}`,
     presetMissing: (preset: string, axis: string) => `presets.${preset} wählt keine Option für ${axis}`,
-    badPresetThumb: (preset: string) => `Der Pfad presets.${preset}.thumb ist ungültig`,
     vocabNotArray: 'vocab muss ein Array sein',
     badWordId: (got: string) => `Ungültige id in vocab: ${got}`,
     unknownKind: (id: string, kind: string) => `vocab.${id}.kind ist ${kind}, das diese Version nicht kennt; der Bot bekommt dieses Wort nicht`,

@@ -94,7 +94,6 @@ const fr: Translation<PetText> = {
     badOption: (axis: string, got: string) => `Option invalide dans axes.${axis} : ${got}`,
     badPreset: (got: string) => `Entrée invalide dans presets : ${got}`,
     presetMissing: (preset: string, axis: string) => `presets.${preset} ne choisit aucune option pour ${axis}`,
-    badPresetThumb: (preset: string) => `Le chemin presets.${preset}.thumb est invalide`,
     vocabNotArray: 'vocab doit être un tableau',
     badWordId: (got: string) => `id invalide dans vocab : ${got}`,
     unknownKind: (id: string, kind: string) => `vocab.${id}.kind vaut ${kind}, que cette version ne connaît pas ; le bot ne reçoit pas ce mot`,

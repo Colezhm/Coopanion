@@ -94,7 +94,6 @@ const zhHant: Translation<PetText> = {
     badOption: (axis: string, got: string) => `axes.${axis} 裡有無效的選項：${got}`,
     badPreset: (got: string) => `presets 裡有一項無效：${got}`,
     presetMissing: (preset: string, axis: string) => `presets.${preset} 沒有選 ${axis} 的選項`,
-    badPresetThumb: (preset: string) => `presets.${preset}.thumb 路徑無效`,
     vocabNotArray: 'vocab 應為陣列',
     badWordId: (got: string) => `vocab 裡有無效的 id：${got}`,
     unknownKind: (id: string, kind: string) => `vocab.${id}.kind 是 ${kind}，這一版不認得，這個詞不給 bot 用`,

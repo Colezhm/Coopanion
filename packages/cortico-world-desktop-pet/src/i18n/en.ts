@@ -115,7 +115,6 @@ const en: PetText = {
     badOption: (axis: string, got: string) => `Invalid option in axes.${axis}: ${got}`,
     badPreset: (got: string) => `Invalid entry in presets: ${got}`,
     presetMissing: (preset: string, axis: string) => `presets.${preset} picks no option for ${axis}`,
-    badPresetThumb: (preset: string) => `The presets.${preset}.thumb path is invalid`,
     vocabNotArray: 'vocab must be an array',
     badWordId: (got: string) => `Invalid id in vocab: ${got}`,
     unknownKind: (id: string, kind: string) => `vocab.${id}.kind is ${kind}, which this version does not know; the bot does not get this word`,

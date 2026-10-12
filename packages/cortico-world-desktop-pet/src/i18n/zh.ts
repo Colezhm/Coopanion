@@ -112,7 +112,6 @@ export default {
     badOption: (axis: string, got: string) => `axes.${axis} 里有不合法的选项：${got}`,
     badPreset: (got: string) => `presets 里有不合法的一项：${got}`,
     presetMissing: (preset: string, axis: string) => `presets.${preset} 没有选 ${axis} 的选项`,
-    badPresetThumb: (preset: string) => `presets.${preset}.thumb 路径不合法`,
     vocabNotArray: 'vocab 应为数组',
     badWordId: (got: string) => `vocab 里有不合法的 id：${got}`,
     unknownKind: (id: string, kind: string) => `vocab.${id}.kind 是 ${kind}，这一版不认识，这个词不给 bot 用`,
