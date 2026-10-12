@@ -5,6 +5,7 @@ import type { WorldSection } from 'cortico/world.ts';
 import type { SegmentConfig } from './asr/segmenter.ts';
 import { DEFAULT_HOTKEY } from './asr/hotkey.ts';
 import { capFor, petText } from './i18n/index.ts';
+import { CUA_DEFAULTS, cuaConfigGroup, type CuaConfig } from './cua/config.ts';
 
 export const DESKTOP_PET_ID = 'desktop-pet';
 
@@ -167,6 +168,8 @@ export interface DesktopPetConfigSection extends WorldSection {
   /** Under `custom`: per item, true = changed at once, false = asked first. */
   selfAdjustCustom: Record<SelfKey, boolean>;
   skin: PetSkin;
+  /** Computer use (src/cua/). */
+  cua: CuaConfig;
   touch: {
     /** Clicks, petting and throws become events. */
     enabled: boolean;
@@ -221,6 +224,7 @@ export const DESKTOP_PET_DEFAULTS: DesktopPetConfigSection = {
     figure: 'coo', scheme: 'deepseek', palette: 'mint', head: 'none', side: 'none', glasses: 'none', neck: 'none',
     colors: { head: { main: 'body', acc: 'eye' }, side: { main: 'eye', acc: 'eye' }, glasses: { main: 'body', acc: 'eye' }, neck: { main: 'eye', acc: 'eye' } },
   },
+  cua: CUA_DEFAULTS,
   touch: { enabled: true, wakeOn: 'poke', wakeKinds: ['poke'] },
   asr: {
     enabled: true,
@@ -305,5 +309,5 @@ export function desktopPetConfigGroups(language: Language = 'zh'): ConfigGroup[]
       },
     },
   };
-  return [pet, sound, asr];
+  return [pet, sound, asr, cuaConfigGroup(language)];
 }

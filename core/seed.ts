@@ -16,7 +16,7 @@ export const MODULE = 'coo';
 const OLD_MODULE = 'deepseek';
 /** SHA-256 of the self-description versions 0.1.0 (after the rename) and 0.1.1 seeded, line endings as LF. */
 const OLD_CONSTITUTION = 'cfcb7527cbf3518ab9f077ee711c86661a70613b9e5caeb992b30a603490e5cf';
-/** When computer use asks first (`worlds.cua.permission`): new installs get it written out, so a config without it is from before and keeps the default it had. */
+/** When computer use asks first (`worlds.desktop-pet.cua.permission`): new installs get it written out, so a config without it is from before and keeps the default it had. */
 const CUA_ASK = 'ask-once';
 const OLD_CUA_ASK = 'ask-each-turn';
 export const SEED_DIR = fileURLToPath(new URL('./seed/', import.meta.url));
@@ -29,8 +29,9 @@ export const CONSTITUTION_SEEDS: Record<ModelLanguage, string> = { zh: 'CONSTITU
  * language (vendors.ts). Existing files are left as the operator made them, except a self-description
  * still exactly as a version seeded it, which becomes the current one in the model-text language of
  * the config's `language` (`followLanguage`), endpoints of the old `deepseek` module, which now belong
- * to `coo`, and a config without `worlds.cua.permission`, which keeps the `ask-each-turn` it had
- * before new installs got `ask-once`.
+ * to `coo`, a config of computer use as its own World (`worlds.cua`), whose section, whether it was on
+ * included, moves to `worlds.desktop-pet.cua`, and a config without a computer-use `permission`, which
+ * keeps the `ask-each-turn` it had before new installs got `ask-once`.
  */
 export function seed(home: string, language: Language): void {
   const deploy = join(home, DEPLOYMENT);
@@ -51,7 +52,7 @@ export function seed(home: string, language: Language): void {
       activeProvider: endpointName(vendor, region),
       providerSchemaVersion: 3,
       web: { port: CONSOLE_PORT },
-      worlds: { cua: { permission: CUA_ASK } },
+      worlds: { 'desktop-pet': { cua: { permission: CUA_ASK } } },
     });
   }
   const textLanguage = modelLanguage((JSON.parse(readFileSync(config, 'utf8')) as { language?: unknown }).language);
@@ -60,13 +61,32 @@ export function seed(home: string, language: Language): void {
   if (!existsSync(join(deploy, 'avatar.png'))) copyFileSync(join(SEED_DIR, 'avatar.png'), join(deploy, 'avatar.png'));
   followLanguage(workspace, textLanguage);
   moveEndpointsToCoo(join(home, 'providers'));
-  if (upgrading) keepCuaAsking(config);
+  if (upgrading) {
+    moveCuaIntoPet(config);
+    keepCuaAsking(config);
+  }
+}
+
+type Section = Record<string, unknown>;
+type WorldSections = { worlds?: Record<string, Section | undefined> };
+
+/** `worlds.cua` becomes `worlds.desktop-pet.cua`; a key already there stays as it is. */
+function moveCuaIntoPet(file: string): void {
+  const config = JSON.parse(readFileSync(file, 'utf8')) as WorldSections;
+  const old = config.worlds?.cua;
+  if (!config.worlds || !old) return;
+  const pet = config.worlds['desktop-pet'] ?? {};
+  config.worlds['desktop-pet'] = { ...pet, cua: { ...old, ...pet.cua as Section | undefined } };
+  delete config.worlds.cua;
+  writeFileSync(file, JSON.stringify(config, null, 2) + '\n');
 }
 
 function keepCuaAsking(file: string): void {
-  const config = JSON.parse(readFileSync(file, 'utf8')) as { worlds?: { cua?: { permission?: string } } };
-  if (config.worlds?.cua?.permission !== undefined) return;
-  config.worlds = { ...config.worlds, cua: { ...config.worlds?.cua, permission: OLD_CUA_ASK } };
+  const config = JSON.parse(readFileSync(file, 'utf8')) as WorldSections;
+  const pet = config.worlds?.['desktop-pet'];
+  const cua = pet?.cua as Section | undefined;
+  if (cua?.permission !== undefined) return;
+  config.worlds = { ...config.worlds, 'desktop-pet': { ...pet, cua: { ...cua, permission: OLD_CUA_ASK } } };
   writeFileSync(file, JSON.stringify(config, null, 2) + '\n');
 }
 

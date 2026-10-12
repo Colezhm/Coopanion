@@ -171,6 +171,7 @@ const zhHant: Translation<PetText> = {
       'pet.self': '「自主設定權限」：哪些設定直接改、哪些先徵得同意，或都不能改',
       'pet.chat': '應用程式提供對話頁時，對它的說明；沒有時為空',
       'pet.reply': '應用程式語言既不是簡體中文也不是英文時，讓 bot 用那種語言說話的一句；否則為空',
+      'pet.cua': '電腦操作一節：截圖座標、何時先詢問使用者、讓位規則；電腦操作關閉時為空',
     },
     noGuide: '這個應用程式沒有引導',
     unknownMethod: (name: string) => `未知的方法 ${name}`,

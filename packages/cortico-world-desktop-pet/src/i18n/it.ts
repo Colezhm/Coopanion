@@ -171,6 +171,7 @@ const it: Translation<PetText> = {
       'pet.self': 'Autoregolazione: quali impostazioni cambiano direttamente, quali aspettano il consenso, o che nessuna può cambiare',
       'pet.chat': "Una nota sulla pagina chat quando l'app ne ha una; altrimenti vuoto",
       'pet.reply': "Una riga che dice al bot in che lingua parlare quando la lingua dell'app non è né il cinese semplificato né l'inglese; altrimenti vuoto",
+      'pet.cua': 'La parte sul controllo del computer: coordinate degli screenshot, quando chiedere prima alla persona e le regole per non intralciarla; vuota quando il controllo del computer è spento',
     },
     noGuide: "Quest'app non ha un'introduzione",
     unknownMethod: (name: string) => `Metodo sconosciuto ${name}`,

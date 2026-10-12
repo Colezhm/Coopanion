@@ -46,7 +46,7 @@ export const S: Partial<typeof en> = {
 };
 
 export const STEP: Partial<typeof stepEn> = {
-  cua_screenshot: "Capture d'écran", cua_click: 'Clic', cua_move: 'Déplacer la souris', cua_drag: 'Glisser', cua_scroll: 'Défiler', cua_type: 'Saisir du texte',
-  cua_key: 'Appuyer sur des touches', cua_windows: 'Lister les fenêtres', cua_focus: 'Changer de fenêtre', cua_wait: 'Attendre',
+  pet_cua_screenshot: "Capture d'écran", pet_cua_click: 'Clic', pet_cua_move: 'Déplacer la souris', pet_cua_drag: 'Glisser', pet_cua_scroll: 'Défiler', pet_cua_type: 'Saisir du texte',
+  pet_cua_key: 'Appuyer sur des touches', pet_cua_windows: 'Lister les fenêtres', pet_cua_focus: 'Changer de fenêtre', pet_cua_wait: 'Attendre',
   pet_walk_to: 'Marcher', pet_act: 'Bouger', pet_set: "S'ajuster", pet_quiet: 'Rester tranquille',
 };

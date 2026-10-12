@@ -171,6 +171,7 @@ const ptBR: Translation<PetText> = {
       'pet.self': 'Autoajuste: quais configurações mudam direto, quais esperam consentimento, ou que nenhuma pode mudar',
       'pet.chat': 'Uma nota sobre a página de chat quando o app tem uma; vazio caso contrário',
       'pet.reply': 'Uma linha que diz ao bot em que idioma falar quando o idioma do app não é chinês simplificado nem inglês; vazio caso contrário',
+      'pet.cua': 'A parte de uso do computador: coordenadas das capturas, quando a pessoa é consultada antes e as regras para não atrapalhá-la; vazia enquanto o uso do computador está desligado',
     },
     noGuide: 'Este app não tem introdução',
     unknownMethod: (name: string) => `Método desconhecido ${name}`,

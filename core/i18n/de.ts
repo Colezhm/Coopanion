@@ -27,8 +27,6 @@ const de: Translation<CoreText> = {
   quit: 'App beenden',
 
   noticeLabel: 'App-Benachrichtigungen',
-  cuaYes: 'Ja',
-  cuaNo: 'Diesmal nicht',
 
   status: {
     read: 'Liest', browse: 'Stöbert', memory: 'Gedächtnis', find: 'Sucht', search: 'Durchsucht', write: 'Schreibt', edit: 'Bearbeitet', append: 'Ergänzt',

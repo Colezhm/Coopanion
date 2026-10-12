@@ -27,8 +27,6 @@ const ko: Translation<CoreText> = {
   quit: '앱 종료',
 
   noticeLabel: '앱 알림',
-  cuaYes: '예',
-  cuaNo: '이번에는 아니요',
 
   status: {
     read: '읽는 중', browse: '둘러보는 중', memory: '기억', find: '찾는 중', search: '검색 중', write: '쓰는 중', edit: '고치는 중', append: '덧붙이는 중',

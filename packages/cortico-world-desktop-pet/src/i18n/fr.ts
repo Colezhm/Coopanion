@@ -171,6 +171,7 @@ const fr: Translation<PetText> = {
       'pet.self': "Autoréglage : quels réglages changent directement, lesquels attendent votre accord, ou qu'aucun ne peut changer",
       'pet.chat': "Une note sur la page de discussion quand l'application en a une ; vide sinon",
       'pet.reply': "Une ligne qui indique au bot dans quelle langue parler quand la langue de l'application n'est ni le chinois simplifié ni l'anglais ; vide sinon",
+      'pet.cua': "La partie contrôle de l'ordinateur : coordonnées des captures d'écran, quand demander d'abord à la personne, règles pour ne pas la gêner ; vide quand le contrôle de l'ordinateur est désactivé",
     },
     noGuide: "Cette application n'a pas d'introduction",
     unknownMethod: (name: string) => `Méthode inconnue ${name}`,

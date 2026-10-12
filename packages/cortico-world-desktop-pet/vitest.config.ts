@@ -18,6 +18,8 @@ export default defineConfig({
   },
   test: {
     include: ['tests/**/*.test.ts'],
+    // computer use's end-to-end tests move the real mouse: vitest.cua-e2e.config.ts
+    exclude: ['tests/cua/e2e/**', 'node_modules/**'],
     // 控制台语言是按进程读一次的系统事实;测试断言中文文案,与跑测试的机器区域无关。
     env: { CORTICO_LANGUAGE: 'zh' },
     testTimeout: 20000,

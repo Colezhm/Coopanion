@@ -48,6 +48,8 @@ import { estimateSeconds, parseActions, parseScript, vocabChange, vocabTable, ty
 import { ActivityGroup, ChatSockets, SELF_TYPE, chatHistory, chatItem, chatRefs, type ChatFigure } from './chat.ts';
 import { ASK_OPTION_MAX, petToolDecls } from './tools.ts';
 import { COO, figurePacks, lookOf, modelName, nameIn, packFor, type FigurePack, type PackScan } from './packs.ts';
+import { Cua } from './cua/cua.ts';
+import type { Answer } from './cua/engine-ipc.ts';
 import { PackImporter } from './pack-import.ts';
 import { dressTable, planSettings, type SettingChange } from './self.ts';
 import { MODEL_TEXT, type ModelLanguage, type ModelText } from './model-text.ts';
@@ -213,6 +215,8 @@ export interface DesktopPetWorldOptions {
    * or absent: no such line.
    */
   replyLanguage?: () => string | null;
+  /** Called with each answer to computer use's question, asked in the pet's bubble. */
+  onCuaAnswer?: (answer: Answer) => void;
 }
 
 type SherpaEngine = Exclude<AsrEngine, 'system'>;
@@ -336,6 +340,8 @@ export class DesktopPetWorld implements World {
   private readonly activity = new ActivityGroup();
   /** What the status bubble shows. */
   private readonly status: StatusTracker;
+  /** Computer use; its tools and its part of the environment prompt are there while `cua.enabled` is on. */
+  private readonly cua: Cua;
   private phase: RunPhase | null = null;
   /** The person's messages (typed, spoken) not yet delivered to the bot, by cursor. */
   private readonly pendingChat = new Set<number>();
@@ -350,6 +356,19 @@ export class DesktopPetWorld implements World {
 
   constructor(private readonly opts: DesktopPetWorldOptions) {
     this.cfg = opts.cfg;
+    this.cua = new Cua({
+      cfg: () => this.cfg.cua,
+      botName: opts.botName,
+      modelLanguage: () => this.language,
+      language: () => this.appLanguage,
+      askPermission: async (question, choices) => {
+        const answer = await this.confirm(question, choices);
+        if (answer === 'unavailable') return null;
+        const said: Answer = answer === 'yes' || answer === 'timeout' ? answer : 'no';
+        opts.onCuaAnswer?.(said);
+        return said;
+      },
+    });
     this.importer = opts.packDir ? new PackImporter({ packDir: opts.packDir, packs: () => this.packs(), text: () => this.ui }) : null;
     this.status = new StatusTracker((status) => this.server.sendPet({ t: 'status', status }), opts.describeTool, () => this.ui.busy);
     this.segmenter = new Segmenter(this.segmentConfig(), FRAME_MS);
@@ -533,6 +552,7 @@ export class DesktopPetWorld implements World {
     this.host = host;
     this.startCursor = host.store.latestCursor() + 1;
     this.log = host.log;
+    this.cua.start(host);
     // the words the prompt is rendered with, until the bot is told otherwise
     this.toldVocab = this.vocab();
     await this.server.start();
@@ -592,11 +612,18 @@ export class DesktopPetWorld implements World {
     await this.whisper?.stop();
     await this.system?.stop();
     await this.server.stop();
+    await this.cua.stop();
     this.host = null;
   }
 
   onTurnEnded(): void {
     this.touchWoke = false;
+    this.cua.onTurnEnded();
+  }
+
+  /** Computer use is on and this system runs it. */
+  private get cuaOn(): boolean {
+    return this.cfg.cua.enabled && this.cua.unsupported() === null;
   }
 
   outputTap(): OutputTap | undefined {
@@ -1454,7 +1481,8 @@ export class DesktopPetWorld implements World {
       pet_set: (args) => this.setSettings(args),
       pet_quiet: (args) => this.setQuiet(args),
     };
-    return petToolDecls(this.appLanguage).map((decl) => ({ ...decl, handler: handlers[decl.name], ...(decl.name === 'pet_walk_to' ? { interruptible: true } : {}) }));
+    const own = petToolDecls(this.appLanguage).map((decl) => ({ ...decl, handler: handlers[decl.name], ...(decl.name === 'pet_walk_to' ? { interruptible: true } : {}) }));
+    return this.cuaOn ? [...own, ...this.cua.tools()] : own;
   }
 
   private notConnected(tool: string): ToolOutcome {
@@ -1634,11 +1662,12 @@ export class DesktopPetWorld implements World {
 
   /* ---------- prompt ---------- */
 
-  envPromptVars(): Record<string, string> {
+  async envPromptVars(): Promise<Record<string, string>> {
     const { language, t } = this;
     const user = this.userName;
     const reply = this.opts.replyLanguage?.() ?? null;
     return {
+      'pet.cua': this.cuaOn ? await this.cua.envPrompt() : '',
       'pet.user': user,
       'pet.vocab': vocabTable(this.vocab(), language),
       'pet.voice': this.cfg.asr.enabled ? t.on : t.off,
@@ -1681,6 +1710,7 @@ export class DesktopPetWorld implements World {
         state: !this.cfg.asr.enabled ? 'offline' : v?.phase === 'running' ? 'online' : v?.phase === 'starting' ? 'loading' : v?.phase === 'error' ? 'error' : 'offline',
         hint: v?.detail ?? v?.phase ?? c.notStarted,
       },
+      ...(this.cfg.cua.enabled ? [this.cua.lamp(language)] : []),
     ];
     return {
       label: c.label,
@@ -1701,8 +1731,8 @@ export class DesktopPetWorld implements World {
         ...c.envPrompt,
         path: this.envPromptFile(),
         role: 'envPrompt',
-        vars: ['pet.user', 'pet.vocab', 'pet.voice', 'pet.body', 'pet.dress', 'pet.self', 'pet.chat', 'pet.reply']
-          .map((name) => ({ name, description: c.vars[name] ?? name, ...(name === 'pet.vocab' || name === 'pet.dress' ? { multiline: true } : {}) })),
+        vars: ['pet.user', 'pet.vocab', 'pet.voice', 'pet.body', 'pet.dress', 'pet.self', 'pet.chat', 'pet.reply', 'pet.cua']
+          .map((name) => ({ name, description: c.vars[name] ?? name, ...(name === 'pet.vocab' || name === 'pet.dress' || name === 'pet.cua' ? { multiline: true } : {}) })),
       }],
     };
   }

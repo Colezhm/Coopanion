@@ -17,18 +17,18 @@ describe('the status bubble for each tool', () => {
     ['append_file', { path: 'notes/today.md' }, { kind: 'write', text: T.append, detail: 'today.md' }],
     ['delete_file', { path: 'notes/today.md' }, { kind: 'delete', text: T.delete, detail: 'today.md' }],
     ['save_blob', { path: 'blobs/cat.png', handle: 'private' }, { kind: 'save', text: T.save, detail: 'cat.png' }],
-    ['cua_screenshot', {}, { kind: 'look', text: T.screen }],
-    ['cua_windows', {}, { kind: 'look', text: T.windows }],
-    ['cua_click', { x: 123, y: 456 }, { kind: 'click', text: T.click }],
-    ['cua_click', { clicks: 2 }, { kind: 'click', text: T.doubleClick }],
-    ['cua_click', { button: 'right' }, { kind: 'click', text: T.rightClick }],
-    ['cua_move', { x: 123, y: 456 }, { kind: 'click', text: T.move }],
-    ['cua_drag', { from: [1, 2], to: [3, 4] }, { kind: 'click', text: T.drag }],
-    ['cua_scroll', { x: 123, y: 456, down: 3 }, { kind: 'scroll', text: T.scroll }],
-    ['cua_focus', { window: 'private' }, { kind: 'click', text: T.focus }],
-    ['cua_type', { text: 'private' }, { kind: 'type', text: T.type }],
-    ['cua_key', { keys: 'ctrl+s' }, { kind: 'type', text: T.key, detail: 'ctrl+s' }],
-    ['cua_wait', { seconds: 2.5 }, { kind: 'wait', text: T.wait, detail: '2.5 秒' }],
+    ['pet_cua_screenshot', {}, { kind: 'look', text: T.screen }],
+    ['pet_cua_windows', {}, { kind: 'look', text: T.windows }],
+    ['pet_cua_click', { x: 123, y: 456 }, { kind: 'click', text: T.click }],
+    ['pet_cua_click', { clicks: 2 }, { kind: 'click', text: T.doubleClick }],
+    ['pet_cua_click', { button: 'right' }, { kind: 'click', text: T.rightClick }],
+    ['pet_cua_move', { x: 123, y: 456 }, { kind: 'click', text: T.move }],
+    ['pet_cua_drag', { from: [1, 2], to: [3, 4] }, { kind: 'click', text: T.drag }],
+    ['pet_cua_scroll', { x: 123, y: 456, down: 3 }, { kind: 'scroll', text: T.scroll }],
+    ['pet_cua_focus', { window: 'private' }, { kind: 'click', text: T.focus }],
+    ['pet_cua_type', { text: 'private' }, { kind: 'type', text: T.type }],
+    ['pet_cua_key', { keys: 'ctrl+s' }, { kind: 'type', text: T.key, detail: 'ctrl+s' }],
+    ['pet_cua_wait', { seconds: 2.5 }, { kind: 'wait', text: T.wait, detail: '2.5 秒' }],
     ['alarm_set', { at: '18:30', note: 'private' }, { kind: 'alarm', text: T.alarmSet, detail: '18:30' }],
     ['alarm_set', { in_minutes: 5, note: 'private' }, { kind: 'alarm', text: T.alarmSet, detail: '5 分钟后' }],
     ['alarm_list', {}, { kind: 'alarm', text: T.alarmList }],
@@ -49,27 +49,27 @@ describe('the status bubble for each tool', () => {
     }
     for (const [name, args] of [
       ['list_files', { dir: long }], ['glob_files', { glob_pattern: long }], ['grep_files', { pattern: long }],
-      ['cua_key', { keys: long }], ['alarm_set', { at: long }],
+      ['pet_cua_key', { keys: long }], ['alarm_set', { at: long }],
     ] as const) expect([...(describePetTool(name, args, true)?.detail ?? '')]).toHaveLength(21);
   });
 
   it('waits for a closed string or a number followed by a delimiter', () => {
     expect(describePetTool('write_file', '{"path":"notes/da', false)).toEqual({ kind: 'write', text: T.write });
     expect(describePetTool('write_file', '{"path":"notes/day\\u0020\\"one\\".md","content":"still streaming', false)).toEqual({ kind: 'write', text: T.write, detail: 'day "one".md' });
-    for (const args of ['{"seconds":1', '{"seconds":1.', '{"seconds":1e']) expect(describePetTool('cua_wait', args, false)?.detail).toBeUndefined();
-    expect(describePetTool('cua_wait', '{"seconds":1.5,', false)?.detail).toBe('1.5 秒');
-    expect(describePetTool('cua_wait', '{"seconds":0}', true)?.detail).toBe('0 秒');
+    for (const args of ['{"seconds":1', '{"seconds":1.', '{"seconds":1e']) expect(describePetTool('pet_cua_wait', args, false)?.detail).toBeUndefined();
+    expect(describePetTool('pet_cua_wait', '{"seconds":1.5,', false)?.detail).toBe('1.5 秒');
+    expect(describePetTool('pet_cua_wait', '{"seconds":0}', true)?.detail).toBe('0 秒');
     expect(describePetTool('alarm_set', '{"in_minutes":12, "note":"private', false)?.detail).toBe('12 分钟后');
   });
 
   it('says nothing an unfinished call may contradict', () => {
-    expect(describePetTool('cua_click', '{"x":1', false)).toBeNull();
-    expect(describePetTool('cua_click', '{"button":"right"', false)).toEqual({ kind: 'click', text: T.rightClick });
+    expect(describePetTool('pet_cua_click', '{"x":1', false)).toBeNull();
+    expect(describePetTool('pet_cua_click', '{"button":"right"', false)).toEqual({ kind: 'click', text: T.rightClick });
     expect(describePetTool('list_files', '{"di', false)).toEqual({ kind: 'browse', text: T.browse });
   });
 
   it('never exposes typed secrets or alarm notes, including partial arguments', () => {
-    for (const [name, key] of [['cua_type', 'text'], ['alarm_set', 'note']]) {
+    for (const [name, key] of [['pet_cua_type', 'text'], ['alarm_set', 'note']]) {
       const raw = JSON.stringify({ [key]: 'secret-password', path: 'private', at: '18:30' });
       for (let i = 0; i <= raw.length; i++) expect(JSON.stringify(describePetTool(name, raw.slice(0, i), i === raw.length))).not.toMatch(/secret|password|private/);
     }

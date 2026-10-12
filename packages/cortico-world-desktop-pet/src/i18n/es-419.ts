@@ -171,6 +171,7 @@ const es419: Translation<PetText> = {
       'pet.self': 'Autoajuste: qué ajustes cambian directamente, cuáles esperan consentimiento, o que ninguno puede cambiar',
       'pet.chat': 'Una nota sobre la página de chat cuando la app tiene una; vacío en otro caso',
       'pet.reply': 'Una línea que le dice al bot en qué idioma hablar cuando el idioma de la app no es chino simplificado ni inglés; vacío en otro caso',
+      'pet.cua': 'La parte de uso de la computadora: coordenadas de las capturas, cuándo se pregunta primero a la persona y las reglas para no estorbarle; vacía mientras el uso de la computadora está desactivado',
     },
     noGuide: 'Esta app no tiene introducción',
     unknownMethod: (name: string) => `Método desconocido ${name}`,

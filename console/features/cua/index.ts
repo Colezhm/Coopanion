@@ -1,18 +1,17 @@
 /**
- * 「电脑操作」, a section of the 「习惯」 page (features/pet): the cua World in the normal mode, in the
- * page's rows (its label column, then the setting). The first checkbox turns the World on and off through
- * `/api/worlds/activation`, as the advanced mode's World list does; the other rows write the cua
- * World's config group through `/api/config` (only the keys shown here are sent). Yielding to the
- * person and screenshot sizes stay on the World's own page in the advanced mode.
+ * 「电脑操作」, a section of the 「习惯」 page (features/pet): the desktop-pet World's computer use in the
+ * normal mode, in the page's rows (its label column, then the setting). Each row writes its key of the
+ * computer-use config group through `/api/config` (only the keys shown here are sent). Yielding to the
+ * person and screenshot sizes stay on the desktop-pet World's page in the advanced mode.
  */
-import { get, post, setConfig } from '../../core/api.ts';
+import { get, setConfig } from '../../core/api.ts';
 import type { FeatureContext } from '../feature.ts';
 import { S } from './strings.ts';
 
-const WORLD = 'cua';
-const GROUP = 'world:cua';
-const K = 'worlds.cua';
+const GROUP = 'world:desktop-pet:cua';
+const K = 'worlds.desktop-pet.cua';
 const KEYS = {
+  enabled: `${K}.enabled`,
   control: `${K}.control`,
   permission: `${K}.permission`,
   grantMinutes: `${K}.grantMinutes`,
@@ -25,7 +24,6 @@ const GRANT_MIN = 1;
 const GRANT_MAX = 1440;
 
 interface ConfigEntry { group: { id: string }; values?: Record<string, unknown> }
-interface WorldEntry { id: string; status: 'active' | 'inactive' | 'missing' }
 
 const errText = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
@@ -44,7 +42,7 @@ export function cuaSection(ctx: FeatureContext, row: Row): HTMLElement {
     msg.classList.toggle('bad', bad);
   };
 
-  const enabled = ui.checkbox(S.enabled, { onChange: (on) => void activate(on) });
+  const enabled = ui.checkbox(S.enabled, { onChange: (on) => void save(KEYS.enabled, on) });
   const control = ui.checkbox(S.control, { onChange: (on) => void save(KEYS.control, on) });
   const levelHint = ui.h('p', 'home-note');
   const level = ui.segmented(LEVELS.map((value) => ({ value, label: S.levels[value] })), {
@@ -80,32 +78,16 @@ export function cuaSection(ctx: FeatureContext, row: Row): HTMLElement {
       if (!signal.aborted) say(S.saveFailed(errText(err)), true);
     }
   };
-  const activate = async (on: boolean) => {
-    const lock = ui.disable(enabled.input);
-    try {
-      await post('/api/worlds/activation', { id: WORLD, enabled: on }, opts);
-      say('');
-    } catch (err) {
-      if (signal.aborted) return;
-      enabled.setChecked(!on);
-      say(S.saveFailed(errText(err)), true);
-    } finally {
-      lock.dispose();
-    }
-  };
   grant.addEventListener('change', () => {
     const n = Number(grant.value);
     if (!Number.isInteger(n) || n < GRANT_MIN || n > GRANT_MAX) { say(S.grantBad(GRANT_MIN, GRANT_MAX), true); return; }
     void save(KEYS.grantMinutes, n);
   }, { signal });
 
-  void Promise.all([
-    get<{ worlds?: WorldEntry[] }>('/api/worlds', opts).catch(() => null),
-    get<{ groups?: ConfigEntry[] }>('/api/config', opts).catch(() => null),
-  ]).then(([worlds, config]) => {
+  void get<{ groups?: ConfigEntry[] }>('/api/config', opts).catch(() => null).then((config) => {
     if (signal.aborted) return;
-    enabled.setChecked(worlds?.worlds?.find((w) => w.id === WORLD)?.status === 'active');
     const values = config?.groups?.find((g) => g.group.id === GROUP)?.values ?? {};
+    enabled.setChecked(values[KEYS.enabled] === true);
     if (typeof values[KEYS.control] === 'boolean') control.setChecked(values[KEYS.control] as boolean);
     const current = LEVELS.find((l) => l === values[KEYS.permission]) ?? 'ask-once';
     level.setValue(current);

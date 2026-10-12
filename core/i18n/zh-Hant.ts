@@ -27,8 +27,6 @@ const zhHant: Translation<CoreText> = {
   quit: '結束應用程式',
 
   noticeLabel: '應用程式通知',
-  cuaYes: '可以',
-  cuaNo: '這次不行',
 
   status: {
     read: '在查看', browse: '在翻閱', memory: '記憶', find: '在尋找', search: '在搜尋', write: '在寫入', edit: '在修改', append: '在附加',

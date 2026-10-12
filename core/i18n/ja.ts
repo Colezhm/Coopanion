@@ -27,8 +27,6 @@ const ja: Translation<CoreText> = {
   quit: 'アプリを終了',
 
   noticeLabel: 'アプリの通知',
-  cuaYes: 'はい',
-  cuaNo: '今回は許可しない',
 
   status: {
     read: '読み取り中', browse: '閲覧中', memory: '記憶', find: '探索中', search: '検索中', write: '書き込み中', edit: '編集中', append: '追記中',

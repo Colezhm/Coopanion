@@ -197,6 +197,7 @@ const en: PetText = {
       'pet.self': 'Self-adjustment: which settings change directly, which wait for consent, or that none can change',
       'pet.chat': 'A note on the chat page when the app has one; empty otherwise',
       'pet.reply': 'A line telling the bot which language to talk in when the app language is neither Simplified Chinese nor English; empty otherwise',
+      'pet.cua': 'The computer use part: screenshot coordinates, when the person is asked first, and staying out of their way; empty while computer use is off',
     },
     noGuide: 'This app has no introduction',
     unknownMethod: (name: string) => `Unknown method ${name}`,

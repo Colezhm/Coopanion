@@ -20,7 +20,7 @@ describe('first-run seed', () => {
       expect(read(join(home, DEPLOYMENT, 'config.json'))).toMatchObject({ activeProvider: endpoint, language });
       // the next start, in another system language, leaves a new install's language and computer-use asking as seeded
       seed(home, language === 'zh' ? 'en' : 'zh');
-      expect(read(join(home, DEPLOYMENT, 'config.json'))).toMatchObject({ language, worlds: { cua: { permission: 'ask-once' } } });
+      expect(read(join(home, DEPLOYMENT, 'config.json'))).toMatchObject({ language, worlds: { 'desktop-pet': { cua: { permission: 'ask-once' } } } });
       expect(read(join(home, 'providers', endpoint, 'config.json'))).toMatchObject({ kind: 'coo', secret: vendor.secret, spec: { model: vendor.model } });
       expect(readFileSync(join(home, DEPLOYMENT, 'workspace', 'CONSTITUTION.md'), 'utf8')).toBe(readFileSync(join(SEED_DIR, CONSTITUTION_SEEDS[language]), 'utf8'));
       expect(readFileSync(join(home, DEPLOYMENT, 'avatar.png')).subarray(1, 4).toString()).toBe('PNG');
@@ -79,8 +79,22 @@ describe('first-run seed', () => {
     const constitution = join(home, DEPLOYMENT, 'workspace', 'CONSTITUTION.md');
     writeFileSync(constitution, '# 我自己写的');
     seed(home, 'zh');
-    // a config from before new installs got `worlds.cua.permission` keeps the default it had
-    expect(read(cfg)).toEqual({ displayName: 'mine', worlds: { cua: { permission: 'ask-each-turn' } } });
+    // a config from before new installs got a computer-use `permission` keeps the default it had
+    expect(read(cfg)).toEqual({ displayName: 'mine', worlds: { 'desktop-pet': { cua: { permission: 'ask-each-turn' } } } });
     expect(readFileSync(constitution, 'utf8')).toBe('# 我自己写的');
+  });
+
+  it('moves computer use from its own World into the desktop pet, whether it was on and how it asks included', () => {
+    const home = mkdtempSync(join(tmpdir(), 'cc-seed-'));
+    seed(home, 'zh');
+    const cfg = join(home, DEPLOYMENT, 'config.json');
+    const cua = { enabled: true, permission: 'never-ask', grantMinutes: 90, screenshot: { quality: 60 } };
+    writeFileSync(cfg, JSON.stringify({ displayName: 'mine', worlds: { cua, 'desktop-pet': { roam: 'off' } } }));
+    seed(home, 'zh');
+    expect(read(cfg)).toEqual({ displayName: 'mine', worlds: { 'desktop-pet': { roam: 'off', cua } } });
+    // an old config without its asking level keeps the default it had then
+    writeFileSync(cfg, JSON.stringify({ worlds: { cua: { enabled: true } } }));
+    seed(home, 'zh');
+    expect(read(cfg)).toEqual({ worlds: { 'desktop-pet': { cua: { enabled: true, permission: 'ask-each-turn' } } } });
   });
 });

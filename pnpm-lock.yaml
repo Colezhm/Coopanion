@@ -11,9 +11,6 @@ importers:
       cortico-provider-coo:
         specifier: workspace:*
         version: link:packages/cortico-provider-coo
-      cortico-world-cua:
-        specifier: workspace:*
-        version: link:packages/cortico-world-cua
       cortico-world-desktop-pet:
         specifier: workspace:*
         version: link:packages/cortico-world-desktop-pet
@@ -103,33 +100,14 @@ importers:
         specifier: 0.128.0
         version: 0.128.0
 
-  packages/cortico-world-cua:
-    dependencies:
-      jpeg-js:
-        specifier: ^0.4.4
-        version: 0.4.4
-      koffi:
-        specifier: 3.3.1
-        version: 3.3.1
-    devDependencies:
-      '@types/node':
-        specifier: ^22.20.4
-        version: 22.20.4
-      tsx:
-        specifier: ^4.23.15
-        version: 4.23.15
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vitest:
-        specifier: ^2.1.9
-        version: 2.1.9(@types/node@22.20.4)(jsdom@30.1.0(@noble/hashes@2.4.0))(lightningcss@1.32.0)
-
   packages/cortico-world-desktop-pet:
     dependencies:
       fflate:
         specifier: 0.8.3
         version: 0.8.3
+      jpeg-js:
+        specifier: ^0.4.4
+        version: 0.4.4
       koffi:
         specifier: 3.3.1
         version: 3.3.1

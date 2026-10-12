@@ -24,8 +24,7 @@ or handed context. Two of its rules settle most design questions:
 | Electron main process: tray, settings window, Core child process, updater | `app/` | `app` |
 | Core child process entry: assembly, seed files, the `coopanion` World, telemetry | `core/` | `core` |
 | Console overlay: pages, normal and advanced mode | `console/` | `console` |
-| Desktop pet World | `packages/cortico-world-desktop-pet/` | `desktop-pet` |
-| Computer use World | `packages/cortico-world-cua/` | `cua` |
+| Desktop pet World, computer use included (`src/cua/`) | `packages/cortico-world-desktop-pet/` | `desktop-pet` |
 | Model provider | `packages/cortico-provider-coo/` | `provider-coo` |
 | Build, staging and packing | `scripts/`, `installer/`, `electron-builder.yml` | `scripts`, `installer` |
 | Telemetry service | `telemetry-server/` | `telemetry-server` |

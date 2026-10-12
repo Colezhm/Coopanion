@@ -6,6 +6,7 @@ import { DESKTOP_PET_DEFAULTS, DESKTOP_PET_ID, type DesktopPetConfigSection, typ
 import { DesktopPetWorld, modelsDirFor, type PetBotControls } from './world.ts';
 import type { DescribeTool } from './status.ts';
 import type { ModelLanguage } from './model-text.ts';
+import type { Answer } from './cua/engine-ipc.ts';
 import { petText } from './i18n/index.ts';
 
 /** The console keeps the bot's avatar here, in the deployment directory. */
@@ -30,6 +31,8 @@ export interface DesktopPetAssembly {
   replyLanguage?(): string | null;
   /** The app language, what the person reads; see `DesktopPetWorldOptions.language`. */
   language?(): Language;
+  /** Called with each answer to computer use's question in the pet's bubble. */
+  onCuaAnswer?(answer: Answer): void;
 }
 
 /** The definition, with what an embedding app lends the World. */
@@ -61,6 +64,7 @@ export function desktopPetDefinition(assembly: DesktopPetAssembly = {}): WorldDe
         modelLanguage: () => assembly.modelLanguage?.() ?? 'zh',
         replyLanguage: () => assembly.replyLanguage?.() ?? null,
         language: () => assembly.language?.() ?? 'zh',
+        onCuaAnswer: (answer) => assembly.onCuaAnswer?.(answer),
       });
       assembly.onCreate?.(world);
       return world;

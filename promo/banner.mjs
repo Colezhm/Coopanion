@@ -2,7 +2,7 @@
  * Draws a repository banner: Coo (web/coo/coo.js) beside a title in the promo's lettering, in a
  * light and a dark version for GitHub's <picture> switch.
  *
- *   node promo/banner.mjs <companion|desktop-pet|cua> <out-dir>   → <out-dir>/banner.svg, banner-dark.svg
+ *   node promo/banner.mjs <companion|desktop-pet> <out-dir>   → <out-dir>/banner.svg, banner-dark.svg
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -20,7 +20,6 @@ const THEMES = {
 const BANNERS = {
   companion: { label: 'Coopanion', lines: [['Coopanion', 1]], max: 1.1, face: 'happy', skin: {} },
   'desktop-pet': { label: 'cortico-world-desktop-pet', lines: [['cortico world', .52, 'dim'], ['desktop pet', 1]], max: .92, face: 'wink', skin: { head: 'cat' } },
-  cua: { label: 'cortico-world-cua', lines: [['cortico world', .52, 'dim'], ['computer use', 1]], max: .92, face: 'neutral', look: [4, 3], skin: {}, cursor: true },
 };
 const f = (n) => Math.round(n * 10) / 10;
 

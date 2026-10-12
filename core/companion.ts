@@ -1,13 +1,10 @@
 /**
- * The app's Core process: Cormini as the Persona, the terminal, desktop-pet, cua and coopanion Worlds, Coo Pet
+ * The app's Core process: Cormini as the Persona, the terminal, desktop-pet and coopanion Worlds, Coo Pet
  * Provider (DeepSeek and the other model services Coo offers) next to Cortico's built-in providers,
  * and Worlds or providers installed from npm through the console's extension page.
  *
- * The two bundled Worlds are wired to each other and to the app: the header of the pet's right-click
- * menu pauses and resumes the run, opens the settings window and quits the app, as the console's rail
- * foot does; computer use
- * asks for permission in the pet's bubble, and falls back to its own system dialog while no
- * pet page is connected.
+ * The desktop-pet World is wired to the app: the header of the pet's right-click menu pauses and
+ * resumes the run, opens the settings window and quits the app, as the console's rail foot does.
  *
  * The `coopanion` World (`notice.ts`) tells Coo what the app has to say: the release notes after
  * an update, and the settings the person changes.
@@ -58,7 +55,6 @@ import { providerModules, registerProviderModules } from 'cortico/providers/regi
 import { withWorlds, type WorldDefinition, type WorldSection } from 'cortico/world.ts';
 import { TERMINAL } from 'cortico/worlds/terminal/definition.ts';
 import { desktopPetDefinition, figurePacks, type DesktopPetWorld } from 'cortico-world-desktop-pet';
-import { cuaDefinition } from 'cortico-world-cua';
 import COO, { vendorOf } from 'cortico-provider-coo';
 import { bundledConsoleAssets } from './bundled-panels.ts';
 import { followPetLook } from './console-theme.ts';
@@ -172,7 +168,7 @@ function countUse(core: Core<CoreConfig>, config: CoreConfig, telemetry: Telemet
   const write = toolLog.write.bind(toolLog);
   toolLog.write = (input) => {
     if (input.tool === 'pet_say') telemetry.count('petReplies');
-    else if (input.tool.startsWith('cua_')) telemetry.count('cuaActions');
+    else if (input.tool.startsWith('pet_cua_')) telemetry.count('cuaActions');
     return write(input);
   };
   const append = usageLog.append.bind(usageLog);
@@ -326,8 +322,8 @@ function snapshotOf(config: CoreConfig, workspace: string): Record<string, unkno
     rememberPosition: at('worlds.desktop-pet.rememberPosition'),
     // empty is the app language's default; the others were the defaults of earlier versions
     userNamed: !['', '伙伴', '主人'].includes(String(at('worlds.desktop-pet.user') ?? '')),
-    cuaEnabled: at('worlds.cua.enabled'),
-    cuaLevel: at('worlds.cua.permission'),
+    cuaEnabled: at('worlds.desktop-pet.cua.enabled'),
+    cuaLevel: at('worlds.desktop-pet.cua.permission'),
     personaChanged: !isSeededConstitution(workspace),
     memoryFiles: countFiles(workspace),
   };
@@ -414,19 +410,12 @@ export async function main(): Promise<void> {
     replyLanguage: () => replyLanguage(config?.language),
     language,
     onCreate: (world) => { pet = world; },
+    onCuaAnswer: (answer) => {
+      telemetry?.count('cuaAsked');
+      if (answer === 'yes') telemetry?.count('cuaGranted');
+    },
     onBotChange: () => (notice as NoticeWorld | null)?.acceptCurrent(),
     onSkin: (skin) => followPetLook(join(deploymentRoot(), DEPLOYMENT), skin, (pet as DesktopPetWorld | null)?.packs() ?? [], language()),
-  });
-  const CUA = cuaDefinition({
-    askPermission: async (question) => {
-      const t = coreText(language());
-      const answer = await pet?.confirm(question, [t.cuaYes, t.cuaNo]) ?? 'unavailable';
-      if (answer !== 'unavailable') telemetry?.count('cuaAsked');
-      if (answer === 'yes') telemetry?.count('cuaGranted');
-      return answer === 'unavailable' ? null : answer === 'yes' || answer === 'timeout' ? answer : 'no';
-    },
-    modelLanguage: () => modelLanguage(config?.language),
-    language,
   });
   const home = deploymentRoot();
   // the system's language, as the Electron main process read it; Chinese when the Core runs without it
@@ -450,13 +439,13 @@ export async function main(): Promise<void> {
   const cormini = await corminiDefinition();
   const base: BotDefinition<CoreConfig> = {
     ...cormini,
-    declares: [TERMINAL.id, DESKTOP_PET.id, CUA.id, NOTICE.id],
+    declares: [TERMINAL.id, DESKTOP_PET.id, NOTICE.id],
     defaults: () => ({
       ...cormini.defaults(),
       displayName: DISPLAY_NAME,
       web: { port: CONSOLE_PORT, theme: 'mint' },
-      // Cormini's 6/12 end a computer-use task partway through; 20/40 are the caps the cua and
-      // desktop-pet e2e harnesses give their persona
+      // Cormini's 6/12 end a computer-use task partway through; 20/40 are the caps the desktop-pet
+      // e2e harnesses give their persona
       rounds: { soft: 20, hard: 40 },
       companion: { telemetry: true },
     }),
@@ -474,7 +463,7 @@ export async function main(): Promise<void> {
       };
     },
   };
-  const bundled = [TERMINAL, DESKTOP_PET, CUA, NOTICE] as WorldDefinition<WorldSection>[];
+  const bundled = [TERMINAL, DESKTOP_PET, NOTICE] as WorldDefinition<WorldSection>[];
 
   // extension providers must be registered before endpoints are resolved
   const extensions = await loadExtensions(repoRoot(), {
@@ -484,7 +473,6 @@ export async function main(): Promise<void> {
   registerProviderModules([COO, ...extensions.providers]);
   extensions.consoleAssets.push(...bundledConsoleAssets([
     { id: DESKTOP_PET.id, packageName: 'cortico-world-desktop-pet' },
-    { id: CUA.id, packageName: 'cortico-world-cua' },
   ]));
   const definition = withWorlds(base, [...bundled, ...extensions.worlds]);
 

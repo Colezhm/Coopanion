@@ -27,8 +27,6 @@ const ptBR: Translation<CoreText> = {
   quit: 'Sair do app',
 
   noticeLabel: 'Notificações do app',
-  cuaYes: 'Sim',
-  cuaNo: 'Desta vez não',
 
   status: {
     read: 'Lendo', browse: 'Consultando', memory: 'memória', find: 'Procurando', search: 'Pesquisando', write: 'Escrevendo', edit: 'Editando', append: 'Acrescentando a',

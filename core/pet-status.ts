@@ -1,5 +1,5 @@
 /**
- * What the pet's status bubble says for the tools this app's bot has: the Persona's memory tools, cua, the alarms
+ * What the pet's status bubble says for the tools this app's bot has: the Persona's memory tools, computer use, the alarms
  * (alarms.ts) and the terminal, in the app language (`core/i18n`). Only the arguments named here reach the page;
  * typed text, notes, window titles and coordinates never do. Wording that depends on an argument waits for the call
  * to be written out, so the bubble does not say something the call turns out not to do. A detail (a file name, a
@@ -45,19 +45,19 @@ export function petToolDescriber(language: () => Language): DescribeTool {
       case 'append_file': return show('write', s.append, leaf(stringArg(args, 'path')));
       case 'delete_file': return show('delete', s.delete, leaf(stringArg(args, 'path')));
       case 'save_blob': return show('save', s.save, leaf(stringArg(args, 'path')));
-      case 'cua_screenshot': return show('look', s.screen);
-      case 'cua_windows': return show('look', s.windows);
-      case 'cua_click': {
+      case 'pet_cua_screenshot': return show('look', s.screen);
+      case 'pet_cua_windows': return show('look', s.windows);
+      case 'pet_cua_click': {
         const text = clickText(s, args, done);
         return text ? show('click', text) : null;
       }
-      case 'cua_move': return show('click', s.move);
-      case 'cua_drag': return show('click', s.drag);
-      case 'cua_scroll': return show('scroll', s.scroll);
-      case 'cua_focus': return show('click', s.focus);
-      case 'cua_type': return show('type', s.type);
-      case 'cua_key': return show('type', s.key, stringArg(args, 'keys'));
-      case 'cua_wait': {
+      case 'pet_cua_move': return show('click', s.move);
+      case 'pet_cua_drag': return show('click', s.drag);
+      case 'pet_cua_scroll': return show('scroll', s.scroll);
+      case 'pet_cua_focus': return show('click', s.focus);
+      case 'pet_cua_type': return show('type', s.type);
+      case 'pet_cua_key': return show('type', s.key, stringArg(args, 'keys'));
+      case 'pet_cua_wait': {
         const seconds = numberArg(args, 'seconds');
         return show('wait', s.wait, seconds === undefined ? undefined : s.seconds(seconds));
       }

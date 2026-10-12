@@ -123,7 +123,7 @@ async function loadLabels(): Promise<Labels> {
 }
 
 const PET = 'worlds.desktop-pet';
-const CUA = 'worlds.cua';
+const CUA = 'worlds.desktop-pet.cua';
 
 /** The settings told when they change, in this order; `key` names the setting in the text tables. */
 const WATCHED = [

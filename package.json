@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "cortico-provider-coo": "workspace:*",
-    "cortico-world-cua": "workspace:*",
     "cortico-world-desktop-pet": "workspace:*",
     "electron-updater": "^6.8.9",
     "express": "^4.22.3",

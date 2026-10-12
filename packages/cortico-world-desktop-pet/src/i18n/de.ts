@@ -171,6 +171,7 @@ const de: Translation<PetText> = {
       'pet.self': 'Selbsteinstellung: welche Einstellungen sich direkt ändern, welche auf Zustimmung warten, oder dass sich keine ändern lässt',
       'pet.chat': 'Ein Hinweis zur Chat-Seite, wenn die App eine hat; sonst leer',
       'pet.reply': 'Eine Zeile, die dem Bot die Sprache zum Reden vorgibt, wenn die App-Sprache weder vereinfachtes Chinesisch noch Englisch ist; sonst leer',
+      'pet.cua': 'Der Teil zur Computersteuerung: Screenshot-Koordinaten, wann zuerst gefragt wird und die Regeln, der Person nicht in die Quere zu kommen; leer, solange die Computersteuerung aus ist',
     },
     noGuide: 'Diese App hat keine Einführung',
     unknownMethod: (name: string) => `Unbekannte Methode ${name}`,

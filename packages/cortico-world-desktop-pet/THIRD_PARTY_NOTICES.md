@@ -36,6 +36,8 @@ DeepSeek 女仆装二创参考 ZipZipPipe。围裙上的标志是 DeepSeek、Ope
 
 - `ws`:MIT
 - `opencc-js`(繁简转换):MIT AND Apache-2.0
+- [koffi](https://koffi.dev/)(电脑操作调 Win32 API 与 macOS CoreGraphics 的 FFI):MIT
+- [jpeg-js](https://github.com/jpeg-js/jpeg-js)(电脑操作截图的 JPEG 编码与解码):BSD-3-Clause
 
 ## 本包的许可
 

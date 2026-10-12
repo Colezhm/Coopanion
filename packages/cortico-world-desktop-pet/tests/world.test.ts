@@ -63,7 +63,7 @@ describe('English model text', () => {
   it('gives the bot no Chinese of its own: environment prompt, tool declarations, events', async () => {
     const { world, host } = await mounted((c) => { c.user = 'Sam'; }, { modelLanguage: () => 'en', replyLanguage: () => 'Japanese', controls: { openChat: () => {} } });
     const doc = world.console().promptDocs![0]!;
-    const prompt = renderTemplate(readFileSync(doc.path, 'utf8'), world.envPromptVars());
+    const prompt = renderTemplate(readFileSync(doc.path, 'utf8'), await world.envPromptVars());
     expect(prompt).not.toMatch(HAN);
     // every placeholder of the English template is one the World fills
     expect(prompt).not.toMatch(/\{\{/);

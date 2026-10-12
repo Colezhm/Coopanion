@@ -41,7 +41,7 @@ const shownSteps = (steps: readonly string[]): string[] => steps.filter((s) => s
 
 /** One folded row's title: a run of computer steps, one step by name, or a count. */
 function activityTitle(steps: readonly string[]): string {
-  if (steps.every((s) => s.startsWith('cua_'))) return `${S.computer} · ${S.steps(steps.length)}`;
+  if (steps.every((s) => s.startsWith('pet_cua_'))) return `${S.computer} · ${S.steps(steps.length)}`;
   return steps.length === 1 ? stepLabel(steps[0]) : S.things(steps.length);
 }
 
