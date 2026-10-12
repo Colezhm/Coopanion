@@ -160,7 +160,6 @@ const fr: Translation<PetText> = {
     panels: {
       pet: { title: 'Compagnon de bureau', description: "La fenêtre, la tenue et l'environnement d'exécution de la fenêtre." },
       voice: { title: 'Saisie vocale', description: "Moteur de reconnaissance, niveau d'entrée et ce qui a été entendu." },
-      chat: { title: 'Discussion', description: "La page de discussion : écrivez et envoyez des images, et voyez ce qui a été dit et fait." },
     },
     envPrompt: { title: 'Environnement du compagnon de bureau', description: "Décrit le corps du compagnon, ses quatre outils et ses événements d'entrée." },
     vars: {

@@ -58,7 +58,6 @@ export function desktopPetPanelDecls(language: Language = 'zh'): WorldPanelDecl[
   return [
     { id: 'pet', ...p.pet, getMethods: ['state'] },
     { id: 'voice', ...p.voice, getMethods: ['state'] },
-    { id: 'chat', ...p.chat },
   ];
 }
 
@@ -1689,6 +1688,7 @@ export class DesktopPetWorld implements World {
       panels: desktopPetPanelDecls(language),
       invoke: (panel, method, args) => this.invoke(panel, method, args),
       stream: (panel, socket) => {
+        // `chat` has no panel: the embedding app draws its chat page from this stream
         if (panel === 'chat') { this.chat.add(socket, (msg, s) => void this.onChat(msg, s, language)); return; }
         if (panel !== 'voice') { socket.close('no stream'); return; }
         this.voiceSockets.add(socket);

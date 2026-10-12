@@ -160,7 +160,6 @@ const es419: Translation<PetText> = {
     panels: {
       pet: { title: 'Mascota de escritorio', description: 'La ventana, el vestuario y el entorno de ejecución de la ventana.' },
       voice: { title: 'Entrada de voz', description: 'Motor de reconocimiento, nivel de entrada y lo que se escuchó.' },
-      chat: { title: 'Chat', description: 'La página de chat: escribe y envía imágenes, y mira lo que dijo e hizo.' },
     },
     envPrompt: { title: 'Entorno de la mascota de escritorio', description: 'Describe el cuerpo de la mascota, sus cuatro herramientas y sus eventos de entrada.' },
     vars: {

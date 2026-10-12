@@ -160,7 +160,6 @@ const de: Translation<PetText> = {
     panels: {
       pet: { title: 'Desktop-Haustier', description: 'Das Fenster, das Outfit und die Fenster-Laufzeit.' },
       voice: { title: 'Spracheingabe', description: 'Erkennungs-Engine, Eingangspegel und was gehört wurde.' },
-      chat: { title: 'Chat', description: 'Die Chat-Seite: Tippe und sende Bilder und sieh, was es gesagt und getan hat.' },
     },
     envPrompt: { title: 'Desktop-Haustier-Umgebung', description: 'Beschreibt den Körper des Haustiers, seine vier Tools und seine Eingabeereignisse.' },
     vars: {

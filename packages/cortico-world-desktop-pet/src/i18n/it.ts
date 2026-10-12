@@ -160,7 +160,6 @@ const it: Translation<PetText> = {
     panels: {
       pet: { title: 'Animaletto da desktop', description: 'La finestra, il guardaroba e il runtime della finestra.' },
       voice: { title: 'Input vocale', description: 'Motore di riconoscimento, livello di ingresso e cosa è stato sentito.' },
-      chat: { title: 'Chat', description: 'La pagina chat: scrivi e invia immagini, e guarda cosa ha detto e fatto.' },
     },
     envPrompt: { title: "Ambiente dell'animaletto da desktop", description: "Descrive il corpo dell'animaletto, i suoi quattro strumenti e i suoi eventi di input." },
     vars: {

@@ -186,7 +186,6 @@ const en: PetText = {
     panels: {
       pet: { title: 'Desktop pet', description: 'The window, the dress and the window runtime.' },
       voice: { title: 'Voice input', description: 'Recognition engine, input level and what was heard.' },
-      chat: { title: 'Chat', description: 'The chat page: type and send images, and see what it said and did.' },
     },
     envPrompt: { title: 'Desktop pet environment', description: "Describes the pet's body, its four tools and its input events." },
     vars: {

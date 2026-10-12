@@ -160,7 +160,6 @@ const ja: Translation<PetText> = {
     panels: {
       pet: { title: 'デスクトップペット', description: 'ウィンドウ、着せ替え、ウィンドウのランタイム。' },
       voice: { title: '音声入力', description: '認識エンジン、入力レベル、聞き取った内容。' },
-      chat: { title: 'チャット', description: 'チャットページ：文字や画像を送り、話したことやしたことを確認できます。' },
     },
     envPrompt: { title: 'デスクトップペットの環境', description: 'ペットの体、4 つのツール、入力イベントの説明。' },
     vars: {

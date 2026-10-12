@@ -160,7 +160,6 @@ const zhHant: Translation<PetText> = {
     panels: {
       pet: { title: '桌寵', description: '視窗、裝扮與視窗執行環境。' },
       voice: { title: '語音輸入', description: '辨識引擎、音量與辨識結果。' },
-      chat: { title: '對話', description: '對話頁：打字和傳圖給它，看它說過的話與做過的事。' },
     },
     envPrompt: { title: '桌寵環境', description: '描述桌寵的身體、四個工具與輸入事件。' },
     vars: {

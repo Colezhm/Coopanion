@@ -160,7 +160,6 @@ const ko: Translation<PetText> = {
     panels: {
       pet: { title: '데스크톱 펫', description: '창, 꾸미기, 창 런타임.' },
       voice: { title: '음성 입력', description: '인식 엔진, 입력 레벨, 들은 내용.' },
-      chat: { title: '대화', description: '대화 페이지: 글과 이미지를 보내고, 펫이 한 말과 한 일을 봅니다.' },
     },
     envPrompt: { title: '데스크톱 펫 환경', description: '펫의 몸, 도구 네 가지, 입력 이벤트를 설명합니다.' },
     vars: {
