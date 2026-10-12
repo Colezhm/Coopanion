@@ -219,7 +219,8 @@ Windows 上经 koffi 轮询 Win32 `GetAsyncKeyState` 读取;macOS 上轮询 Core
 | `vocab` | 这个身体做的全部表情和动作,也就是它在场时 bot 的整张词表:每个词 `id`、`kind`(`expression` / `motion`)、`names`(按语言的名字列表)、`about`(它做这个词的样子)、`seconds`(连着做时等多久再做下一个),`lasting: true` 表示保持到下一个动作;`kind` 是这一版不认识的值时跳过那个词 |
 | `sounds` | 包自带的音频:名字 → `{ file, kind, volume }`,文件是包里的 `.ogg` `.mp3` `.wav`,`kind` 是 `move` `touch` `face` `snore` 之一;不存在的文件、这一版不认识的 `kind` 或文件类型,在扫描时记一条问题,那个声音不响 |
 | `can` | `{ walk: false }` 表示不会走,`pet_walk_to` 会拒绝 |
-| `author`、`license`、`credits`、`thumb`、`version` | 署名与展示 |
+| `thumb` | 这个包的图:装扮页「形象」一行和导入列表都显示它,不随各维的选择变化 |
+| `author`、`license`、`credits`、`version` | 署名与展示 |
 
 `skin.scheme` 是一个预设的 id,或者各维的选项 id 按维度顺序用 `-` 连起来(所以选项 id 里不能有 `-`)。词的名字不能带
 `【】<>`、逗号、顿号或空白,也不能长过行内标记能装下的长度,不然脚本里写不出来。

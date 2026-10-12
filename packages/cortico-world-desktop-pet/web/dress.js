@@ -179,12 +179,6 @@ function schemeOf(pack, picks) {
   const preset = pack.presets.find((p) => pack.axes.every((a) => p.pick[a.id] === picks[a.id]));
   return preset ? preset.id : pack.axes.map((a) => picks[a.id]).join('-');
 }
-const thumbOf = (pack, picks) => {
-  const preset = pack.presets.find((p) => p.id === schemeOf(pack, picks));
-  const opt = pack.axes[0]?.options.find((o) => o.id === picks[pack.axes[0].id]);
-  const file = preset?.thumb ?? opt?.thumb ?? pack.thumb;
-  return file ? pack.base + file : null;
-};
 
 function renderFigure() {
   $('#dress').dataset.figure = skin.figure === 'coo' ? 'coo' : 'pack';
@@ -192,10 +186,8 @@ function renderFigure() {
   box.textContent = '';
   const opts = el('div', 'opts');
   const choices = [{ id: 'coo', label: 'Coo', pic: `<svg viewBox="${CROP.palette}" aria-hidden="true">${mini('neutral', skin)}</svg>` },
-    ...packs.filter((p) => p.id !== 'coo').map((p) => {
-      const src = thumbOf(p, picksOf(p, skin.figure === p.id ? skin.scheme : ''));
-      return { id: p.id, label: nameOf(p.name), pic: src ? `<img src="${src}" alt="">` : '' };
-    })];
+    // a pack shows its own picture whatever it wears; the rows below show the picks
+    ...packs.filter((p) => p.id !== 'coo').map((p) => ({ id: p.id, label: nameOf(p.name), pic: p.thumb ? `<img src="${p.base}${p.thumb}" alt="">` : '' }))];
   for (const c of choices) {
     const b = el('button', 'opt wide figure');
     b.setAttribute('aria-pressed', String(skin.figure === c.id));
