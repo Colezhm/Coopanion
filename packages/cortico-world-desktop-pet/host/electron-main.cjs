@@ -429,7 +429,7 @@ function runPetHost({ url, parentPid = 0, tray: withTray = true }) {
     else if (win.isFocused()) win.blur();
   });
   ipcMain.on('pet:hide', () => { releaseAutoHidden(); if (win) win.hide(); });
-  ipcMain.on('pet:overlayRect', (_e, rect) => overlay.setRect(rect));
+  ipcMain.on('pet:overlayFrame', (_e, rect, at) => overlay.frame(rect, at));
   ipcMain.on('pet:hideWhenFullscreen', (_e, on) => { hideWhenFullscreen = !!on; });
   ipcMain.on('pet:openDress', () => openDress());
   let language = 'zh';

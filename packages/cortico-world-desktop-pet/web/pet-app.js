@@ -107,9 +107,8 @@ function reportVisibility() { if (host) send({ t: 'visibility', hidden: !windowS
 // the page itself always reads as visible (its window does not throttle it): the window process says when it is hidden
 host?.onShown?.((shown) => { windowShown = shown; sfx.setShown(shown); reportVisibility(); });
 
-/* ---------- OBS overlay: while the window streams, the part it sends is the pet and its bubbles ---------- */
-const OVERLAY_EVERY_MS = 33;
-let overlayTimer = null, overlayKey = '';
+/* ---------- OBS overlay: while the window streams, each frame drawn is reported with the part it sends, the pet and its bubbles ---------- */
+let overlayOn = false;
 /** The body's box with room for its halo and what floats above its head, joined with the bubbles shown; null with no body. */
 function overlayRect() {
   const b = at()?.box;
@@ -122,19 +121,7 @@ function overlayRect() {
   const right = Math.min(innerWidth, Math.max(...parts.map((r) => r.x + r.width))), bottom = Math.min(innerHeight, Math.max(...parts.map((r) => r.y + r.height)));
   return right > x && bottom > y ? { x, y, width: right - x, height: bottom - y } : null;
 }
-host?.onOverlay?.((on) => {
-  clearInterval(overlayTimer);
-  overlayTimer = null;
-  overlayKey = '';
-  if (!on) { host.overlayRect(null); return; }
-  overlayTimer = setInterval(() => {
-    const r = overlayRect();
-    const key = r ? [r.x, r.y, r.width, r.height].map(Math.round).join() : '';
-    if (key === overlayKey) return;
-    overlayKey = key;
-    host.overlayRect(r);
-  }, OVERLAY_EVERY_MS);
-});
+host?.onOverlay?.((on) => { overlayOn = on; });
 // the text is in before anything is shown
 void useLanguage().then(() => { document.title = t('pet.title'); host?.setLanguage?.(language()); connect(); });
 
@@ -1528,6 +1515,8 @@ function frame(now) {
     stepBackdrop(dt);
     stepTools();
     layout();
+    // the frame's own time, so the layer shows frames as far apart as they were drawn
+    if (overlayOn) host.overlayFrame(overlayRect(), performance.timeOrigin + now);
   } catch (err) {
     // a throwing step must not take the loop with it: the next frame is only asked for below, and
     // without it the pet freezes for good (a broken figure throws again on every frame it draws)

@@ -2,11 +2,19 @@
  * The OBS overlay: the pet window's picture as the window process sends it through the World
  * (host/overlay.cjs has the frame format). The layer is the size of the display the window is on, and
  * each frame holds everything drawn, so the layer is cleared and the part put back where it is on that display.
+ *
+ * Frames take uneven time to be captured, sent and decoded, so each is shown `delay` milliseconds after
+ * the pet window drew it: they come out as far apart as they were drawn.
  */
 const canvas = document.getElementById('layer');
 const ctx = canvas.getContext('2d');
 /** Milliseconds before the socket is tried again after it closed. */
 const RECONNECT_MS = 2000;
+/**
+ * `delay` rises at once to the lateness of a frame that arrives later than that, and falls by this
+ * share of the time passing (10 ms a second), so it settles just above how late frames come.
+ */
+const DELAY_EASE = .01;
 
 /** Deflated bytes back to raw ones. */
 async function inflate(bytes) {
@@ -30,34 +38,63 @@ function toImageData(bgra, width, height) {
   return out;
 }
 
-/** The newest frame not drawn yet; one drawing meanwhile is replaced, not queued. */
-let pending = null, busy = false;
-async function pump() {
-  busy = true;
-  while (pending) {
-    const buffer = pending;
-    pending = null;
-    await draw(buffer).catch(() => {});
-  }
-  busy = false;
+/** Milliseconds since the epoch, the clock the pet window stamps its frames with. */
+const clock = () => performance.timeOrigin + performance.now();
+
+/** A frame as sent: `at` is when it was drawn, null for the World's clearing frame, which has no time. */
+async function decode(buffer) {
+  const [W, H, x, y, w, h] = new Uint32Array(buffer, 0, 6);
+  const at = buffer.byteLength >= 32 ? new DataView(buffer).getFloat64(24, true) : null;
+  const pixels = w && h ? await inflate(new Uint8Array(buffer, 32)) : null;
+  return { W, H, x, y, at, image: pixels && pixels.length === w * h * 4 ? toImageData(pixels, w, h) : null };
 }
-async function draw(buffer) {
-  const [W, H, x, y, w, h] = new Uint32Array(buffer.slice(0, 24));
+
+function show(f) {
   // 0 × 0: the window process is gone; the layer clears and keeps its size
-  if (W && H && (canvas.width !== W || canvas.height !== H)) { canvas.width = W; canvas.height = H; }
-  const pixels = w && h ? await inflate(new Uint8Array(buffer, 24)) : null;
+  if (f.W && f.H && (canvas.width !== f.W || canvas.height !== f.H)) { canvas.width = f.W; canvas.height = f.H; }
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (pixels && pixels.length === w * h * 4) ctx.putImageData(toImageData(pixels, w, h), x, y);
+  if (f.image) ctx.putImageData(f.image, f.x, f.y);
 }
+
+/** Frames decoded and not shown yet, oldest first. */
+const queue = [];
+let delay = null, shownAt = -Infinity, lastTick = 0;
+const due = () => clock() - (delay ?? 0);
+
+function receive(f) {
+  if (f.at === null) { queue.length = 0; show(f); return; }
+  if (f.at <= shownAt) return;
+  const late = clock() - f.at;
+  delay = delay === null ? late : Math.max(delay, late);
+  let i = queue.length;
+  while (i && queue[i - 1].at > f.at) i--;
+  queue.splice(i, 0, f);
+  // while nothing shows them (a hidden source draws no frames), only the newest due one is kept
+  while (queue.length > 1 && queue[1].at <= due()) queue.shift();
+}
+
+function tick(t) {
+  if (delay !== null && lastTick) delay -= (t - lastTick) * DELAY_EASE;
+  lastTick = t;
+  let f = null;
+  while (queue.length && queue[0].at <= due()) f = queue.shift();
+  if (f) { shownAt = f.at; show(f); }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
 
 function connect() {
   const ws = new WebSocket(`ws://${location.host}/socket?role=overlay`);
   ws.binaryType = 'arraybuffer';
   ws.onmessage = (e) => {
     if (typeof e.data === 'string') return;
-    pending = e.data;
-    if (!busy) void pump();
+    decode(e.data).then(receive, () => {});
   };
-  ws.onclose = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); setTimeout(connect, RECONNECT_MS); };
+  ws.onclose = () => {
+    queue.length = 0;
+    delay = null;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setTimeout(connect, RECONNECT_MS);
+  };
 }
 connect();

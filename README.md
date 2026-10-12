@@ -178,7 +178,7 @@ Speech is recognized on your machine and audio is never uploaded: by **FunASR** 
 - **Right-click** for the menu: pause / resume, settings, quit, plus typing, voice input, night mode, sounds, hide and dress up.
 - **Hover buttons**: the buttons beside Coo while the pointer rests on it. Typing and voice by default; pick up to six in Habits.
 - **Remember where Coo stands**: turn it on in Habits and Coo returns to the same spot across the screen on the next start.
-- **OBS overlay**: turn on Export OBS overlay under Habits › Other, then add a Browser source in OBS with the address shown and your screen's resolution as its size. Coo and its bubbles sit where they are on screen, on a transparent background.
+- **OBS overlay**: turn on Export OBS overlay under Habits › Other, then add a Browser source in OBS with the address shown and your screen's resolution as its size. A Browser source draws 30 frames a second unless its custom frame rate is set; set it to 60 to see the pet at 60. Coo and its bubbles sit where they are on screen, on a transparent background.
 - **Several displays**: Coo starts on the main display. Carry it to another display and let go to move it there. If that display is unplugged, Coo returns to the main one.
 
 ### Letting Coo use your computer
