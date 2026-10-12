@@ -17,7 +17,7 @@
     "ru": "Кит DeepSeek"
   },
   "about": {
-    "zh": "一个 Q 版鲸鱼娘,二头身,侧身朝右站;蓝色长发、头顶一根呆毛,头两侧各一只鲸鱼鳍,身后一条鲸鱼尾巴;衣服是括号里选的那套:女仆装是女仆裙和印着配色对应厂商标志的围裙,冬装是戴鲸鱼兜帽、围条纹围巾的斗篷",
+    "zh": "一个 Q 版鲸鱼娘,二头身,侧身朝右站;蓝色长发、头顶一根呆毛,头两侧各一只鲸鱼鳍,身后一条鲸鱼尾巴;服装是括号里选的那套:女仆装是女仆裙和印着配色对应厂商标志的围裙,冬装是戴鲸鱼兜帽、围条纹围巾的斗篷",
     "en": "a chibi whale girl, two heads tall, standing three-quarters on facing right; long blue hair with an ahoge, a whale fin on each side of the head, and a whale tail behind; she wears the outfit picked in brackets: the maid dress is a maid dress with an apron printed with the logo of the colour scheme's vendor, and the winter outfit a cape with a whale hood and a striped scarf"
   },
   "author": "Pal-AI-Lab",
@@ -130,8 +130,8 @@
     {
       "id": "outfit",
       "name": {
-        "zh": "衣服",
-        "zh-Hant": "衣服",
+        "zh": "服装",
+        "zh-Hant": "服裝",
         "en": "Outfit",
         "ja": "衣装",
         "ko": "의상",
@@ -145,6 +145,7 @@
       "options": [
         {
           "id": "maid",
+          "thumb": "thumbs/maid.png",
           "name": {
             "zh": "女仆装",
             "zh-Hant": "女僕裝",
@@ -161,6 +162,7 @@
         },
         {
           "id": "cape",
+          "thumb": "thumbs/cape.png",
           "name": {
             "zh": "冬装",
             "zh-Hant": "冬裝",
