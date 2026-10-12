@@ -202,3 +202,22 @@ describe('what the page holds a pack to', () => {
     expect(gate.take('crash', 7600)).toBe(false);
   });
 });
+
+describe('picking the body up', () => {
+  it('a body falling through the air is held as soon as a press lands on it, and falls on when let go of', () => {
+    const pet = barePet(undefined, { enter: 'drop' });
+    run(pet, .25);
+    expect(pet.pet.mode).toBe('air');
+    const { W, H } = pet.bounds;
+    let on = null;
+    for (let y = 0; y < H && !on; y += 4) for (let x = 0; x < W && !on; x += 4) if (pet.hitPet({ x, y })) on = { x, y };
+    expect(pet.pointerDown({ ...on, t: 0 })).toBe(true);
+    expect(pet.pet.mode).toBe('drag');
+    run(pet, 1);
+    expect(pet.pet.mode).toBe('drag');
+    pet.pointerUp({ ...on, t: 1000 });
+    expect(pet.pet.mode).toBe('air');
+    run(pet, 3);
+    expect(['idle', 'look', 'dizzy']).toContain(pet.pet.mode);
+  });
+});

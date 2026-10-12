@@ -701,11 +701,22 @@ export function createPet(els, opts) {
     const a = s[0], b = s[s.length - 1], dt = Math.max(.016, (b.t - a.t) / 1000);
     return { x: (b.x - a.x) / dt, y: (b.y - a.y) / dt };
   }
+  /** Picks the body up by the scruff; it then follows the pointer until let go of. */
+  function grab() {
+    const scruff = toStage(128, 36);
+    pet.expr = null;
+    setMode('drag', { dx: scruff.x, dy: scruff.y });
+    play('grab', 'touch');
+    pet.sqv -= 1.2; pet.tiltV = 0;
+    onEvent('touch', { kind: 'grab' });
+  }
   function pointerDown(p) {
     Object.assign(pointer, { x: p.x, y: p.y, inside: true });
-    if (!hitPet(p) || pet.mode === 'air') return false;
+    if (!hitPet(p)) return false;
     press = { x: p.x, y: p.y, t: now(p) };
     pointer.samples = [{ t: now(p), x: p.x, y: p.y }];
+    // caught while falling or flying: held at once, since the body would fall on while the pointer moved the drag threshold
+    if (pet.mode === 'air') grab();
     return true;
   }
   /** Returns the cursor the stage should show. */
@@ -717,14 +728,7 @@ export function createPet(els, opts) {
     while (pointer.samples.length > 2 && t - pointer.samples[0].t > 110) pointer.samples.shift();
     pointer.vx = lerp(pointer.vx, velocity().x, .35);
 
-    if (press && pet.mode !== 'drag' && Math.hypot(p.x - press.x, p.y - press.y) > 6) {
-      const scruff = toStage(128, 36);
-      pet.expr = null;
-      setMode('drag', { dx: scruff.x, dy: scruff.y });
-      play('grab', 'touch');
-      pet.sqv -= 1.2; pet.tiltV = 0;
-      onEvent('touch', { kind: 'grab' });
-    }
+    if (press && pet.mode !== 'drag' && Math.hypot(p.x - press.x, p.y - press.y) > 6) grab();
     if (press) return (pet.cursor = 'grabbing');
     const over = hitPet(p);
     if (over && ['idle', 'look', 'sit', 'sleep'].includes(pet.mode)) {
