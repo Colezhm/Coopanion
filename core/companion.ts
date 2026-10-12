@@ -53,6 +53,7 @@ import { loadExtensions, readInstalled, type ExtensionSet } from 'cortico/extens
 import { deploymentRoot, providersRoot, repoRoot } from 'cortico/paths.ts';
 import { providerModules, registerProviderModules } from 'cortico/providers/registry.ts';
 import { withWorlds, type WorldDefinition, type WorldSection } from 'cortico/world.ts';
+import { InstanceLockedError } from 'cortico/core/instance-lock.ts';
 import { TERMINAL } from 'cortico/worlds/terminal/definition.ts';
 import { desktopPetDefinition, figurePacks, type DesktopPetWorld } from 'cortico-world-desktop-pet';
 import COO, { vendorOf } from 'cortico-provider-coo';
@@ -516,7 +517,11 @@ export async function main(): Promise<void> {
   // without a key every model call fails: hold events until the home page saves one and resumes
   const keyMissing = !hasKey(loaded.config);
   if (keyMissing) bot.core.bus.setPaused(true);
-  const { port } = await bot.start();
+  const { port } = await bot.start().catch(async (err: unknown) => {
+    // another process holds the data directory: the app says which, rather than restarting this Core
+    if (err instanceof InstanceLockedError) await new Promise<void>((done) => { if (!process.send?.({ type: 'companion:locked', pid: err.pid, file: err.file }, () => done())) done(); });
+    throw err;
+  });
   stats.start();
   process.send?.({ type: 'companion:ready', port, dataDir: loaded.dataDir, keyMissing, language: language() });
   const guideDeps: GuideDeps = {
