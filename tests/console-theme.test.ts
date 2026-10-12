@@ -23,6 +23,12 @@ describe('console colours follow the pet', () => {
     expect(theme(dir).selectedId).toBe(COO_SCHEME);
   });
 
+  it('gives a look that is no preset the colours of the preset with its colour scheme', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'cc-theme-'));
+    followPetLook(dir, { figure: 'whale', scheme: 'claude-cape' }, packs);
+    expect(theme(dir).selectedId).toBe('coo-whale-claude');
+  });
+
   it('leaves a scheme picked on the appearance page, and keeps the person\'s own schemes', () => {
     const dir = mkdtempSync(join(tmpdir(), 'cc-theme-'));
     const mine = { id: 'mine', name: '我的', note: '', palettes: { light: {}, dark: {} } };
