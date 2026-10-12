@@ -10,6 +10,7 @@ module.exports = {
 
   coreFailed: (times, code, logFile) => `El Core se cerró ${times} veces en 5 minutos (código de salida ${code}) y ya no se reinicia. Registro: ${logFile}`,
   coreRestarting: (code) => `El Core se cerró de forma inesperada (código de salida ${code}); se reinicia en 3 segundos`,
+  coreLocked: (pid, file) => `Otro proceso${pid ? ` (PID ${pid})` : ''} está usando los datos de Coopanion, así que el Core no se inició. Espera a que termine o ciérralo, y luego elige «Reiniciar» en el menú de la bandeja. Archivo de bloqueo: ${file}`,
 
   strandedMessage: 'Se encontró la configuración de antes de la actualización',
   strandedDetail: (stranded, parent) => `Una actualización automática anterior instaló Coopanion donde está ahora. La configuración, las API Keys, los prompts y la memoria de antes de esa actualización siguen en:\n${stranded}\n\n`

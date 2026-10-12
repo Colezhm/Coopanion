@@ -10,6 +10,7 @@ module.exports = {
 
   coreFailed: (times, code, logFile) => `Core가 5분 안에 ${times}번 종료되어(종료 코드 ${code}) 더 이상 다시 시작하지 않습니다. 로그: ${logFile}`,
   coreRestarting: (code) => `Core가 예기치 않게 종료되었습니다(종료 코드 ${code}). 3초 뒤 다시 시작합니다`,
+  coreLocked: (pid, file) => `다른 프로세스${pid ? `(PID ${pid})` : ''}가 Coopanion 데이터를 사용 중이라 Core가 시작되지 않았습니다. 그 프로세스가 끝나기를 기다리거나 직접 종료한 뒤 트레이 메뉴에서 '다시 시작'을 선택하세요. 잠금 파일: ${file}`,
 
   strandedMessage: '업데이트 전 설정을 찾았습니다',
   strandedDetail: (stranded, parent) => `이전 자동 업데이트가 Coopanion을 지금 위치에 설치했습니다. 그 업데이트 전의 설정, API Key, 프롬프트, 기억은 아직 다음 위치에 있습니다:\n${stranded}\n\n`

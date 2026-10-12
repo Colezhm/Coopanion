@@ -10,6 +10,7 @@ module.exports = {
 
   coreFailed: (times, code, logFile) => `Core 在 5 分鐘內結束了 ${times} 次（結束代碼 ${code}），已停止重試。記錄檔：${logFile}`,
   coreRestarting: (code) => `Core 意外結束（結束代碼 ${code}），3 秒後重新啟動`,
+  coreLocked: (pid, file) => `另一個程序${pid ? `（PID ${pid}）` : ''}正在使用 Coopanion 的資料，Core 沒有啟動。等它結束或手動結束它，再從系統匣選單選「重新啟動」。鎖定檔：${file}`,
 
   strandedMessage: '找到更新前的設定',
   strandedDetail: (stranded, parent) => `之前的一次自動更新把 Coopanion 裝到了現在的位置，更新前的設定、API Key、提示詞和記憶還留在：\n${stranded}\n\n`

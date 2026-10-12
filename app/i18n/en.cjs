@@ -13,6 +13,8 @@ module.exports = {
   /** The Core exited too often within 5 minutes and is not restarted; shown as a notification and in an error box. */
   coreFailed: (times, code, logFile) => `The Core exited ${times} times within 5 minutes (exit code ${code}) and is no longer restarted. Log: ${logFile}`,
   coreRestarting: (code) => `The Core exited unexpectedly (exit code ${code}); restarting in 3 seconds`,
+  /** Another process holds the data directory's instance lock, so the Core did not start; shown as a notification and in an error box. */
+  coreLocked: (pid, file) => `Another process${pid ? ` (PID ${pid})` : ''} is using Coopanion's data, so the Core did not start. Wait for it to exit or end it, then choose Restart in the tray menu. Lock file: ${file}`,
 
   /** Asked once when an update moved the program and left the old data directory behind. */
   strandedMessage: 'Settings from before the update were found',

@@ -10,6 +10,7 @@ module.exports = {
 
   coreFailed: (times, code, logFile) => `Il Core si è chiuso ${times} volte in 5 minuti (codice di uscita ${code}) e non viene più riavviato. Log: ${logFile}`,
   coreRestarting: (code) => `Il Core si è chiuso inaspettatamente (codice di uscita ${code}); riavvio tra 3 secondi`,
+  coreLocked: (pid, file) => `Un altro processo${pid ? ` (PID ${pid})` : ''} sta usando i dati di Coopanion, quindi il Core non è partito. Attendi che termini o chiudilo, poi scegli «Riavvia» nel menu dell'area di notifica. File di blocco: ${file}`,
 
   strandedMessage: "Trovate le impostazioni di prima dell'aggiornamento",
   strandedDetail: (stranded, parent) => `Un precedente aggiornamento automatico ha installato Coopanion dove si trova ora. Le impostazioni, le API Key, i prompt e la memoria di prima di quell'aggiornamento sono ancora in:\n${stranded}\n\n`

@@ -300,7 +300,8 @@ core.on('update-install', () => updater?.installNow());
 core.on('releases', () => void shell.openExternal(RELEASES_URL));
 core.on('state', (state, exit) => {
   if (!exit) return;
-  const detail = exit.kind === 'failed' ? T().coreFailed(exit.times, exit.code, exit.logFile) : T().coreRestarting(exit.code);
+  const detail = exit.kind === 'locked' ? T().coreLocked(exit.pid, exit.file)
+    : exit.kind === 'failed' ? T().coreFailed(exit.times, exit.code, exit.logFile) : T().coreRestarting(exit.code);
   if (Notification.isSupported()) new Notification({ title: 'Coopanion', body: detail, icon: join(ICONS, 'icon.png') }).show();
   if (state === 'failed') dialog.showErrorBox('Coopanion', detail);
 });
