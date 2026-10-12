@@ -70,7 +70,8 @@ function loadImage(url) {
  * Loads the model and textures; resolves to a figure object for the kit's `opts.figure` (createPet, createBody).
  * `opts.raster` shows each frame as an SVG <image> copied from the canvas instead of the canvas itself (slower;
  * for pages that are screen-recorded, where a WebGL canvas inside SVG is not always in the capture).
- * `opts.scheme` picks a colour scheme (model.schemes; default the original); `opts.model` (model.json
+ * `opts.scheme` picks a colour scheme (model.schemes) and an outfit (model.outfits) as `<scheme>-<outfit>`, the
+ * pack's two axes; a bare `<scheme>` is the first outfit, the maid dress. `opts.model` (model.json
  * already parsed) and `opts.asset(path)` (a texture's URL) are for pages that bundle the files;
  * `opts.loadImage` is the figure frame's (figure-frame.js), which loads images WebGL may read there.
  * `opts.kit` is the frame's kit, whose `createRig` draws her; without it (a page that imports this file
@@ -83,90 +84,110 @@ export async function createWhaleFigure(base = new URL('./', import.meta.url), o
   const load = opts.loadImage || loadImage;
   const { S, X0, FEET } = model.units;
   const U = x => 128 + (x - X0) * S, V = y => 256 - (FEET - y) * S;
-  const PV = model.pivots, feat = model.feat;
+  const feat = model.feat;
   const EYES = ['eyeL', 'eyeR'];  // near (left) eye, far (right) eye
   const featNames = [...Object.keys(feat.sprites), ...EYES.flatMap(k => ['lash', 'ball', 'iris', ...(feat.eyes[k].rim ? ['rim'] : [])].map(n => `${k}_${n}`))];
   // a scheme is a set of textures over the same geometry; the original's are at tex/ and feat/
   const SCHEMES = (model.schemes || [{ id: 'deepseek' }]).filter(sc => sc.ready !== false);
   const schemeInfo = id => SCHEMES.find(sc => sc.id === id) || SCHEMES[0];
+  // an outfit is its own part list: the maid dress is model.parts; another lists the parts it keeps from it and
+  // its own, whose `src` is the texture file (drawn in the outfit's colours, which no scheme changes)
+  const OUTFITS = model.outfits || [{ id: 'maid' }];
+  const outfitInfo = id => OUTFITS.find(o => o.id === id) || OUTFITS[0];
+  const pickOf = id => { const [c, o] = String(id ?? '').split('-'); return { scheme: schemeInfo(c).id, outfit: outfitInfo(o).id }; };
+  const partsOf = id => outfitInfo(id).parts || model.parts;
   // the scheme's accent colours the listening arcs, thought bubbles and sleep z's
   const accent = () => schemeInfo(scheme).accent || '#4d6bfe';
   const loaded = {}, ready = {};
-  function loadScheme(id) {
-    if (loaded[id]) return loaded[id];
-    const dir = id === SCHEMES[0].id ? '' : `schemes/${id}/`;
+  function loadScheme(sc, of) {
+    const key = `${sc}-${of}`;
+    if (loaded[key]) return loaded[key];
+    const dir = sc === SCHEMES[0].id ? '' : `schemes/${sc}/`;
     const set = { tex: {}, img: {} };
-    loaded[id] = Promise.all([
-      ...model.parts.map(async p => { set.tex[p.tex] = await load(asset(`${dir}tex/${p.tex}.png`)); }),
+    loaded[key] = Promise.all([
+      // an outfit's own part is drawn in the outfit's colours
+      ...partsOf(of).map(async p => { set.tex[p.tex] = await load(asset(p.src || `${dir}tex/${p.tex}.png`)); }),
       ...featNames.map(async n => { set.img[n] = await load(asset(`${dir}feat/${n}.png`)); }),
-    ]).then(() => (ready[id] = set));
-    return loaded[id];
+    ]).then(() => (ready[key] = set));
+    return loaded[key];
   }
-  let scheme = schemeInfo(opts.scheme).id;
-  let { tex, img } = await loadScheme(scheme);
-  const box = Object.fromEntries(model.parts.map(p => [p.id, p.box]));
-  const rectOf = id => { const [x, y, w, h] = box[id]; return [x, y, x + w, y + h]; };
+  let { scheme, outfit } = pickOf(opts.scheme);
+  let { tex, img } = await loadScheme(scheme, outfit);
 
-  /* deformers: each acts in rest space; parents act after children */
-  const deformers = {
-    body: { kind: 'rot', pivot: PV.body },
-    skirt: { kind: 'warp', parent: 'body', rect: rectOf('skirt') },
-    skirtSit: { kind: 'warp', parent: 'body', rect: rectOf('skirt_sit') },
-    // the upper body (bodice, arms, head) turns about the waist for a bow; the skirt and legs stay put
-    waist: { kind: 'rot', parent: 'body', pivot: PV.waist },
-    armNear: { kind: 'rot', parent: 'waist', pivot: PV.armNear },
-    armFar: { kind: 'rot', parent: 'waist', pivot: PV.armFar },
-    // the legs swing about the hip (see `hinge`), as warps so the bloomer above it stays under the skirt
-    legBack: { kind: 'warp', parent: 'body', rect: rectOf('leg_back') },
-    legFront: { kind: 'warp', parent: 'body', rect: rectOf('leg_front') },
-    tail: { kind: 'rot', parent: 'body', pivot: PV.tail },
-    tailBend: { kind: 'warp', parent: 'tail', rect: rectOf('tail') },
-    neck: { kind: 'rot', parent: 'waist', pivot: PV.neck },
-    headBack: { kind: 'warp', parent: 'neck', rect: HEAD },
-    headMid: { kind: 'warp', parent: 'neck', rect: HEAD },
-    headFeat: { kind: 'warp', parent: 'neck', rect: HEAD },
-    headFront: { kind: 'warp', parent: 'neck', rect: HEAD },
-    hairSway: { kind: 'warp', parent: 'headBack', rect: rectOf('hair_back') },
-    bangsSway: { kind: 'warp', parent: 'headFront', rect: rectOf('bangs') },
-    finNear: { kind: 'rot', parent: 'headMid', pivot: PV.finNear },
-    finFar: { kind: 'rot', parent: 'headBack', pivot: PV.finFar },
-    ahoge: { kind: 'rot', parent: 'headFront', pivot: PV.ahoge },
-  };
   // each brow on the master: where its stroke ends, and the stretch of the brows texture it owns (x)
   const BROWS = [
     { outer: [610, 559.5], inner: [703, 548.7], x0: 596, x1: 765 },  // near
     { outer: [890, 560.8], inner: [837, 555.6], x0: 765, x1: 904 },  // far
   ];
-  const parts = model.parts.map(p => ({ ...p, parent: p.id === 'torso_up' ? 'waist' : p.parent }));
-  // the face features ride a little ahead of the face for the turn
-  parts.push({ id: 'faceFx', tex: 'faceFx', box: [U(FACE.x), V(FACE.y), FACE.w * S, FACE.h * S], z: 9, parent: 'headFeat', grid: [4, 4] });
-  // the brows lie on the skin under the fringe, and show through the hair: each is drawn again over the
-  // fringe, faint. As in a Live2D model each brow moves and turns as a whole about the middle of the line
-  // between its ends, and bends a little; the sorry faces swap in the same drawing turned over that line,
-  // so the arch becomes a dip with the stroke as drawn, crossfading.
-  const brows = parts.find(p => p.id === 'brows');
-  if (brows) {
-    parts.splice(parts.indexOf(brows), 1);
-    const [bx, by, bw, bh] = brows.box;
-    BROWS.forEach((b, i) => {
-      const x0 = Math.max(bx, U(b.x0)), x1 = Math.min(bx + bw, U(b.x1)), u0 = (x0 - bx) / bw, u1 = (x1 - bx) / bw;
-      const mid = [U((b.outer[0] + b.inner[0]) / 2), V((b.outer[1] + b.inner[1]) / 2)];
-      deformers[`brow${i}`] = { kind: 'rot', parent: 'headFeat', pivot: mid };
-      deformers[`browBend${i}`] = { kind: 'warp', parent: `brow${i}`, rect: [x0, by, x1, by + bh] };
-      deformers[`browOver${i}`] = { kind: 'rot', parent: `browBend${i}`, pivot: mid };
-      for (const [layer, z, alpha] of [['', brows.z, 1], ['_through', 13.2, .55]]) {
-        parts.push({ ...brows, id: `brow${i}${layer}`, box: [x0, by, x1 - x0, bh], uvBox: [u0, 0, u1, 1], parent: `browBend${i}`, z, alpha, grid: [12, 2] });
-        // mirrored about the middle's height (the texture upside down in the mirrored box); `browOver` turns it back onto the line
-        parts.push({ ...brows, id: `browOver${i}${layer}`, box: [x0, 2 * mid[1] - by - bh, x1 - x0, bh], uvBox: [u0, 1, u1, 0], parent: `browOver${i}`, z, alpha, grid: [12, 2] });
-      }
-    });
+
+  /** The rig's deformers and parts for an outfit; its pivots and boxes override the maid dress's. */
+  function layoutOf(of) {
+    const list = partsOf(of);
+    const PV = { ...model.pivots, ...outfitInfo(of).pivots };
+    const box = Object.fromEntries([...model.parts, ...list].map(p => [p.id, p.box]));
+    const rectOf = id => { const [x, y, w, h] = box[id]; return [x, y, x + w, y + h]; };
+
+    /* deformers: each acts in rest space; parents act after children */
+    const deformers = {
+      body: { kind: 'rot', pivot: PV.body },
+      skirt: { kind: 'warp', parent: 'body', rect: rectOf('skirt') },
+      skirtSit: { kind: 'warp', parent: 'body', rect: rectOf('skirt_sit') },
+      // the upper body (bodice, arms, head) turns about the waist for a bow; the skirt and legs stay put
+      waist: { kind: 'rot', parent: 'body', pivot: PV.waist },
+      armNear: { kind: 'rot', parent: 'waist', pivot: PV.armNear },
+      armFar: { kind: 'rot', parent: 'waist', pivot: PV.armFar },
+      // the legs swing about the hip (see `hinge`), as warps so the bloomer above it stays under the skirt
+      legBack: { kind: 'warp', parent: 'body', rect: rectOf('leg_back') },
+      legFront: { kind: 'warp', parent: 'body', rect: rectOf('leg_front') },
+      tail: { kind: 'rot', parent: 'body', pivot: PV.tail },
+      tailBend: { kind: 'warp', parent: 'tail', rect: rectOf('tail') },
+      neck: { kind: 'rot', parent: 'waist', pivot: PV.neck },
+      headBack: { kind: 'warp', parent: 'neck', rect: HEAD },
+      headMid: { kind: 'warp', parent: 'neck', rect: HEAD },
+      headFeat: { kind: 'warp', parent: 'neck', rect: HEAD },
+      headFront: { kind: 'warp', parent: 'neck', rect: HEAD },
+      hairSway: { kind: 'warp', parent: 'headBack', rect: rectOf('hair_back') },
+      bangsSway: { kind: 'warp', parent: 'headFront', rect: rectOf('bangs') },
+      finNear: { kind: 'rot', parent: 'headMid', pivot: PV.finNear },
+      finFar: { kind: 'rot', parent: 'headBack', pivot: PV.finFar },
+      ahoge: { kind: 'rot', parent: 'headFront', pivot: PV.ahoge },
+    };
+    // an outfit's own pieces that hang and swing about a root (pompoms on the hood ties, scarf ends)
+    const swings = outfitInfo(of).deformers || {};
+    for (const [k, d] of Object.entries(swings)) deformers[k] = { kind: 'rot', parent: d.parent, pivot: d.pivot };
+    const parts = list.map(p => ({ ...p, parent: p.id === 'torso_up' ? 'waist' : p.parent }));
+    // the face features ride a little ahead of the face for the turn
+    parts.push({ id: 'faceFx', tex: 'faceFx', box: [U(FACE.x), V(FACE.y), FACE.w * S, FACE.h * S], z: 9, parent: 'headFeat', grid: [4, 4] });
+    // the brows lie on the skin under the fringe, and show through the hair: each is drawn again over the
+    // fringe, faint. As in a Live2D model each brow moves and turns as a whole about the middle of the line
+    // between its ends, and bends a little; the sorry faces swap in the same drawing turned over that line,
+    // so the arch becomes a dip with the stroke as drawn, crossfading.
+    const brows = parts.find(p => p.id === 'brows');
+    if (brows) {
+      parts.splice(parts.indexOf(brows), 1);
+      const [bx, by, bw, bh] = brows.box;
+      BROWS.forEach((b, i) => {
+        const x0 = Math.max(bx, U(b.x0)), x1 = Math.min(bx + bw, U(b.x1)), u0 = (x0 - bx) / bw, u1 = (x1 - bx) / bw;
+        const mid = [U((b.outer[0] + b.inner[0]) / 2), V((b.outer[1] + b.inner[1]) / 2)];
+        deformers[`brow${i}`] = { kind: 'rot', parent: 'headFeat', pivot: mid };
+        deformers[`browBend${i}`] = { kind: 'warp', parent: `brow${i}`, rect: [x0, by, x1, by + bh] };
+        deformers[`browOver${i}`] = { kind: 'rot', parent: `browBend${i}`, pivot: mid };
+        for (const [layer, z, alpha] of [['', brows.z, 1], ['_through', 13.2, .55]]) {
+          parts.push({ ...brows, id: `brow${i}${layer}`, box: [x0, by, x1 - x0, bh], uvBox: [u0, 0, u1, 1], parent: `browBend${i}`, z, alpha, grid: [12, 2] });
+          // mirrored about the middle's height (the texture upside down in the mirrored box); `browOver` turns it back onto the line
+          parts.push({ ...brows, id: `browOver${i}${layer}`, box: [x0, 2 * mid[1] - by - bh, x1 - x0, bh], uvBox: [u0, 1, u1, 0], parent: `browOver${i}`, z, alpha, grid: [12, 2] });
+        }
+      });
+    }
+    // the lid creases follow each eye's upper lid down when the eye narrows, and go when it closes
+    const creases = parts.find(p => p.id === 'eye_creases');
+    if (creases) {
+      deformers.creases = { kind: 'warp', parent: 'headFeat', rect: rectOf('eye_creases') };
+      creases.parent = 'creases';
+    }
+    return { PV, deformers, parts, brows, creases, swings };
   }
-  // the lid creases follow each eye's upper lid down when the eye narrows, and go when it closes
-  const creases = parts.find(p => p.id === 'eye_creases');
-  if (creases) {
-    deformers.creases = { kind: 'warp', parent: 'headFeat', rect: rectOf('eye_creases') };
-    creases.parent = 'creases';
-  }
+  let L = layoutOf(outfit);
 
   /* ---------- face painting (master pixels) ---------- */
   const faceCv = document.createElement('canvas');
@@ -372,7 +393,7 @@ export async function createWhaleFigure(base = new URL('./', import.meta.url), o
     }
     fxG = document.createElementNS(SVGNS, 'g');
     petG.append(fo, fxG);
-    rig = createRig(canvas, { deformers, parts, view: VIEW });
+    rig = createRig(canvas, { deformers: L.deformers, parts: L.parts, view: VIEW });
     for (const n in tex) rig.upload(n, tex[n]);
     if (fade) for (const n in fade.set.tex) rig.upload(n + '@mix', fade.set.tex[n]);
     mountedIn = petG; pxScale = 0;
@@ -385,16 +406,23 @@ export async function createWhaleFigure(base = new URL('./', import.meta.url), o
     if (rig) for (const n in tex) rig.upload(n, tex[n]);
   }
   /**
-   * Switches the colour scheme: at once if its textures are loaded (see preload), else once they are.
-   * `o.fade` (seconds) crossfades instead of cutting over; the clock is the frames' `t`, starting at `o.at`
-   * (the pet's time now) or else at the next frame drawn.
+   * Switches the colour scheme and outfit (`<scheme>-<outfit>`, as opts.scheme): at once if their textures are
+   * loaded (see preload), else once they are. Within one outfit `o.fade` (seconds) crossfades instead of cutting
+   * over, the clock being the frames' `t` from `o.at` (the pet's time now) or else from the next frame drawn;
+   * another outfit is another set of parts, so the rig is built again and the change is a cut.
    */
   function setScheme(id, o = {}) {
-    const next = schemeInfo(id).id;
+    const next = pickOf(id), key = `${next.scheme}-${next.outfit}`;
     const apply = set => {
       endFade();
-      if (scheme === next && tex === set.tex) return;
-      scheme = next;
+      if (scheme === next.scheme && outfit === next.outfit && tex === set.tex) return;
+      scheme = next.scheme;
+      if (outfit !== next.outfit) {
+        outfit = next.outfit; L = layoutOf(outfit);
+        tex = set.tex; img = set.img;
+        rig?.dispose(); rig = null; mountedIn = null;
+        return;
+      }
       if (o.fade > 0 && rig) {
         fade = { set, dur: o.fade, t0: o.at ?? null };
         for (const n in set.tex) rig.upload(n + '@mix', set.tex[n]);
@@ -403,8 +431,8 @@ export async function createWhaleFigure(base = new URL('./', import.meta.url), o
       tex = set.tex; img = set.img;
       if (rig) for (const n in tex) rig.upload(n, tex[n]);
     };
-    if (ready[next]) { apply(ready[next]); return Promise.resolve(); }
-    return loadScheme(next).then(apply);
+    if (ready[key]) { apply(ready[key]); return Promise.resolve(); }
+    return loadScheme(next.scheme, next.outfit).then(apply);
   }
   let decoded = null; // raster mode: settles once the last frame's image is decoded
   let fixedRes = 0; // canvas pixels per rig unit for a snapshot; 0 = follow the screen
@@ -426,6 +454,8 @@ export async function createWhaleFigure(base = new URL('./', import.meta.url), o
     ahoge: spring(140, 6, 38), head: spring(70, 10, 16), armN: spring(60, 9, 125), armF: spring(60, 9, 95),
   };
   let lastT = null, prevTilt = 0, prevYaw = 0, prevLow = 0, headTilt = 0, fx = '';
+  // the angle each hanging piece's root was last turned to (see the pendulums)
+  let rootWas = {};
   // the kit tips Coo's whole round body to listen, nod, doze or wobble; she keeps her feet on the floor and
   // moves her head instead. Only flight, dragging and the jump's crouch and landing tip the whole group,
   // running keeps half its lean. The shares ease between modes so the group never snaps.
@@ -603,8 +633,8 @@ export async function createWhaleFigure(base = new URL('./', import.meta.url), o
     // she is turned toward us, so a foot behind its hip is also farther away: it rides a little higher,
     // which reads as the heel coming up at the push-off
     const behind = o.legs.map(l => Math.max(0, l[0] - l[2]) * .3 * walkK);
-    st.legBack = { fn: hinge(PV.legBack, lerp(legA[0], -55, sitK), (-lift[0] * .9 - behind[0]) * (1 - sitK)) };
-    st.legFront = { fn: hinge(PV.legFront, lerp(legA[1], -60, sitK), (-lift[1] * .9 - behind[1]) * (1 - sitK)) };
+    st.legBack = { fn: hinge(L.PV.legBack, lerp(legA[0], -55, sitK), (-lift[0] * .9 - behind[0]) * (1 - sitK)) };
+    st.legFront = { fn: hinge(L.PV.legFront, lerp(legA[1], -60, sitK), (-lift[1] * .9 - behind[1]) * (1 - sitK)) };
     st.tail = { a: tail - 10 * sitK };
     st.tailBend = { fn: u => [0, -tail * .5 * u * u] };
     // the head stays up while she leans forward for the ninja run
@@ -613,7 +643,7 @@ export async function createWhaleFigure(base = new URL('./', import.meta.url), o
     st.headFront = { fn: parallax(4.2, 2.8) };
     // the eyes and mouth move with the face: the eyes' outline is shared between the two layers
     st.headFeat = { fn: parallax(2, 1.4) };
-    if (brows) {
+    if (L.brows) {
       // the start of a line raises them once, and now and then a while into it
       if ((o.talk || 0) > .2) {
         if (t - talkedAt > .8 || (t - browFlashAt > 2.5 && Math.random() < dt * .4)) browFlashAt = t;
@@ -639,7 +669,7 @@ export async function createWhaleFigure(base = new URL('./', import.meta.url), o
         st.alpha[`brow${i}_through`] = .55 * (1 - browOver); st.alpha[`browOver${i}_through`] = .55 * browOver;
       });
     }
-    if (creases) {
+    if (L.creases) {
       // an eye drawn with the wide (surprised) sprite has no lowered lid, whatever the brows do
       fc.eyes.forEach((e, i) => { creaseDrop[i] = lerp(creaseDrop[i], lidDrop(e, EYES[i], fc.wide && e.shape === 'ring' ? 0 : fc.brows), ease(12, dt)); });
       creaseA = lerp(creaseA, (lidOpen(fc.eyes[0]) + lidOpen(fc.eyes[1])) / 2, ease(12, dt));
@@ -649,7 +679,7 @@ export async function createWhaleFigure(base = new URL('./', import.meta.url), o
     st.headMid = { fn: parallax(2, 1.4) };
     st.headBack = { fn: parallax(-1.4, -1) };
     // the long hair hangs from the head but its lower half keeps to the body when the head tilts
-    const nk = PV.neck, na = headA * Math.PI / 180;
+    const nk = L.PV.neck, na = headA * Math.PI / 180;
     st.hairSway = {
       fn: (u, v, x, y) => {
         const w = smooth(.3, .8, v), a = -na * w, c = Math.cos(a), s = Math.sin(a);
@@ -663,6 +693,25 @@ export async function createWhaleFigure(base = new URL('./', import.meta.url), o
     st.ahoge = { a: ahoge * .5 + Math.sin(t * 2.1) * 2 };
     st.finNear = { a: fins + Math.sin(t * 1.4) * 1.5 };
     st.finFar = { a: -fins * .8 - Math.sin(t * 1.4) * 1.2 };
+    // what hangs off her (the pompoms on the hood ties, the scarf ends) is a pendulum: it hangs down whichever way
+    // its root and the whole of her are turned, and the motion that flings her hair flings it, so it trails, swings
+    // back and settles over a few swings. A quick turn of its root (a nod, a landing) kicks it, and so does each
+    // step; one hung from the head also swings as the face turns (a shake, a look round), and idly sways a little.
+    // `gain` is how freely it swings: 1 for a pompom on a string, less for cloth, which hangs only partly
+    const faceTurn = (angleX - (rootWas.face ?? angleX)) / Math.max(dt, 1e-3); rootWas.face = angleX;
+    for (const [k, d] of Object.entries(L.swings)) {
+      let root = (o.groupRot || 0) * facing, onHead = false;
+      for (let p = d.parent; p; p = L.deformers[p].parent) {
+        if (L.deformers[p].kind === 'rot') root += st[p]?.a || 0;
+        if (p === 'neck') onHead = true;
+      }
+      const kick = (root - (rootWas[k] ?? root)) / Math.max(dt, 1e-3); rootWas[k] = root;
+      // a short string: it takes a good many degrees before the swing shows
+      const pend = sp[`pend_${k}`] ||= spring(28, 1.8, 55), ph = d.pivot[0] * .05;
+      const a = pend.step((-sway * 34 - kick * .15 + (onHead ? faceTurn * 8 : 0) + walkK * (legA[0] - legA[1]) * .3) * d.gain, dt);
+      const idle = onHead ? Math.sin(t * 1.7 + ph) * 6 + Math.sin(t * 2.9 + ph * 1.3) * 2.5 : Math.sin(t * 1.7 + ph) * 2;
+      st[k] = { a: a + idle * d.gain - root * Math.min(1, d.gain) };
+    }
 
     paintFace(fc, face, o, t);
     rig.upload('faceFx', faceCv);
@@ -757,11 +806,11 @@ export async function createWhaleFigure(base = new URL('./', import.meta.url), o
     reset() {
       endFade();
       for (const k in sp) { sp[k].x = 0; sp[k].v = 0; }
-      lastT = null; prevTilt = 0; prevYaw = 0; prevLow = 0; headTilt = 0; wTilt = 0; wLean = 0; finMood = 0; tailMood = 0; wagAmp = 0; sitK = 0; walkK = 0; runK = 0;
+      lastT = null; rootWas = {}; prevTilt = 0; prevYaw = 0; prevLow = 0; headTilt = 0; wTilt = 0; wLean = 0; finMood = 0; tailMood = 0; wagAmp = 0; sitK = 0; walkK = 0; runK = 0;
     },
-    /** Loads every scheme's textures, so later switches are immediate. */
-    preload: () => Promise.all(SCHEMES.map(sc => loadScheme(sc.id))),
-    get scheme() { return scheme; },
+    /** Loads every scheme's and outfit's textures, so later switches are immediate. */
+    preload: () => Promise.all(SCHEMES.flatMap(sc => OUTFITS.map(of => loadScheme(sc.id, of.id)))),
+    get scheme() { return `${scheme}-${outfit}`; },
     /** Raster mode: a promise that settles once the last drawn frame is ready to be painted. */
     get painted() { return decoded || Promise.resolve(); },
     get colors() { return { z: accent() }; },

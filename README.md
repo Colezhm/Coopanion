@@ -43,7 +43,7 @@ Coopanion is a desktop pet. **Coo** lives on the bottom edge of your screen: it 
 - **Memory**: Coo remembers what you talked about, and knows when you poke it or pat its head.
 - **Computer use**: clicking buttons, typing, switching windows. Coo asks before it acts.
 - **Activity bubbles**: see when Coo is thinking and what it is working on, with a different animated icon for reading, searching, writing and using the computer. File names appear; the bubble lets clicks through. On by default; turn it off in Habits.
-- **Figures**: Coo, or the **DeepSeek Whale**, a fully animated whale maid with eight vendor color schemes. Other figure packs are imported on the Dress up page from a zip or a folder; packs written for figure API 2 keep loading in later versions (see the [figure pack compatibility promise](packages/cortico-world-desktop-pet/README.md#形象包兼容承诺)).
+- **Figures**: Coo, or the **DeepSeek Whale**, a fully animated whale girl with eight vendor color schemes and two outfits (a maid dress and a winter outfit). Other figure packs are imported on the Dress up page from a zip or a folder; packs written for figure API 2 keep loading in later versions (see the [figure pack compatibility promise](packages/cortico-world-desktop-pet/README.md#形象包兼容承诺)).
 - **Dress up**: Coo's colors, hats, earrings, glasses and neckwear, plus its size and how often it walks.
 - **Extensions**: install Worlds such as a QQ bot, a drawing room and small games from the Extensions page.
 

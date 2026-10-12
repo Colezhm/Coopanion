@@ -43,6 +43,7 @@
   <div class="row" id="exprs"><span>表情</span></div>
   <div class="row" id="motions"><span>动作</span></div>
   <div class="row" id="schemes"><span>配色</span></div>
+  <div class="row" id="outfits"><span>衣服</span></div>
   <div class="row"><span>交互</span>
     <button id="talk">说话</button><button id="listen">倾听</button><button id="think">思考</button>
     <button id="roam">自由活动：开</button>
@@ -70,20 +71,29 @@ new ResizeObserver(() => ctl.resize()).observe(stage);
 $('#scale').oninput = e => { scale = +e.target.value; ctl.resize(); };
 
 // a button for each word of her vocabulary (figure.json), by its first Chinese name
-const { vocab } = await (await fetch('../../web/whale/figure.json')).json();
+const { vocab, axes } = await (await fetch('../../web/whale/figure.json')).json();
 for (const w of vocab) {
   const b = document.createElement('button'); b.textContent = w.names.zh?.[0] ?? w.id;
   b.onclick = () => { ctl.holdRoam(5); ctl.doWord(w.id); };
   $(w.kind === 'expression' ? '#exprs' : '#motions').append(b);
 }
 { const b = document.createElement('button'); b.textContent = '抛起来'; b.onclick = () => ctl.setExpr('dragged'); $('#exprs').append(b); }
-const schemeBtns = figure.schemes.map(sc => {
-  const b = document.createElement('button'); b.textContent = sc.brand;
-  b.onclick = async () => { await figure.setScheme(sc.id, { fade: .45 }); schemeBtns.forEach((x, i) => x.classList.toggle('on', figure.schemes[i].id === sc.id)); ctl.pet.sqv += 1.4; ctl.setExpr('happy', 1.2); };
-  b.classList.toggle('on', sc.id === figure.scheme);
-  $('#schemes').append(b);
+// the pack's two axes: she wears `<scheme>-<outfit>`
+let [scheme, outfit] = figure.scheme.split('-');
+const wear = async (sc, of) => {
+  await figure.setScheme(`${sc}-${of}`, { fade: .45 }); [scheme, outfit] = [sc, of];
+  schemeBtns.forEach((b, i) => b.classList.toggle('on', figure.schemes[i].id === scheme));
+  outfitBtns.forEach((b, i) => b.classList.toggle('on', OUTFITS[i].id === outfit));
+  ctl.pet.sqv += 1.4; ctl.setExpr('happy', 1.2);
+};
+const button = (row, label, on, click) => {
+  const b = document.createElement('button'); b.textContent = label; b.onclick = click; b.classList.toggle('on', on);
+  $(row).append(b);
   return b;
-});
+};
+const OUTFITS = axes.find(a => a.id === 'outfit').options;
+const schemeBtns = figure.schemes.map(sc => button('#schemes', sc.brand, sc.id === scheme, () => wear(sc.id, outfit)));
+const outfitBtns = OUTFITS.map(of => button('#outfits', of.name.zh, of.id === outfit, () => wear(scheme, of.id)));
 
 // talking: a line of text into the bubble, one character at a time, the mouth moving with it
 let line = '', shown = 0, nextAt = 0;
