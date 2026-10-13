@@ -15,7 +15,7 @@
  *    card outside Chinese), the model (the service's cheap default that reads images, or any name
  *    typed in) and the key, saved, tested and made active through the console's own endpoint routes,
  *    on the platform for the language (`defaultRegion`) unless the service is already connected on
- *    the other one;
+ *    the other one; a ChatGPT plan is signed in in the system browser instead of the model and key;
  * 5. voice input: the speech model of the engine in force (FunASR or Whisper, by the app language)
  *    is downloaded with one click when it is missing, then how to talk, with the talk key as a key cap;
  * 6. where the buttons and the menu are, that Coo's persona is in the settings window's
@@ -32,8 +32,8 @@ import { existsSync, writeFileSync } from 'node:fs';
 import { LANGUAGES, LANGUAGE_NAMES, type Language } from 'cortico/core/language.ts';
 import type { DesktopPetWorld, PetDialog, PetDialogAnswer, PetDialogHandle } from 'cortico-world-desktop-pet';
 import { USER_MAX, capFor, petText } from 'cortico-world-desktop-pet';
-import { VENDOR_ICONS, defaultRegion, localized, siteOf, vendorName, vendorsFor, type Region, type Vendor } from 'cortico-provider-coo';
-import { connectVendor, currentConnection, type ConsoleCall } from 'cortico-provider-coo/src/connect.ts';
+import { CHATGPT, VENDOR_ICONS, defaultRegion, localized, siteOf, vendorName, vendorsFor, type Region, type Vendor } from 'cortico-provider-coo';
+import { connectChatGPT, connectVendor, currentConnection, type ConsoleCall } from 'cortico-provider-coo/src/connect.ts';
 import { coreText } from './i18n/index.ts';
 import type { ModelLanguage } from './language.ts';
 
@@ -200,6 +200,7 @@ async function connectLoop(show: (d: PetDialog, at: string) => Promise<PetDialog
   const S = lines(language);
   const current = await currentConnection(call);
   const vendor = await pickVendor(show, ask, language, current.vendor);
+  if (vendor.signIn) return await signIn(show, call, pet, ask, later, language) ? vendor : null;
   const region = (current.vendor === vendor ? current.region : null) ?? defaultRegion(language);
   const name = vendorName(vendor, language);
   const m = await show({
@@ -224,6 +225,34 @@ async function connectLoop(show: (d: PetDialog, at: string) => Promise<PetDialog
       return vendor;
     }
     step = keyStep(S.keyFail(trimEnd(r.why ?? '?')), ['sad']);
+  }
+}
+
+/**
+ * A ChatGPT plan: the button sends the sign-in page to the system browser (through the app's main
+ * process), and a bar waits in the bubble until the browser comes back; closing the bar stops the
+ * wait. True once the plan is connected, false when put off.
+ */
+async function signIn(show: (d: PetDialog, at: string) => Promise<PetDialogAnswer>, call: ConsoleCall, pet: () => DesktopPetWorld | null,
+  ask: Omit<PetDialog, 'input'>, later: string, language: Language): Promise<boolean> {
+  const S = lines(language);
+  const name = vendorName(CHATGPT, language);
+  let step: PetDialog = { ...ask, text: S.chatgptAsk, actions: ['thinking'], input: { kind: 'buttons', options: [{ label: S.chatgptGo, primary: true }, { label: later }] } };
+  for (;;) {
+    const a = await show(step, 'sign-in');
+    if ('closed' in a) throw new Closed();
+    if (!('index' in a) || a.index !== 0) return false;
+    const stop = new AbortController();
+    const wait = pet()?.dialog({ text: S.chatgptWaiting, actions: ['thinking'], step: ask.step, closable: true, input: { kind: 'progress' } });
+    void wait?.answer.then((w) => { if ('closed' in w) stop.abort(); });
+    const r = await connectChatGPT(call, (url) => process.send?.({ type: 'companion:browse', url }), { signal: stop.signal });
+    wait?.close();
+    if (r.ok) {
+      const { model } = await currentConnection(call);
+      await show({ ...ask, text: S.keyOk(name, model), marks: [name], actions: ['love', 'jump'] }, 'key-ok');
+      return true;
+    }
+    if (!stop.signal.aborted) step = { ...step, text: S.chatgptFail(trimEnd(r.why ?? '?')), actions: ['sad'] };
   }
 }
 

@@ -1,7 +1,8 @@
 /**
  * The app's Core process: Cormini as the Persona, the terminal, desktop-pet and coopanion Worlds, Coo Pet
- * Provider (DeepSeek and the other model services Coo offers) next to Cortico's built-in providers,
- * and Worlds or providers installed from npm through the console's extension page.
+ * Provider (DeepSeek and the other model services Coo offers) and its `chatgpt` module (a ChatGPT plan,
+ * signed in) next to Cortico's built-in providers, and Worlds or providers installed from npm through
+ * the console's extension page.
  *
  * The desktop-pet World is wired to the app: the header of the pet's right-click menu pauses and
  * resumes the run, opens the settings window and quits the app, as the console's rail foot does.
@@ -31,7 +32,8 @@
  *
  * The parent (Electron main) gets `{ type: 'companion:ready', port, dataDir, keyMissing, language }` once the
  * console listens, `{ type: 'companion:language', language }` after the app language changes, `{ type: 'companion:open', path }` to show the settings window at a console
- * route, `{ type: 'companion:hide' }` to put it away (the introduction runs again on the desktop)
+ * route, `{ type: 'companion:browse', url }` to open an https page in the system browser,
+ * `{ type: 'companion:hide' }` to put it away (the introduction runs again on the desktop)
  * and `{ type: 'companion:quit' }` to quit the whole app; it asks for a clean stop with
  * `{ type: 'companion:shutdown' }`.
  */
@@ -56,7 +58,7 @@ import { withWorlds, type WorldDefinition, type WorldSection } from 'cortico/wor
 import { InstanceLockedError } from 'cortico/core/instance-lock.ts';
 import { TERMINAL } from 'cortico/worlds/terminal/definition.ts';
 import { desktopPetDefinition, figurePacks, type DesktopPetWorld } from 'cortico-world-desktop-pet';
-import COO, { vendorOf } from 'cortico-provider-coo';
+import COO, { CHATGPT, CHATGPT_PROVIDER, signedIn, usageLimited, vendorOf } from 'cortico-provider-coo';
 import { bundledConsoleAssets } from './bundled-panels.ts';
 import { followPetLook } from './console-theme.ts';
 import { askForKey, guideDone, markDone, runGuide, type GuideDeps } from './guide.ts';
@@ -67,10 +69,11 @@ import { appLanguage, modelLanguage, replyLanguage } from './language.ts';
 import { CONSOLE_PORT, DEPLOYMENT, DISPLAY_NAME, followLanguage as followPersonaLanguage, isSeededConstitution, seed } from './seed.ts';
 import { crashFields, describeEndpoint, publicExtensionName, Telemetry, type Counter } from './telemetry.ts';
 
-/** The active endpoint's key is set in the process environment or the endpoint's `.env`. */
+/** The active endpoint's key is set in the process environment or the endpoint's `.env`; a ChatGPT plan's endpoint is signed in. */
 function hasKey(config: CoreConfig): boolean {
   const entry = config.providers[config.activeProvider];
   if (!entry) return false;
+  if (entry.kind === CHATGPT_PROVIDER.id) return signedIn(join(providersRoot(), config.activeProvider));
   if (!entry.secret) return true;
   return secretReader(join(providersRoot(), config.activeProvider, '.env'))(entry.secret) !== '';
 }
@@ -176,12 +179,15 @@ function countUse(core: Core<CoreConfig>, config: CoreConfig, telemetry: Telemet
   usageLog.append = (rec: UsageRecord) => {
     // the endpoint the try went to; usage a World reports has no try and goes under the active one
     const endpoint = config.providers[rec.attempt?.origin.instance ?? config.activeProvider];
-    telemetry.usage(describeEndpoint(endpoint, rec.model, vendorOf), {
+    telemetry.usage(describeEndpoint(endpoint, rec.model, endpointVendor(endpoint)), {
       promptTokens: rec.promptTokens, completionTokens: rec.completionTokens, cacheHitTokens: rec.cacheHitTokens, attempt: rec.attempt,
     });
     append(rec);
   };
 }
+
+/** Reads an endpoint's service for the statistics: a ChatGPT plan by its module, the others by base URL. */
+const endpointVendor = (entry: { kind: string } | undefined) => (url: string | undefined) => (entry?.kind === CHATGPT_PROVIDER.id ? CHATGPT : vendorOf(url));
 
 /** Model requests failed in a row before the pet says so: Cortico's own alert threshold (`STALL_ALERT_THRESHOLD` in src/core/loop.ts), where the run of failures only reaches the log. */
 const FAILURES_BEFORE_HINT = 5;
@@ -210,7 +216,8 @@ function failureOf(err: unknown): { status: number; reason: string } {
  * After `FAILURES_BEFORE_HINT` model requests in a row fail, the pet says why in its bubble, once
  * per run of failures, with a button to the settings window's home page, where the model and key
  * are set and tested. Any answered request ends the run; a request cut off by newer input or by
- * shutdown neither counts nor ends it.
+ * shutdown neither counts nor ends it, and neither does one refused for a ChatGPT plan's usage limit,
+ * which only reaches the log.
  */
 function hintFailures(core: Core<CoreConfig>, config: CoreConfig, pet: () => DesktopPetWorld | null): void {
   const { llm } = core;
@@ -224,7 +231,7 @@ function hintFailures(core: Core<CoreConfig>, config: CoreConfig, pet: () => Des
       shown = false;
       return answered;
     } catch (err) {
-      if (!options?.signal?.aborted && ++failures >= FAILURES_BEFORE_HINT && !shown) {
+      if (!options?.signal?.aborted && !usageLimited(err) && ++failures >= FAILURES_BEFORE_HINT && !shown) {
         const p = pet();
         if (p?.petState().connected) {
           const S = coreText(appLanguage(config.language)).failure;
@@ -299,7 +306,7 @@ function countFiles(dir: string, cap = 10_000): number {
 function snapshotOf(config: CoreConfig, workspace: string): Record<string, unknown> {
   const at = (path: string) => getByPath(config as unknown as Record<string, unknown>, path) ?? null;
   const active = config.providers[config.activeProvider];
-  const endpoint = describeEndpoint(active, active?.spec?.model ?? '', vendorOf);
+  const endpoint = describeEndpoint(active, active?.spec?.model ?? '', endpointVendor(active));
   return {
     vendor: endpoint.vendor,
     model: endpoint.model,
@@ -469,9 +476,9 @@ export async function main(): Promise<void> {
   // extension providers must be registered before endpoints are resolved
   const extensions = await loadExtensions(repoRoot(), {
     reserved: bundled.map((w) => w.id),
-    reservedProviders: [...providerModules.map((m) => m.id), COO.id],
+    reservedProviders: [...providerModules.map((m) => m.id), COO.id, CHATGPT_PROVIDER.id],
   });
-  registerProviderModules([COO, ...extensions.providers]);
+  registerProviderModules([COO, CHATGPT_PROVIDER, ...extensions.providers]);
   extensions.consoleAssets.push(...bundledConsoleAssets([
     { id: DESKTOP_PET.id, packageName: 'cortico-world-desktop-pet' },
   ]));

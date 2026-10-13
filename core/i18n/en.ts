@@ -94,6 +94,10 @@ const en: CoreText = {
     connecting: 'Connecting…',
     keyOk: (name: string, model: string) => `Connected to ${name}${model ? ` (${model})` : ''}! Now I can talk. Coo...`,
     keyFail: (why: string) => `That didn't connect: ${why}. Is the key complete, and is there credit left on the account? Try pasting it again.`,
+    chatgptAsk: "Press the button below and sign in to your ChatGPT account in the browser. What I say counts toward your ChatGPT plan's usage, so keep an eye on your quota.",
+    chatgptGo: 'Continue with ChatGPT',
+    chatgptWaiting: "Finish signing in in the browser. I'll wait here.",
+    chatgptFail: (why: string) => `The sign-in didn't work: ${why}. Try again?`,
     keyAlready: (connection: string) => `A model is connected already (${connection}). Easy. Coo...`,
     keySkipped: 'That\'s fine; I\'ll talk once you\'ve added it. I\'ll ask you again later.',
 

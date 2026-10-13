@@ -80,6 +80,10 @@ const ko: Translation<CoreText> = {
     connecting: '연결하는 중…',
     keyOk: (name: string, model: string) => `${name}에 연결했습니다${model ? `(${model})` : ''}! 이제 말할 수 있습니다. Coo...`,
     keyFail: (why: string) => `연결하지 못했습니다: ${why}. Key가 빠짐없이 들어갔는지, 계정에 잔액이 남아 있는지 확인하고 다시 붙여 넣어 보세요.`,
+    chatgptAsk: '아래 버튼을 눌러 브라우저에서 ChatGPT 계정에 로그인하세요. 제 대화는 ChatGPT 요금제 사용량에 포함되니 남은 한도를 확인하세요.',
+    chatgptGo: 'ChatGPT로 계속하기',
+    chatgptWaiting: '브라우저에서 로그인을 마치고 돌아오세요. 여기서 기다릴게요.',
+    chatgptFail: (why: string) => `로그인하지 못했습니다: ${why}. 다시 해 볼까요?`,
     keyAlready: (connection: string) => `모델이 이미 연결되어 있습니다(${connection}). 간단하네요. Coo...`,
     keySkipped: '괜찮습니다. 추가하시면 그때부터 말하겠습니다. 나중에 다시 여쭙겠습니다.',
 

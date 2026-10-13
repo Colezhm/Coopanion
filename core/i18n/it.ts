@@ -80,6 +80,10 @@ const it: Translation<CoreText> = {
     connecting: 'Connessione…',
     keyOk: (name: string, model: string) => `Collegamento a ${name} riuscito${model ? ` (${model})` : ''}! Ora posso parlare. Coo...`,
     keyFail: (why: string) => `Connessione non riuscita: ${why}. La chiave è completa, e c'è ancora credito sull'account? Prova a incollarla di nuovo.`,
+    chatgptAsk: "Premi il pulsante qui sotto e accedi al tuo account ChatGPT nel browser. Quello che dico rientra nell'uso del tuo piano ChatGPT, quindi tieni d'occhio la tua quota.",
+    chatgptGo: 'Continua con ChatGPT',
+    chatgptWaiting: "Completa l'accesso nel browser. Ti aspetto qui.",
+    chatgptFail: (why: string) => `Accesso non riuscito: ${why}. Riproviamo?`,
     keyAlready: (connection: string) => `Un modello è già collegato (${connection}). Facile. Coo...`,
     keySkipped: "Nessun problema; parlerò quando l'avrai aggiunta. Te lo richiederò più tardi.",
 

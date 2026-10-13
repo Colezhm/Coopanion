@@ -93,6 +93,11 @@ export default {
     connecting: '正在连接…',
     keyOk: (name: string, model: string) => `连上 ${name} 了${model ? `（${model}）` : ''}！现在我能说话啦，库...`,
     keyFail: (why: string) => `没连上：${why}。看看 Key 是不是完整，账户里还有没有余额？再贴一次试试。`,
+    /** A ChatGPT plan is signed in in the browser instead of taking a key; the plan's quota is the person's to watch. */
+    chatgptAsk: '点下面的按钮，在浏览器里登录 ChatGPT 账号。我说的话会计入你的 ChatGPT 套餐用量，记得留意额度哦。',
+    chatgptGo: '使用 ChatGPT 继续',
+    chatgptWaiting: '在浏览器里登录好就回来，我在这里等你。',
+    chatgptFail: (why: string) => `没登录上：${why}。再试一次吧？`,
     keyAlready: (connection: string) => `模型已经连好了（${connection}），省事，库...`,
     keySkipped: '没关系，等你填好我再开口。之后我会再来问你。',
 

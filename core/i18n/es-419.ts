@@ -80,6 +80,10 @@ const es419: Translation<CoreText> = {
     connecting: 'Conectando…',
     keyOk: (name: string, model: string) => `¡Conectado a ${name}${model ? ` (${model})` : ''}! Ahora puedo hablar. Coo...`,
     keyFail: (why: string) => `No se conectó: ${why}. ¿La API Key está completa y queda saldo en la cuenta? Intenta pegarla de nuevo.`,
+    chatgptAsk: 'Presiona el botón de abajo e inicia sesión en tu cuenta de ChatGPT en el navegador. Lo que digo cuenta para el uso de tu plan de ChatGPT, así que vigila tu cuota.',
+    chatgptGo: 'Continuar con ChatGPT',
+    chatgptWaiting: 'Termina de iniciar sesión en el navegador. Te espero aquí.',
+    chatgptFail: (why: string) => `No se pudo iniciar sesión: ${why}. ¿Lo intentamos de nuevo?`,
     keyAlready: (connection: string) => `Ya hay un modelo conectado (${connection}). Fácil. Coo...`,
     keySkipped: 'No pasa nada; hablaré cuando la agregues. Te lo vuelvo a preguntar más tarde.',
 

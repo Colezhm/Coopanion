@@ -80,6 +80,10 @@ const ptBR: Translation<CoreText> = {
     connecting: 'Conectando…',
     keyOk: (name: string, model: string) => `Conectado a ${name}${model ? ` (${model})` : ''}! Agora eu posso falar. Coo...`,
     keyFail: (why: string) => `Não conectou: ${why}. A API Key está completa e ainda há saldo na conta? Tente colar de novo.`,
+    chatgptAsk: 'Aperte o botão abaixo e entre na sua conta do ChatGPT no navegador. O que eu digo conta no uso do seu plano do ChatGPT, então fique de olho na sua cota.',
+    chatgptGo: 'Continuar com o ChatGPT',
+    chatgptWaiting: 'Termine o login no navegador. Fico esperando aqui.',
+    chatgptFail: (why: string) => `O login não deu certo: ${why}. Vamos tentar de novo?`,
     keyAlready: (connection: string) => `Já tem um modelo conectado (${connection}). Moleza. Coo...`,
     keySkipped: 'Tudo bem; eu falo assim que você adicionar. Pergunto de novo mais tarde.',
 

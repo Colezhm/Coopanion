@@ -80,6 +80,10 @@ const de: Translation<CoreText> = {
     connecting: 'Verbinde…',
     keyOk: (name: string, model: string) => `Mit ${name} verbunden${model ? ` (${model})` : ''}! Jetzt kann ich reden. Coo...`,
     keyFail: (why: string) => `Das hat nicht geklappt: ${why}. Ist der Schlüssel vollständig, und ist auf dem Konto noch Guthaben? Füg ihn noch einmal ein.`,
+    chatgptAsk: 'Drück unten auf den Knopf und melde dich im Browser bei deinem ChatGPT-Konto an. Was ich sage, zählt zur Nutzung deines ChatGPT-Tarifs, also behalte dein Kontingent im Blick.',
+    chatgptGo: 'Weiter mit ChatGPT',
+    chatgptWaiting: 'Schließ die Anmeldung im Browser ab. Ich warte hier.',
+    chatgptFail: (why: string) => `Die Anmeldung hat nicht geklappt: ${why}. Noch einmal versuchen?`,
     keyAlready: (connection: string) => `Ein Modell ist schon verbunden (${connection}). Ganz einfach. Coo...`,
     keySkipped: 'Kein Problem; ich rede, sobald du ihn eingetragen hast. Ich frage später noch mal.',
 

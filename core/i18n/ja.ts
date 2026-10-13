@@ -80,6 +80,10 @@ const ja: Translation<CoreText> = {
     connecting: '接続しています…',
     keyOk: (name: string, model: string) => `${name}${model ? `（${model}）` : ''} につながりました！これでお話しできます。クー…`,
     keyFail: (why: string) => `接続できませんでした：${why}。Key は最後まで貼り付けられていますか？アカウントに残高はありますか？もう一度貼り付けてみてください。`,
+    chatgptAsk: '下のボタンを押して、ブラウザで ChatGPT アカウントにサインインしてください。わたしの発言は ChatGPT プランの利用量に含まれるので、残りの枠に気をつけてくださいね。',
+    chatgptGo: 'ChatGPT で続ける',
+    chatgptWaiting: 'ブラウザでサインインが終わったら戻ってきてください。ここで待っています。',
+    chatgptFail: (why: string) => `サインインできませんでした：${why}。もう一度試してみますか？`,
     keyAlready: (connection: string) => `モデルはもう接続されています（${connection}）。話が早いですね。クー…`,
     keySkipped: '大丈夫です。追加してもらえたら話せるようになります。あとでまた聞きますね。',
 
