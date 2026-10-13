@@ -23,14 +23,14 @@ git submodule update --init --recursive
 
 | 命令 | 作用 |
 |---|---|
-| `pnpm run dev` | 生成 `build/cortico` 并启动应用 |
-| `pnpm run start` | 直接启动应用(不重新生成 `build/cortico`) |
-| `pnpm run build:cortico` | 只生成 `build/cortico`(控制台改动后要重跑,并重启应用) |
+| `pnpm run dev` | 生成 `build/cortico` 与 `build/console` 并启动应用 |
+| `pnpm run start` | 直接启动应用(不重新生成) |
+| `pnpm run build:cortico` | 只生成 `build/cortico` 与设置窗口 `build/console`(改了 `console/` 后重跑，再重新打开设置窗口) |
 | `pnpm run test` | 主仓库单元测试 |
 | `pnpm run test:worlds` | 桌宠 World(含电脑操作)的单元测试（使用本仓库锁定的 Cortico） |
 | `pnpm run typecheck:worlds` | 两个 World 的类型检查 |
 | `pnpm run typecheck` | 检查 Core 与 Electron 部分的类型 |
-| `pnpm run typecheck:web` | 检查控制台的类型(先跑 `build:cortico`) |
+| `pnpm run typecheck:web` | 检查设置窗口(`console/`)的类型 |
 | `pnpm run build:installer` | Windows 上打出 `dist/Coopanion-Setup-<版本>.exe`;Mac 上打出 `dist/Coopanion-<版本>-mac-<架构>.dmg` 和 `.zip`(`PACK_ARCH=x64` 在 Apple 芯片上打 Intel 版) |
 | `pnpm run build:icons` | 用桌宠的造型重画应用图标和默认头像 |
 
@@ -50,9 +50,9 @@ $env:CORTICO_COMPANION_DATA = "$env:TEMP\coo-test"; pnpm run start
 | `packages/cortico-world-desktop-pet` | 桌宠 World,电脑操作在其中的 `src/cua/`;源码由本仓库直接管理 |
 | `packages/cortico-provider-coo` | Coo Pet Provider:DeepSeek、千问、Kimi 等几家模型服务的 provider,DeepSeek 排第一 |
 | `core/` | Core 子进程的入口:装配 Cormini、World、provider;首次运行的种子文件;没填 Key 时让桌宠提醒;`coopanion` World(`notice.ts`)在更新后把更新说明、在引导结束后把引导里的对话、在对方改设置后把改了什么告诉 Coo,并提供 Coo 给自己设唤醒器的工具(`alarms.ts`,不在界面上显示);匿名使用统计(`telemetry.ts`,字段见 [TELEMETRY.md](TELEMETRY.md)) |
-| `console/` | 覆盖在 Cortico 控制台上的入口:普通/高级两种模式,「开始」「习惯」(电脑操作是其中一节)「装扮」「语音输入」四页,「系统提示词」页的「清空重开」,字标下的版本与更新提示(`features/release.ts`,版本号由 `scripts/stage.ts` 写进 `app-version.ts`) |
-| `app/` | Electron 主进程:托盘(Mac 上是菜单栏图标)、设置窗口(启动时不打开)、Core 子进程托管、桌宠窗口模式、自动更新(`updater.cjs`)、Steam 版读创意工坊(`steam.cjs`);`app/shims/` 是扩展安装用的 corepack 替身 |
-| `scripts/stage.ts` | 从 `vendor/cortico` 生成应用使用的 `build/cortico`:去掉内建的平台 World 与 llamacpp,叠加 `console/`,构建控制台 |
+| `console/` | 设置窗口：Coopanion 自己的前端，只经 Core 的控制台 HTTP API 读写状态。`base/` 是请求、语言、流、路由、主题、UI 原语与面板宿主;`rail/` 是左栏;「开始」「习惯」(电脑操作是其中一节)「装扮」「语音输入」「系统提示词」(人设与「清空重开」)「用量与成本」「对话」各页在 `features/`;字标下的版本与更新提示在 `features/release.ts`(版本号与渠道由 `scripts/stage.ts` 构建时写入)。「高级模式」在另一个窗口打开 Cortico 自己的控制台(`advanced.ts`) |
+| `app/` | Electron 主进程:托盘(Mac 上是菜单栏图标)、设置窗口(启动时不打开;在 Core 控制台的源下以 `/coopanion/` 应答 `build/console` 的文件，其余请求原样转给 Core)、Core 子进程托管、桌宠窗口模式、自动更新(`updater.cjs`)、Steam 版读创意工坊(`steam.cjs`);`app/shims/` 是扩展安装用的 corepack 替身 |
+| `scripts/stage.ts` | 从 `vendor/cortico` 生成应用使用的 `build/cortico`(去掉内建的平台 World 与 llamacpp,`src/web/client` 原样),构建 Cortico 控制台、桌宠面板与设置窗口 `build/console` |
 | `scripts/pack.ts` | 组装扁平的 `build/app` 并调用 electron-builder;`installer/nsis.nsh` 定 Windows 默认安装位置、卸载时保留 `data`、卸载(非升级)时报告给统计服务;Mac 包是临时签名(ad hoc)的 dmg 与 zip |
 | `scripts/make-icons.cjs` | 用 Electron 把 Coo 的造型(`web/coo/coo.js`)画成 `app/icons` 与 `core/seed/avatar.png` |
 | `installer/install.ps1` | 一行命令安装用的脚本:下载最新 Release 的安装包并运行 |

@@ -1,7 +1,7 @@
 import type { en } from './strings.ts';
 
 export const S: Partial<typeof en> = {
-  // clear-session.ts
+  // persona/index.ts
   button: 'Effacer et redémarrer',
   title: 'Effacer cette conversation et faire repartir Coo de zéro ?',
   body: "Coo oublie le contexte de cette conversation et repart du prompt système actuel. C'est irréversible. La mémoire et la persona de l'espace de travail sont conservées.",

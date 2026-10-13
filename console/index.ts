@@ -39,7 +39,7 @@ export function boot(doc: Document = document): Disposable {
     applyStoredTheme(doc);
   } catch { /* a bad cached record must not keep the window from starting */ }
   doc.getElementById('boot-note')?.remove();
-  doc.body.classList.add('companion-sidebar', 'companion-normal');
+  doc.body.classList.add('companion-sidebar');
 
   const root = doc.createElement('div');
   root.id = 'kernel-root';

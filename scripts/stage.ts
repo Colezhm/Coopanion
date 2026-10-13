@@ -1,17 +1,16 @@
 /**
- * Builds `build/cortico/`, the copy of Cortico the app runs:
+ * Builds what the app runs from source:
  *
- * 1. copies `vendor/cortico` without the built-in platform Worlds (minecraft, qq, bilibili,
- *    websearch, the console fixture), the llamacpp provider, the other bots, and repository
- *    tooling; `terminal` stays because the console's chat page talks to it;
- * 2. lays `console/` over `src/web/client/` (the app's entry and home page) and writes the app's
- *    version and channel there as `app-version.ts`, for the release check under the wordmark;
- * 3. builds the console bundle with Cortico's own `buildWeb` and the stylesheet with Tailwind;
- * 4. builds the desktop pet World's panel bundle;
- * 5. builds the settings window (`console/index.ts`, `console/index.html`) into `build/console/`,
- *    which the Electron main process serves under `/coopanion/` on Core's origin.
+ * 1. `build/cortico/`: `vendor/cortico` without the built-in platform Worlds (minecraft, qq, bilibili,
+ *    websearch, the console fixture), the llamacpp provider, the other bots, and repository tooling
+ *    (`terminal` stays because the console's chat page talks to it). Its `src/web/client` is
+ *    vendor's as it is; Cortico's console (the advanced mode) is built with Cortico's own `buildWeb`
+ *    and its stylesheet with Tailwind;
+ * 2. the desktop pet World's panel bundle, which Core serves to its console;
+ * 3. `build/console/`: the settings window (`console/index.ts`, `console/index.html`), which the
+ *    Electron main process serves under `/coopanion/` on Core's origin.
  *
- * Run: `pnpm run build:cortico`. Idempotent; the previous `build/cortico` is replaced.
+ * Run: `pnpm run build:cortico`. Idempotent; the previous output is replaced.
  */
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
@@ -21,7 +20,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const VENDOR = join(ROOT, 'vendor', 'cortico');
 const OUT = join(ROOT, 'build', 'cortico');
-const OVERLAY = join(ROOT, 'console');
+const WINDOW = join(ROOT, 'console');
 const WINDOW_OUT = join(ROOT, 'build', 'console');
 
 if (!existsSync(join(VENDOR, 'src', 'core'))) {
@@ -53,14 +52,6 @@ cpSync(VENDOR, OUT, {
 });
 // the staged tree is its own package: ESM, and the runtime dependencies resolve from the app root
 writeFileSync(join(OUT, 'package.json'), JSON.stringify({ name: 'cortico', private: true, type: 'module' }, null, 2));
-cpSync(OVERLAY, join(OUT, 'src', 'web', 'client'), { recursive: true });
-const { version } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as { version: string };
-// COOPANION_CHANNEL: the build's channel, as scripts/pack.ts writes it into the app (steam, or github by default)
-writeFileSync(join(OUT, 'src', 'web', 'client', 'app-version.ts'), [
-  `export const APP_VERSION = ${JSON.stringify(version)};`,
-  `export const APP_CHANNEL: 'github' | 'steam' = ${JSON.stringify(process.env.COOPANION_CHANNEL === 'steam' ? 'steam' : 'github')};`,
-  '',
-].join('\n'));
 console.log(`staged Cortico ${Date.now() - t0} ms`);
 
 const { buildWeb } = await import(pathToFileURL(join(VENDOR, 'scripts', 'build-web.ts')).href) as { buildWeb(root: string): Promise<unknown> };
@@ -71,9 +62,6 @@ await buildWeb(OUT);
 const entry = join(OUT, 'tailwind.entry.css');
 writeFileSync(entry, [
   '@import "./src/web/public/styles.css";',
-  '@import "./src/web/client/features/home/home.css";',
-  '@import "./src/web/client/features/chat/chat.css";',
-  '@import "./src/web/client/companion.css";',
   '@source "./src";',
   '@source "./bots";',
   '',
@@ -87,12 +75,15 @@ const pet = join(ROOT, 'packages', 'cortico-world-desktop-pet');
 const panel = spawnSync(process.execPath, [join(pet, 'scripts', 'build-console.mjs')], { cwd: pet, stdio: 'inherit' });
 if (panel.status !== 0) process.exit(panel.status ?? 1);
 
-// the settings window: one ES module bundle (the CSS it imports becomes index.css), its stylesheet, the page
+// the settings window: one ES module bundle (the CSS it imports becomes index.css), its stylesheet, the page.
+// The version and the build's channel (COOPANION_CHANNEL as scripts/pack.ts writes it into the app, github
+// by default) go in for the release check under the wordmark.
+const { version } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as { version: string };
 rmSync(WINDOW_OUT, { recursive: true, force: true });
 mkdirSync(WINDOW_OUT, { recursive: true });
 const esbuild = await import('esbuild');
 await esbuild.build({
-  entryPoints: [join(OVERLAY, 'index.ts')],
+  entryPoints: [join(WINDOW, 'index.ts')],
   outdir: WINDOW_OUT,
   entryNames: 'index',
   bundle: true,
@@ -109,12 +100,12 @@ await esbuild.build({
   },
   logLevel: 'warning',
 });
-cpSync(join(OVERLAY, 'index.html'), join(WINDOW_OUT, 'index.html'));
+cpSync(join(WINDOW, 'index.html'), join(WINDOW_OUT, 'index.html'));
 const slash = (path: string) => relative(WINDOW_OUT, path).split(sep).join('/');
 const windowEntry = join(WINDOW_OUT, 'tailwind.entry.css');
 writeFileSync(windowEntry, [
-  ...['styles.css', 'features/home/home.css', 'features/chat/chat.css', 'companion.css'].map((f) => `@import "${slash(join(OVERLAY, f))}";`),
-  `@source "${slash(OVERLAY)}";`,
+  ...['styles.css', 'features/home/home.css', 'features/chat/chat.css', 'companion.css'].map((f) => `@import "${slash(join(WINDOW, f))}";`),
+  `@source "${slash(WINDOW)}";`,
   `@source "${slash(join(pet, 'src', 'console'))}";`,
   '',
 ].join('\n'));
@@ -122,4 +113,4 @@ const windowCss = spawnSync(process.execPath, [cli, '-i', windowEntry, '-o', joi
 if (windowCss.status !== 0) process.exit(windowCss.status ?? 1);
 rmSync(windowEntry);
 
-console.log(`stage done in ${((Date.now() - t0) / 1000).toFixed(1)} s → ${relative(ROOT, OUT)}`);
+console.log(`stage done in ${((Date.now() - t0) / 1000).toFixed(1)} s → ${relative(ROOT, OUT)}, ${relative(ROOT, WINDOW_OUT)}`);

@@ -14,7 +14,7 @@ import type { Page } from '../base/page.ts';
 import { buildHash, type Route, type Router } from '../base/router.ts';
 import { icon } from '../base/ui/icons.ts';
 import { mountRelease } from '../features/release.ts';
-import { sidebarBrand } from '../sidebar-brand.ts';
+import { sidebarBrand } from './brand.ts';
 import { L } from '../strings.ts';
 import { createAvatarControl } from './avatar.ts';
 import { S } from './strings.ts';

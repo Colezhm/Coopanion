@@ -23,7 +23,7 @@ or handed context. Two of its rules settle most design questions:
 |---|---|---|
 | Electron main process: tray, settings window, Core child process, updater | `app/` | `app` |
 | Core child process entry: assembly, seed files, the `coopanion` World, telemetry | `core/` | `core` |
-| Console overlay: pages, normal and advanced mode | `console/` | `console` |
+| Settings window: Coopanion's own front end over the console HTTP API | `console/` | `console` |
 | Desktop pet World, computer use included (`src/cua/`) | `packages/cortico-world-desktop-pet/` | `desktop-pet` |
 | Model provider | `packages/cortico-provider-coo/` | `provider-coo` |
 | Build, staging and packing | `scripts/`, `installer/`, `electron-builder.yml` | `scripts`, `installer` |
@@ -39,16 +39,20 @@ is unavoidable.
 ## 3. Boundaries
 
 1. **Cortico changes go to Cortico.** `vendor/cortico` is never patched in place. A change the
-   console overlay or a package needs from Cortico is a Cortico pull request; the submodule then
+   settings window or a package needs from Cortico is a Cortico pull request; the submodule then
    moves to a Cortico commit on its main branch.
-2. **Vendor quirks stay in provider-coo.** How one model service deviates from its protocol is
+2. **The settings window uses Core through the console HTTP API only**: the public routes listed
+   in Cortico's `docs/console.md` and the panel contract. It depends on nothing of Cortico's own
+   console (its pages, DOM, class names or `src/web/client/` modules) and takes types only from
+   Cortico (`tests/console-imports.test.ts`). When the API lacks something, that is a Cortico issue.
+3. **Vendor quirks stay in provider-coo.** How one model service deviates from its protocol is
    handled in `packages/cortico-provider-coo`, keyed by its base URL, and never in Cortico.
-3. **Text for the model and text for people are separate.** What Coo reads lives in each
+4. **Text for the model and text for people are separate.** What Coo reads lives in each
    package's `model-text.ts`, release notes under `docs/releases/` and the seed prompts; what
    people read lives in the `strings*.ts` and `i18n/` files. UI text exists in all eleven
    languages and changes in all of them in the same commit; model text exists in Chinese and
    English.
-4. **Third-party material is never committed**: character art, reference images, audio, model
+5. **Third-party material is never committed**: character art, reference images, audio, model
    weights. A precedent is not a permission.
 
 ## 4. Writing
@@ -119,9 +123,8 @@ keep it; the checklist still applies to what they say.
 
 - Before every commit: `pnpm run test`, `pnpm run test:worlds`, `pnpm run typecheck`,
   `pnpm run typecheck:web` and `pnpm run typecheck:worlds`, the same checks CI runs.
-  `typecheck:web` reads `build/cortico`, so run `pnpm run build:cortico` first.
-- `pnpm run build:cortico` after changing `console/` or the submodule; restart the app or the
-  preview that serves `build/cortico` afterwards.
+- `pnpm run build:cortico` after changing `console/` or the submodule; reopen the settings window
+  (`build/console`) or restart the app (`build/cortico`) afterwards.
 - Never verify against the operator's installed app or its data. Use tests, a script under
   `scratch/`, or `pnpm run dev` with `CORTICO_COMPANION_DATA` pointing at an empty directory.
 

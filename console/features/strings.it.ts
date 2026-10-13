@@ -1,7 +1,7 @@
 import type { en } from './strings.ts';
 
 export const S: Partial<typeof en> = {
-  // clear-session.ts
+  // persona/index.ts
   button: 'Svuota e ricomincia',
   title: 'Svuotare questa conversazione e far ripartire Coo da zero?',
   body: "Coo dimentica il contesto di questa conversazione e riparte dal prompt di sistema attuale. Non si può annullare. La memoria e la persona nell'area di lavoro restano.",
