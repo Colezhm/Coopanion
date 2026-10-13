@@ -2,7 +2,9 @@
  * The console HTTP API as the settings window uses it (console/), against a real Cortico bot: the
  * routes, the request shapes they take and the fields of the replies the window reads. A Cortico
  * change to one of these fails here. The bot is Cormini with a `probe` World standing in for the
- * desktop-pet World's panel and stream; delivery stays paused, so no model is called.
+ * desktop-pet World's panel and stream, and an empty extensions directory; delivery stays paused, so no
+ * model is called. Routes that reach the npm registry (extension search, updates, package details,
+ * install, uninstall) and the native path picker's dialog are not called.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -12,6 +14,7 @@ import { WebSocket } from 'ws';
 import { createBot, type Bot, type BotDefinition } from 'cortico/bot.ts';
 import type { CoreConfig, WorldStreamSocket } from 'cortico/core/types.ts';
 import { loadDeployment } from 'cortico/deploy.ts';
+import { loadExtensions } from 'cortico/extensions.ts';
 import { withWorlds, type WorldDefinition } from 'cortico/world.ts';
 import { TERMINAL } from 'cortico/worlds/terminal/definition.ts';
 
@@ -67,7 +70,9 @@ beforeAll(async () => {
   const definition = withWorlds({ ...cormini, declares: [...(cormini.declares ?? []), PROBE.id] }, [TERMINAL, PROBE] as WorldDefinition[]);
   const loaded = loadDeployment(definition, dir, CORTICO);
   loaded.config.web.port = 0;
-  bot = createBot(loaded, definition);
+  process.env.CORTICO_EXTENSIONS_DIR = join(dir, 'extensions');
+  const extensions = await loadExtensions(CORTICO, { reserved: [TERMINAL.id, PROBE.id] });
+  bot = createBot(loaded, definition, { extensions });
   bot.core.bus.setPaused(true);
   base = `http://127.0.0.1:${(await bot.start()).port}`;
 }, 30000);
@@ -75,6 +80,106 @@ beforeAll(async () => {
 afterAll(async () => {
   await bot?.stop();
   rmSync(dir, { recursive: true, force: true });
+});
+
+/**
+ * Routes outside the public table of Cortico's docs/console.md that the advanced mode's pages (the copies of
+ * Cortico's console pages under console/advanced/) use. Listed here so a change to one fails a test until
+ * Cortico makes them public.
+ */
+describe('routes the advanced mode uses beyond the public table', () => {
+  const socketFrame = (path: string) => new Promise<Record<string, unknown>>((done, fail) => {
+    const ws = new WebSocket(`${base.replace('http', 'ws')}${path}?language=en`, { headers: { Origin: base } });
+    ws.on('message', (data) => { ws.close(); done(JSON.parse(String(data)) as Record<string, unknown>); });
+    ws.on('error', fail);
+  });
+
+  it('manifest and lamps: every page with its panels; the lamps by page id', async () => {
+    const manifest = await json(await get('/api/console/manifest'));
+    expect(manifest.body.protocolVersion).toEqual(expect.any(Number));
+    const probe = manifest.body.providers.find((p: { id: string }) => p.id === PROBE_PAGE);
+    expect(probe).toMatchObject({ id: PROBE_PAGE, kind: 'world', label: expect.any(String), availability: 'active', panels: [expect.objectContaining({ id: 'pet', title: 'Pet' })] });
+    expect((await json(await get('/api/console/lamps'))).body.lamps).toEqual(expect.any(Object));
+  });
+
+  it('run: the boot id the Terminal page watches for a restart', async () => {
+    expect((await json(await get('/api/run/lifecycle'))).body).toEqual({ deployment: expect.any(String), bootId: expect.any(String), ready: expect.any(Boolean) });
+  });
+
+  it('events, runs, the run log and diagnostics for the Core and Terminal pages', async () => {
+    expect((await json(await get('/api/events?limit=5'))).body).toMatchObject({ latest: expect.any(Number), events: expect.any(Array) });
+    const runs = await json(await get('/api/runs'));
+    expect(runs.body).toMatchObject({ current: expect.any(String), runs: expect.any(Array) });
+    expect((await json(await get('/api/log?limit=5'))).body).toEqual(expect.any(Array));
+    expect((await json(await get('/api/diagnostics'))).body).toEqual(expect.any(Object));
+  });
+
+  it('sessions: the list and one session\'s messages with their token estimate', async () => {
+    const list = await json(await get('/api/sessions'));
+    expect(list.body.sessions).toEqual(expect.arrayContaining([expect.objectContaining({ id: expect.any(String) })]));
+    const id = list.body.sessions[0].id as string;
+    expect((await json(await get(`/api/sessions/messages?id=${encodeURIComponent(id)}`))).body).toMatchObject({ id, messages: expect.any(Array), estTokens: expect.any(Number) });
+  });
+
+  it('the debug and sessions WebSockets send JSON object frames', async () => {
+    expect(await socketFrame('/ws/debug')).toEqual(expect.any(Object));
+    expect(await socketFrame('/ws/sessions')).toEqual(expect.any(Object));
+  });
+
+  it('storage: the parts with their keys and labels', async () => {
+    const { body } = await json(await get('/api/storage'));
+    expect(body.parts).toEqual(expect.arrayContaining([expect.objectContaining({ key: 'session', label: expect.any(String) })]));
+  });
+
+  it('prompts: the prefix by segment, a reset of a deployment override, the reload of the current prefix', async () => {
+    const prefix = await json(await get('/api/prompts/prefix'));
+    expect(prefix.body.segments).toEqual(expect.arrayContaining([expect.objectContaining({ title: expect.any(String), text: expect.any(String) })]));
+    expect((await json(await post('/api/prompts/reset', { key: 'worlds.terminal.envPrompt' }))).body).toMatchObject({ result: expect.any(String) });
+    expect((await json(await post('/api/session/reload-prefix'))).body).toMatchObject({ result: expect.any(String) });
+    expect((await json(await get('/api/tool-schemas'))).body.tools).toEqual(expect.any(Array));
+  });
+
+  it('Worlds: the list, visibility, restart, activation', async () => {
+    const { body } = await json(await get('/api/worlds'));
+    expect(body.worlds).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'probe' })]));
+    expect((await json(await post('/api/worlds/visibility', { id: 'terminal', visible: true }))).body).toMatchObject({ result: expect.any(String), visibility: expect.any(Object) });
+    expect((await json(await post('/api/worlds/restart', { id: 'terminal' }))).body).toMatchObject({ result: expect.any(String) });
+    expect((await json(await post('/api/worlds/activation', { id: 'terminal', enabled: true }))).body).toMatchObject({ result: expect.any(String) });
+  });
+
+  it('model modules: the list, a draft endpoint\'s config groups; an endpoint deleted at its revision', async () => {
+    const modules = await json(await get('/api/provider-modules'));
+    expect(modules.status).toBe(200);
+    const entry = { kind: 'openai-responses-compat', baseUrl: 'http://127.0.0.1:9/v1', spec: { model: 'test-model', thinking: false } };
+    expect((await json(await post('/api/provider-modules/config', { name: 'draft', entry }))).status).toBe(200);
+    const created = await json(await post('/api/providers', { name: 'spare', entry }));
+    expect(created.status).toBe(200);
+    const spare = await json(await get('/api/providers/spare'));
+    expect((await json(await post('/api/providers/spare/delete', { expectedRevision: spare.body.revision }))).status).toBe(200);
+  });
+
+  it('extensions: the installed list, an icon that is not there, a check that finds nothing', async () => {
+    expect((await json(await get('/api/extensions'))).status).toBe(200);
+    expect((await get('/api/extensions/icon?name=cortico-world-none')).status).toBe(404);
+    const check = await json(await post('/api/extensions/check', { target: { path: join(dir, 'no-such-package') }, kind: 'world' }));
+    expect(check.body.ok === false || typeof check.body.error === 'string').toBe(true);
+  });
+
+  it('the path picker refuses a request it cannot read', async () => {
+    const { status, body } = await json(await post('/api/path-picker', { kind: 'nonsense' }));
+    expect(status).toBe(400);
+    expect(body.error).toEqual(expect.any(String));
+  });
+
+  it('onboarding: the one-time flag goes', async () => {
+    expect((await json(await post('/api/onboarding/dismiss'))).body).toEqual({ ok: true });
+  });
+
+  // last of these: it clears every storage part
+  it('storage: clearing every part answers part by part', async () => {
+    const { body } = await json(await post('/api/storage/clear-all'));
+    expect(body).toMatchObject({ ok: expect.any(Boolean), results: expect.arrayContaining([expect.objectContaining({ key: 'session', ok: true, result: expect.any(String) })]) });
+  });
 });
 
 describe('the console API the settings window reads', () => {
