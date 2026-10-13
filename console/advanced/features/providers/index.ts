@@ -125,7 +125,11 @@ export async function mountProviders(ctx: FeatureContext): Promise<void> {
       if (selected === NEW_DRAFT_ID) await select(fallback(), true); else paint();
       return;
     }
-    if (rows.get(identity)?.module === CHATGPT_MODULE) await signOutBeforeDelete(identity, ctx.signal);
+    // the hub refuses to delete an endpoint in use or changed since: only one it will delete is signed out first
+    if (rows.get(identity)?.module === CHATGPT_MODULE) {
+      const current = await get<Detail>(connectionPath(identity), opts);
+      if (!current.references.length && current.revision === rows.get(identity)?.revision) await signOutBeforeDelete(identity, ctx.signal);
+    }
     await post(connectionPath(identity) + '/delete', { expectedRevision: rows.get(identity)?.revision }, opts);
     drafts.remove(identity); invalid.delete(identity);
     await refresh();

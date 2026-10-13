@@ -296,7 +296,7 @@ export async function mountDetail(options: Options): Promise<DetailController> {
         const current = await get<Detail>(connectionPath(saved.name), opts);
         if (current.references.length) { await ui.confirm({ title: S.remove, body: S.referenced + current.references.join(', ') }); return; }
         if (!(await ui.confirm({ title: S.remove, body: S.deleteConfirm, danger: true }))) return;
-        if (saved.entry.kind === CHATGPT_MODULE) await signOutBeforeDelete(saved.name, lifecycle.signal);
+        if (saved.entry.kind === CHATGPT_MODULE && current.revision === saved.revision) await signOutBeforeDelete(saved.name, lifecycle.signal);
         await post(connectionPath(saved.name) + '/delete', { expectedRevision: saved.revision }, opts); await options.deleted();
       }, ev.currentTarget as HTMLElement) }));
       // a copy of a ChatGPT connection would share its refresh token, which each refresh replaces
