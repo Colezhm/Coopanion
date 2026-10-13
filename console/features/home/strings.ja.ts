@@ -14,8 +14,6 @@ export const S: Partial<typeof en> = {
   saveStart: '保存して開始',
   test: '接続をテスト',
   otherProvider: '見つからない場合は、ほかのモデルを手動で設定',
-  toAdvancedTitle: '詳細モードに切り替えますか？',
-  toAdvancedBody: 'ほかのモデルサービスは、詳細モードの「モデル」ページで設定します。左下から通常モードに戻せます。',
   testing: 'テストしています…',
   testOk: (ms: number | null) => `接続できました${ms !== null ? `（${ms} ms）` : ''}`,
   testFail: (why: string) => `接続に失敗しました：${why}`,

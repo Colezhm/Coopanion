@@ -6,8 +6,8 @@
  * for the console's language; outside Chinese the services that take mainland China accounts only
  * behind a More button); the picked one's model and key boxes are below, and 「保存并开始」 saves the
  * key to that service's own endpoint on the platform for the language unless switched, tests it,
- * makes the endpoint active and resumes the run. The link to other model services asks, in the
- * normal mode, before it switches to the advanced mode, where the model pages are. 「我的桌宠」 says
+ * makes the endpoint active and resumes the run. The link to other model services opens the Model
+ * page of the advanced mode (Cortico's console) in its own window. 「我的桌宠」 says
  * whether the pet is on the desktop, shows it live (the pet page in a tab, which draws its own wall,
  * floor and night/day button), and under it hides it, shows it and opens the dressing page. Voice
  * input and computer use have their own pages (features/voice, features/cua); 「使用向导」 at the top
@@ -21,7 +21,7 @@ import type { Page, PageContext } from '../../base/page.ts';
 import { intro } from '../intro.ts';
 import { revealWhenPainted } from '../frame-reveal.ts';
 import { schemesCard } from '../schemes/index.ts';
-import { readMode, requestMode } from '../mode.ts';
+import { openAdvanced } from '../../advanced.ts';
 import {
   connectVendor, consoleCall, defaultRegion, localized, locate, readStatus, regionsOf, siteOf, testEndpoint, VENDOR_ICONS, vendorName, vendorsFor,
   type ConnectResult, type Region, type Status, type Vendor,
@@ -162,15 +162,12 @@ async function mount(ctx: PageContext): Promise<void> {
   };
   pickVendor(vendor);
   const need = ui.h('p', 'home-note', S.modelNeed(vendorName(shown[0]!, LANGUAGE)));
-  // in the normal mode it asks before switching to the advanced mode, where the Model page is
+  // the Model page of the advanced mode, in its own window
   const otherLink = ui.h('a', 'home-link', S.otherProvider);
-  otherLink.href = '#/providers';
-  otherLink.addEventListener('click', async (e) => {
-    if (readMode() === 'advanced') return;
+  otherLink.href = '/#/providers';
+  otherLink.addEventListener('click', (e) => {
     e.preventDefault();
-    if (!await ui.confirm({ title: S.toAdvancedTitle, body: S.toAdvancedBody })) return;
-    requestMode('advanced');
-    ctx.router.navigate(['providers']);
+    openAdvanced('#/providers');
   }, opts);
   const links = ui.rowbar();
   links.classList.add('home-links');

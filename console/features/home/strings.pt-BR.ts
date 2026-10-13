@@ -14,8 +14,6 @@ export const S: Partial<typeof en> = {
   saveStart: 'Salvar e começar',
   test: 'Testar',
   otherProvider: 'Não encontrou? Configure outro modelo manualmente',
-  toAdvancedTitle: 'Mudar para o modo avançado?',
-  toAdvancedBody: 'Outros serviços de modelos são configurados na página Modelo do modo avançado. Você pode voltar ao modo normal no canto inferior esquerdo.',
   testing: 'Testando…',
   testOk: (ms: number | null) => `A conexão funciona${ms !== null ? `, ${ms} ms` : ''}`,
   testFail: (why: string) => `Falha na conexão: ${why}`,
