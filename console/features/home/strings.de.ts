@@ -14,6 +14,8 @@ export const S: Partial<typeof en> = {
   saveStart: 'Speichern und starten',
   test: 'Testen',
   otherProvider: 'Nicht dabei? Anderes Modell manuell einrichten',
+  toAdvancedTitle: 'Zum erweiterten Modus wechseln?',
+  toAdvancedBody: 'Andere Modelldienste richtest du im erweiterten Modus auf der Seite Modell ein. Unten links kannst du zurück zum normalen Modus wechseln.',
   testing: 'Teste…',
   testOk: (ms: number | null) => `Verbindung funktioniert${ms !== null ? `, ${ms} ms` : ''}`,
   testFail: (why: string) => `Verbindung fehlgeschlagen: ${why}`,

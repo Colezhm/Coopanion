@@ -3,6 +3,9 @@ import type { en } from './strings.ts';
 export const S: Partial<typeof en> = {
   // index.ts
   navAria: 'Навигация консоли',
+  groupWorlds: 'World',
+  moduleInstancesAria: 'Экземпляры World',
+
   runResume: 'Продолжить',
   runPause: 'Приостановить',
   shutdownAria: 'Выключить',
@@ -20,7 +23,7 @@ export const S: Partial<typeof en> = {
   resultUnverified: 'Шаги выключения выполнены; состояние не проверено',
   resultDefault: 'Шаги выключения выполнены.',
   noReceipt: (msg: string) =>
-    `Результат выключения не получен (${msg}); возможно, процесс уже завершился. См. записи shutdown в data/runs/<run>/log.jsonl текущего запуска.`,
+    `Результат выключения не получен (${msg}); возможно, процесс уже завершился.`,
   docTitle: (name: string) => `Консоль · ${name}`,
   renameTitle: 'Нажмите, чтобы переименовать',
   renameSaved: 'Отображаемое имя сохранено',

@@ -4,8 +4,8 @@ import type { en, stepEn } from './strings.ts';
 export const S: Partial<typeof en> = {
   nav: 'チャット',
   title: 'チャット',
-  trace: '実行トレース',
-  traceHint: '詳細モードの完全な実行トレース：コンテキスト、ツール呼び出し、生のイベント',
+  trace: 'ターミナル',
+  traceHint: '詳細モードの「ターミナル」ページ：コンテキスト、ツール呼び出し、生のイベント',
   placeholder: (bot: string) => `${bot} にメッセージを送信…`,
   connecting: '接続しています…',
   empty: (bot: string) => `${bot} とはまだ話していません。`,

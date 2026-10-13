@@ -3,6 +3,9 @@ import type { en } from './strings.ts';
 export const S: Partial<typeof en> = {
   // index.ts
   navAria: 'Konsolennavigation',
+  groupWorlds: 'World',
+  moduleInstancesAria: 'World-Instanzen',
+
   runResume: 'Fortsetzen',
   runPause: 'Pausieren',
   shutdownAria: 'Herunterfahren',
@@ -20,7 +23,7 @@ export const S: Partial<typeof en> = {
   resultUnverified: 'Schritte zum Herunterfahren ausgeführt; Zustand nicht geprüft',
   resultDefault: 'Schritte zum Herunterfahren ausgeführt.',
   noReceipt: (msg: string) =>
-    `Kein Ergebnis des Herunterfahrens erhalten (${msg}); der Prozess ist möglicherweise beendet. Siehe die shutdown-Einträge in data/runs/<run>/log.jsonl des aktuellen Laufs.`,
+    `Kein Ergebnis des Herunterfahrens erhalten (${msg}); der Prozess ist möglicherweise beendet.`,
   docTitle: (name: string) => `Konsole · ${name}`,
   renameTitle: 'Zum Umbenennen klicken',
   renameSaved: 'Anzeigename gespeichert',

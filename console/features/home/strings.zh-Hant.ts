@@ -14,6 +14,8 @@ export const S: Partial<typeof en> = {
   saveStart: '儲存並開始',
   test: '測試連線',
   otherProvider: '沒找到？手動設定其他模型',
+  toAdvancedTitle: '要切換為進階模式嗎？',
+  toAdvancedBody: '別的模型服務在進階模式的「模型」頁裡設定。之後可以在左下角切換回一般模式。',
   testing: '正在測試…',
   testOk: (ms: number | null) => `連線正常${ms !== null ? `，耗時 ${ms} ms` : ''}`,
   testFail: (why: string) => `連線失敗：${why}`,

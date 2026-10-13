@@ -1,36 +1,86 @@
 /**
  * The settings window: Coopanion's own front end, which talks to Core only through the console HTTP
  * API (tests/console-api.test.ts locks the routes). The Electron main process serves this build
- * under `/coopanion/` on Core's own origin (app/main.cjs), so requests and WebSockets are
- * same-origin. 高级模式 opens Cortico's console in a window of its own (advanced.ts).
+ * under `/coopanion/` on Core's own origin (app/main.cjs), so requests and WebSockets are same-origin.
  *
- * Pages mount one at a time under `#kernel-root`; the hash route picks the page and an empty or
- * unknown route opens 开始. The colour scheme is painted from the last record this window saw before
- * anything renders, then from `/api/theme`.
+ * Two modes (features/mode.ts). The normal mode lists the pages about the pet, 系统提示词 (the persona
+ * and 「清空重开」), 用量与成本 and 对话; every other route opens 开始. The advanced mode adds the pages
+ * copied from Cortico's console (advanced/): the World tree with the World pages, 接入 (模型供应商,
+ * 扩展), 人格与记忆 (the Persona and Memory pages), 诊断 (终端, Core), and shows the whole system prompt on
+ * 系统提示词. Pages from the manifest (`/api/console/manifest`: Worlds, the Persona, Memory) mount
+ * through the page host (advanced/console-pages) by the panel contract. The rail is built once; a mode
+ * change only hides or shows the entries the normal mode does not list, and the page open stays.
+ *
+ * The colour scheme is painted from the last record this window saw before anything renders, then
+ * from `/api/theme`.
  */
 import type { Disposable } from 'cortico/web/shared/client-panel.ts';
-import { get } from './base/api.ts';
+import { fetchManifest, get } from './base/api.ts';
+import { withLanguage } from './base/language.ts';
 import { Lifecycle } from './base/lifecycle.ts';
 import { createMemo } from './base/memo.ts';
-import type { Page, PageContext } from './base/page.ts';
-import { mountPanel } from './base/panel.ts';
+import type { Page } from './base/page.ts';
 import { Router, type Route } from './base/router.ts';
+import type { SocketLike } from './base/stream.ts';
+import { wsUrlOf } from './base/websocket.ts';
 import { applyStoredTheme, disposeThemeStudio } from './base/theme/studio.ts';
 import { fetchTheme } from './base/theme/storage.ts';
 import { createConsoleUi } from './base/ui/index.ts';
-import { openAdvanced } from './advanced.ts';
+import type { ConsoleIconName } from './base/ui/icons.ts';
+import { subscribeLamps } from './base/ui/lamp.ts';
+import { BUILTIN_PANELS } from './advanced/console-pages/builtins.ts';
+import { ConsolePageHost, PROVIDER_ROUTE } from './advanced/console-pages/host.ts';
+import { ConsolePageLoader } from './advanced/console-pages/loader.ts';
+import { featureAvailable, type FeatureContext, type FrameworkFeature } from './advanced/features/feature.ts';
+import { promptsWithClearFeature } from './advanced/features/clear-session.ts';
+import { coreFeature } from './advanced/features/core/index.ts';
+import { extensionsFeature } from './advanced/features/extensions/index.ts';
+import { providersFeature } from './advanced/features/providers/index.ts';
+import { traceFeature } from './advanced/features/trace.ts';
+import { worldsFeature } from './advanced/features/worlds/index.ts';
 import { chatPage } from './features/chat/index.ts';
 import { usagePage } from './features/cost/index.ts';
 import { dressPage } from './features/dress/index.ts';
 import { homePage } from './features/home/index.ts';
+import { onModeRequest, readMode, writeMode, type ConsoleMode } from './features/mode.ts';
 import { personaPage } from './features/persona/index.ts';
 import { petPage } from './features/pet/index.ts';
 import { voicePage } from './features/voice/index.ts';
-import { createRail } from './rail/index.ts';
+import { createRail, type NavGroup, type NavItem } from './rail/index.ts';
+import { S as R } from './rail/strings.ts';
 import { L } from './strings.ts';
 
-/** The pages, in the rail's order. */
-export const PAGES: readonly Page[] = [homePage, petPage, dressPage, voicePage, personaPage, usagePage, chatPage];
+/** One entry of the rail and the page it mounts; on 系统提示词 the advanced mode mounts another page. */
+interface Entry {
+  route: string;
+  label: string;
+  icon?: ConsoleIconName;
+  /** Listed in the normal mode too. */
+  basic: boolean;
+  group: 'primary' | 'world-root' | 'integrations' | 'diagnostics';
+  needsAny?: readonly string[];
+  page?: Page;
+  feature?: FrameworkFeature;
+}
+
+const fromPage = (page: Page, feature?: FrameworkFeature): Entry => ({
+  route: page.route, label: page.label, icon: page.icon, basic: true, group: 'primary', page,
+  ...(feature ? { feature, ...(feature.needsAny ? { needsAny: feature.needsAny } : {}) } : {}),
+});
+const fromFeature = (feature: FrameworkFeature, group: Entry['group']): Entry => ({
+  route: feature.route, label: feature.label, ...(feature.icon ? { icon: feature.icon } : {}), basic: false, group, feature,
+  ...(feature.needsAny ? { needsAny: feature.needsAny } : {}),
+});
+
+/** The rail's entries in order. */
+export const ENTRIES: readonly Entry[] = [
+  fromPage(homePage), fromPage(petPage), fromPage(dressPage), fromPage(voicePage),
+  fromPage(personaPage, promptsWithClearFeature), fromPage(usagePage), fromPage(chatPage),
+  // 模型供应商 keeps the providers page's own name
+  fromFeature(providersFeature, 'integrations'), fromFeature(extensionsFeature, 'integrations'),
+  fromFeature(traceFeature, 'diagnostics'), fromFeature(coreFeature, 'diagnostics'),
+  fromFeature(worldsFeature, 'world-root'),
+];
 
 const HOME = homePage.route;
 
@@ -43,24 +93,76 @@ export function boot(doc: Document = document): Disposable {
 
   const root = doc.createElement('div');
   root.id = 'kernel-root';
+  // manifest pages and the window's own pages each have their own root: the page host empties its own
+  const pageRoot = doc.createElement('div');
   const slotHost = doc.createElement('div');
-  root.append(slotHost);
+  root.append(pageRoot, slotHost);
   doc.body.append(root);
 
   const onError = (err: unknown): void => { console.error('[console]', err); };
   const life = new Lifecycle(onError);
   const memo = createMemo('cortico.panel.');
   const router = new Router({ win: window, confirmLeave: async (message) => window.confirm(message), onError });
+  const loader = new ConsolePageLoader({
+    importModule: (url: string) => import(/* @vite-ignore */ url),
+    styleHost: doc.head,
+    createLink: () => doc.createElement('link'),
+    log: (msg: string, detail?: unknown) => console.warn('[console]', msg, detail ?? ''),
+  });
+  const hostDeps = {
+    doc, overlayHost: doc.body, loader, builtins: BUILTIN_PANELS, router, memo, onError,
+    fetchManifest: () => fetchManifest(),
+    createSocket: (url: string) => new WebSocket(url) as unknown as SocketLike,
+    wsUrl: (path: string) => wsUrlOf(location, withLanguage(path)),
+  };
+  const host = new ConsolePageHost({ ...hostDeps, root: pageRoot });
+  const consolePageHost: NonNullable<FeatureContext['consolePageHost']> = (opts) => new ConsolePageHost({ ...hostDeps, root: opts.root, route: opts.route });
+
+  let mode: ConsoleMode = readMode();
+  let capabilities: Record<string, boolean> = {};
+  let ready = false;
   const ui = createConsoleUi({ memo, overlayHost: doc.body, signal: life.signal, doc });
-  const rail = createRail({ doc, ui, router, pages: PAGES, memo, signal: life.signal, content: root, onAdvanced: () => openAdvanced(), onError });
+  const rail = createRail({
+    doc, ui, router, mode, memo, signal: life.signal, content: root, onError,
+    onModeToggle: () => setMode(mode === 'advanced' ? 'normal' : 'advanced'),
+  });
   doc.body.insertBefore(rail.el, doc.body.firstChild);
   rail.el.after(rail.backdrop);
 
-  let capabilities: Record<string, boolean> = {};
-  let ready = false;
+  const available = (e: Entry) => !e.needsAny?.length || e.needsAny.some((k) => capabilities[k] === true);
+  const item = (e: Entry): NavItem => ({ label: e.label, ...(e.icon ? { icon: e.icon } : {}), segments: [e.route], basic: e.basic });
+  /** The rail's groups: the pages, the World tree, 接入, 人格与记忆, 诊断. Only active pages of the manifest are listed. */
+  const renderNav = (): void => {
+    const entries = ENTRIES.filter(available);
+    const listed = host.pages.filter((p) => p.availability === 'active');
+    const pages = (kind: string, icon?: ConsoleIconName) => listed.filter((p) => p.kind === kind).map((p): NavItem => ({
+      label: p.label || p.id, ...(icon ? { icon } : {}), segments: [PROVIDER_ROUTE, p.id], basic: false, pageId: p.id, lamps: p.lamps ?? [],
+    }));
+    const of = (group: Entry['group']) => entries.filter((e) => e.group === group).map(item);
+    const groups: NavGroup[] = [
+      { kind: 'primary', label: '', items: of('primary') },
+      { kind: 'world-tree', label: R.groupWorlds, items: of('world-root'), modules: pages('world') },
+      { kind: 'framework', label: L.integrations, items: of('integrations') },
+      { kind: 'persona', label: L.personaMemory, items: [...pages('persona', 'bot'), ...pages('memory', 'folder-open')] },
+      { kind: 'framework', label: L.diagnostics, items: of('diagnostics') },
+    ];
+    rail.setNav(groups);
+  };
+  renderNav();
+
+  const setMode = (next: ConsoleMode): void => {
+    if (next === mode) return;
+    mode = next;
+    writeMode(mode);
+    rail.setMode(mode, true);
+    // the page open now stays, even one the normal mode does not list; the next page picked is checked as usual
+  };
+  onModeRequest(setMode, life.signal);
+  const offNav = host.onNavChange(renderNav);
+  life.own(subscribeLamps(doc, (lamps) => rail.setLamps(lamps)));
+
   let mounted: { route: string; lifecycle: Lifecycle } | null = null;
   let generation = 0;
-
   const unmount = (): void => {
     const cur = mounted;
     mounted = null;
@@ -69,22 +171,29 @@ export function boot(doc: Document = document): Disposable {
     slotHost.replaceChildren();
   };
 
-  const mount = (page: Page): void => {
+  const mount = (entry: Entry, route: Route): void => {
     unmount();
     const gen = generation;
     const lifecycle = new Lifecycle(onError);
-    mounted = { route: page.route, lifecycle };
+    mounted = { route: entry.route, lifecycle };
     const slot = doc.createElement('div');
-    slot.className = `featureslot featureslot-${page.route}`;
+    slot.className = `featureslot featureslot-${entry.route}`;
     slotHost.append(slot);
     const pageUi = createConsoleUi({ memo, overlayHost: doc.body, signal: lifecycle.signal, doc });
-    const ctx: PageContext = {
-      root: slot, lifecycle, signal: lifecycle.signal, ui: pageUi, router, capabilities, onError,
-      mountPanel: (pageId, panelId, box) => mountPanel({ doc, memo, onError, addLeaveGuard: (fn) => router.addLeaveGuard(fn) }, pageId, panelId, box),
+    const ctx: FeatureContext = {
+      root: slot, lifecycle, signal: lifecycle.signal, ui: pageUi, router, route, capabilities, onError, consolePageHost,
+      refreshNav: () => host.refresh(),
     };
+    const mountPanel = async (pageId: string, panelId: string, box: HTMLElement): Promise<Disposable> => {
+      const embedded = consolePageHost({ root: doc.createElement('div'), route: () => [entry.route] });
+      await embedded.load();
+      return embedded.mountConnection(pageId, panelId, box, {}, (context) => context);
+    };
+    // 系统提示词: the whole prompt in the advanced mode, the persona alone in the normal mode
+    const run = () => (entry.feature && (mode === 'advanced' || !entry.page) ? entry.feature.mount(ctx) : entry.page!.mount({ ...ctx, mountPanel }));
     void (async () => {
       try {
-        const out = await page.mount(ctx);
+        const out = await run();
         if (gen !== generation) { out?.dispose(); return; }
         if (out) lifecycle.own(out);
       } catch (err) {
@@ -92,7 +201,7 @@ export function boot(doc: Document = document): Disposable {
         onError(err);
         lifecycle.dispose();
         slot.replaceChildren();
-        const card = pageUi.sheet({ title: L.featureLoadFailed(page.label) });
+        const card = pageUi.sheet({ title: L.featureLoadFailed(entry.label) });
         card.body.append(pageUi.msgline(err instanceof Error ? err.message : String(err), true));
         slot.append(card.el);
       }
@@ -102,10 +211,28 @@ export function boot(doc: Document = document): Disposable {
   const apply = (route: Route): void => {
     rail.setRoute(route);
     if (!ready) return;
-    const page = PAGES.find((p) => p.route === route.segments[0]);
-    // an empty or unknown route opens 开始 without a history entry
-    if (!page) { router.replace([HOME]); return; }
-    if (mounted?.route !== page.route) mount(page);
+    const head = route.segments[0];
+    const entry = ENTRIES.find((e) => e.route === head);
+    // an empty route, and in the normal mode a page it does not list, open 开始 without a history entry
+    const reachable = mode === 'advanced' ? head === PROVIDER_ROUTE || !!entry : !!entry?.basic;
+    if (!head || !reachable) { router.replace([HOME]); return; }
+    // a model module's page is a section of 模型供应商
+    if (head === PROVIDER_ROUTE && route.segments[1]?.startsWith('llm:')) { router.replace(['providers']); return; }
+    if (head === PROVIDER_ROUTE) {
+      unmount();
+      const pageId = route.segments[1];
+      if (!pageId) { host.unmount(); return; }
+      void host.show(pageId, route.segments[2]);
+      return;
+    }
+    if (entry && available(entry) && (!entry.feature || featureAvailable(entry.feature, capabilities))) {
+      host.unmount();
+      // a page handles a change of its own sub-tab (segments[1]) itself
+      if (mounted?.route !== entry.route) mount(entry, route);
+      return;
+    }
+    host.unmount();
+    unmount();
   };
 
   const offRoute = router.onChange(apply);
@@ -117,16 +244,20 @@ export function boot(doc: Document = document): Disposable {
       disposeThemeStudio();
       applyStoredTheme(doc, { injected });
     }),
+    host.load(),
   ]).then(() => {
     if (life.signal.aborted) return;
     ready = true;
     rail.setCapabilities(capabilities);
+    renderNav();
     apply(router.route);
   });
 
   return {
     dispose(): void {
+      offNav.dispose();
       unmount();
+      host.unmount();
       offRoute.dispose();
       stopRouter.dispose();
       life.dispose();

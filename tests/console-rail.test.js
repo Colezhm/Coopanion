@@ -13,9 +13,12 @@ class MediaQuery extends EventTarget {
   }
 }
 
-const pages = [
-  { route: 'home', label: 'Home', icon: 'play', mount() {} },
-  { route: 'chat', label: 'Chat', icon: 'bot', mount() {} },
+const nav = [
+  { kind: 'primary', label: '', items: [
+    { label: 'Home', icon: 'play', segments: ['home'], basic: true },
+    { label: 'Chat', icon: 'bot', segments: ['chat'], basic: true },
+  ] },
+  { kind: 'framework', label: 'Diagnostics', items: [{ label: 'Core', icon: 'cpu', segments: ['core'], basic: false }] },
 ];
 let queries;
 let disposals;
@@ -30,7 +33,8 @@ function mount() {
   const ui = createConsoleUi({ doc: document, overlayHost: document.body, memo, signal: life.signal });
   const router = new Router({ win: window, onError: (err) => { throw err; } });
   const content = document.getElementById('kernel-root');
-  const rail = createRail({ doc: document, ui, router, pages, memo, signal: life.signal, content, onAdvanced() {}, onError: (err) => { throw err; } });
+  const rail = createRail({ doc: document, ui, router, mode: 'normal', memo, signal: life.signal, content, onModeToggle() {}, onError: (err) => { throw err; } });
+  rail.setNav(nav);
   document.body.prepend(rail.el);
   rail.el.after(rail.backdrop);
   const offRoute = router.onChange((route) => rail.setRoute(route));
@@ -130,6 +134,17 @@ describe('settings window rail', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(item.getAttribute('aria-current')).toBe('page');
     expect(rail.el.querySelector('a[href="#/home"]').getAttribute('aria-current')).toBeNull();
+  });
+
+  it('lists only the basic entries in the normal mode and every entry in the advanced mode', () => {
+    const { rail } = mount();
+    const core = rail.el.querySelector('a[href="#/core"]');
+    expect(core.closest('.navgroup').hidden).toBe(true);
+    expect(document.body.classList.contains('companion-normal')).toBe(true);
+    rail.setMode('advanced', false);
+    expect(core.closest('.navgroup').hidden).toBe(false);
+    expect(core.hidden).toBe(false);
+    expect(document.body.classList.contains('companion-normal')).toBe(false);
   });
 
   it('releases media listeners and overlays when the rail stops', () => {

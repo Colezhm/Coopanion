@@ -1,7 +1,7 @@
 /*
- * The settings window's own layer over styles.css (scripts/stage.ts adds it last): the rail (folding,
- * the logo, the foot), one heading and one content width for every page, icon lines, the check boxes,
- * and what text can be selected. Only the theme's color variables are used.
+ * The settings window's own layer over styles.css (scripts/stage.ts adds it last): the rail (folding, the
+ * logo, the two modes, the foot), one heading and one content width for every page, icon lines, the check
+ * boxes, and what text can be selected. Only the theme's color variables are used.
  */
 
 /* ---------- compact navigation ---------- */
@@ -82,6 +82,8 @@ body.companion-sidebar { display: flex; height: 100dvh; overflow: hidden; }
   content: ''; position: absolute; left: 1px; top: 13px; bottom: 13px; width: 3px;
   border-radius: 3px; background: var(--accent);
 }
+#rail .navmodule-list .navitem { padding-left: 10px; }
+#rail .companion-module-icon { display: none; }
 #rail .companion-mode { flex: none; margin: 8px 12px; font: 450 13px/1.35 var(--sans); overflow: hidden; }
 /* the foot's buttons keep one place, 16px in, whether the rail is open, closed or on its way; packed against the
    bottom, so while its height animates (rail/index.ts) they stay put relative to the window's bottom */
@@ -103,17 +105,23 @@ body.companion-sidebar { display: flex; height: 100dvh; overflow: hidden; }
 #rail.is-collapsed .companion-runstate { opacity: 0; visibility: hidden; transition: opacity 100ms ease, visibility 0s linear 100ms; }
 #rail.is-collapsed .companion-runstate { position: absolute; }
 #rail.is-collapsed .stacklabel { height: 1px; margin: 8px 10px; background-color: var(--border); color: transparent; }
+#rail.is-collapsed .navmodule-list { margin: 0; padding: 0; gap: 4px; }
+#rail.is-collapsed .navmodule-list::before, #rail.is-collapsed .navmodule-list .navitem::before { display: none; }
+#rail.is-collapsed .companion-module-icon { display: block; }
+#rail.is-collapsed .navmodule-list .navitem { padding-left: 14px; }
+#rail.is-collapsed .navlamps { position: absolute; right: 5px; bottom: 5px; padding: 0; gap: 2px; }
+#rail.is-collapsed .navdot { width: 4px; height: 4px; }
 #rail.is-collapsed .railfoot { flex-direction: column; flex-wrap: nowrap; justify-content: flex-end; align-items: flex-start; }
 /* folded, the line over the avatar spans the column */
 #rail.is-collapsed .rail-who { flex: none; align-self: stretch; }
 /* folded, pause/resume over shut down (the keys' row has shut down first) */
 #rail.is-collapsed .rail-actions { flex-direction: column-reverse; align-items: flex-start; }
-/* the folded rail has no 高级模式 button: it folds away with the rail */
-#rail .companion-mode {
+/* in the normal mode the folded rail has no mode button: it folds away with the rail */
+.companion-normal #rail .companion-mode {
   height: 40px;
   transition: background-color 140ms ease, color 140ms ease, height var(--rail-motion), margin var(--rail-motion), padding var(--rail-motion), opacity 160ms ease;
 }
-#rail.is-collapsed .companion-mode { height: 0; min-height: 0; margin-block: 0; padding-block: 0; opacity: 0; visibility: hidden; }
+.companion-normal #rail.is-collapsed .companion-mode { height: 0; min-height: 0; margin-block: 0; padding-block: 0; opacity: 0; visibility: hidden; }
 
 /* 窄屏侧栏的遮罩 101、侧栏 102、提示 103:在页面元素之上,在弹窗(120)与 toast(130)之下 */
 .companion-sidebar-tooltip {
@@ -164,10 +172,10 @@ body.companion-sidebar { display: flex; height: 100dvh; overflow: hidden; }
 svg[viewBox="0 0 24 24"][stroke="currentColor"] { stroke-width: 1.6px; }
 svg[viewBox="0 0 24 24"][stroke="currentColor"] * { vector-effect: non-scaling-stroke; }
 
-/* ---------- only what can be edited, and what was said (the conversation, code), can be selected ---------- */
+/* ---------- only what can be edited, and what was said or ran (the conversation, the run trace, code), can be selected ---------- */
 body { -webkit-user-select: none; user-select: none; }
 input, textarea, [contenteditable]:not([contenteditable="false"]), [contenteditable]:not([contenteditable="false"]) *,
-.chat-thread .bubble, .pet-bubble.say, .pet-bubble .b-text, pre, code {
+.chat-thread .bubble, .pet-bubble.say, .pet-bubble .b-text, .tlscroll, pre, code {
   -webkit-user-select: text; user-select: text;
 }
 
@@ -178,6 +186,21 @@ textarea.persona-editor { width: 100%; min-height: max(320px, calc(100dvh - 360p
 .companion-voicebox .sheet:first-of-type > h3 { display: none; }
 .companion-voicebox .sheet:first-of-type { padding-top: 0; }
 
+/* 终端: the heading as on 对话; the live band and the timeline keep the content width */
+.featureslot-live { scrollbar-gutter: auto; }
+.liveview > .featureintro {
+  flex: none; position: static; overflow: hidden; scrollbar-gutter: stable both-edges;
+  margin: 0; padding: 30px var(--page-gutter) 0; border-bottom: 0;
+}
+.liveview > .featureintro > * { width: 100%; max-width: var(--content-width); margin-inline: auto; }
+.liveview > .featureintro > .pagetitle { padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.liveview > .liveband {
+  overflow: hidden; scrollbar-gutter: stable both-edges; border-bottom: 0;
+  padding: 12px max(var(--page-gutter), calc((100% - var(--content-width)) / 2));
+}
+.tlscroll { scrollbar-gutter: stable both-edges; padding-left: var(--page-gutter); padding-right: var(--page-gutter); }
+.tlinner, .tlthink { max-width: var(--content-width); }
+
 /* ---------- the rail's foot: the run state in words, both states in color ---------- */
 .rail-actions { align-items: center; }
 .companion-runstate { font: 600 12.5px/1 var(--sans); color: var(--accent); white-space: nowrap; cursor: pointer; }
@@ -186,18 +209,25 @@ textarea.persona-editor { width: 100%; min-height: max(320px, calc(100dvh - 360p
 .rail-run.paused { color: var(--warn); }
 .rail-run.paused:hover { color: var(--warn); }
 
-/* ---------- the 高级模式 button gives a little when pressed ---------- */
+/* ---------- changing modes: entries fade in and out, the button gives a little ---------- */
+@keyframes companion-enter { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+@keyframes companion-leave { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-6px); } }
+#rail .companion-enter { animation: companion-enter 200ms cubic-bezier(.22, 1, .36, 1) both; }
+#rail .companion-leave { animation: companion-leave 200ms ease both; pointer-events: none; }
 @keyframes companion-press { 0% { transform: scale(1); } 40% { transform: scale(.95); } 100% { transform: scale(1); } }
 @keyframes companion-turn { from { transform: rotate(-90deg); opacity: .3; } to { transform: none; opacity: 1; } }
 #rail .companion-mode.companion-pressed { animation: companion-press 260ms ease; }
 #rail .companion-mode.companion-pressed .navicon { animation: companion-turn 320ms cubic-bezier(.22, 1, .36, 1); }
 #rail .companion-mode:active { transform: scale(.97); }
-/* with less motion asked for, the rail folds at once (its width, the logo, the words, the link under the version) */
+/* with less motion asked for, the rail folds at once (its width, the logo, the words, the link under the version) and modes change without fading */
 @media (prefers-reduced-motion: reduce) {
-  #rail .companion-mode.companion-pressed, #rail .companion-mode.companion-pressed .navicon { animation: none; }
+  #rail .companion-enter, #rail .companion-leave, #rail .companion-mode.companion-pressed, #rail .companion-mode.companion-pressed .navicon { animation: none; }
   #rail { --rail-motion: 0s linear; }
   #rail .lbl, #rail .rail-name, #rail .rail-rename, #rail .companion-runstate, #rail .stacklabel, .companion-brand-meta { transition: none; }
 }
+
+/* 换模式时只藏起普通模式不列的项(rail/index.ts),导航项自带 display,要显式让 hidden 生效 */
+#rail nav.stack .navitem[hidden], #rail nav.stack .navgroup[hidden] { display: none; }
 
 /* ---------- checkboxes and radio buttons: drawn here, in exactly the switches' green (var(--accent)) in every scheme ----------
    the browser's own boxes (accent-color) pick their own shade and check color; switches are drawn elsewhere and left out.

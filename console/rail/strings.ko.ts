@@ -3,6 +3,9 @@ import type { en } from './strings.ts';
 export const S: Partial<typeof en> = {
   // index.ts
   navAria: '콘솔 탐색',
+  groupWorlds: 'World',
+  moduleInstancesAria: 'World 인스턴스',
+
   runResume: '재개',
   runPause: '일시 중지',
   shutdownAria: '종료',
@@ -20,7 +23,7 @@ export const S: Partial<typeof en> = {
   resultUnverified: '종료 단계 실행됨, 상태 미확인',
   resultDefault: '종료 단계를 실행했습니다.',
   noReceipt: (msg: string) =>
-    `종료 결과를 받지 못했습니다(${msg}). 프로세스가 이미 종료되었을 수 있습니다. 자세한 내용은 현재 실행의 data/runs/<run>/log.jsonl에 있는 shutdown 기록을 확인하세요.`,
+    `종료 결과를 받지 못했습니다(${msg}). 프로세스가 이미 종료되었을 수 있습니다.`,
   docTitle: (name: string) => `콘솔 · ${name}`,
   renameTitle: '클릭하여 이름 변경',
   renameSaved: '표시 이름을 저장했습니다',

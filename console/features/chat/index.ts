@@ -15,7 +15,7 @@ import { panelStreamRoute } from '../../base/protocol.ts';
 import { openStream } from '../../base/stream.ts';
 import { browserSocketEnv } from '../../base/websocket.ts';
 import { intro } from '../intro.ts';
-import { openAdvanced } from '../../advanced.ts';
+import { requestMode } from '../mode.ts';
 import { S, STEP } from './strings.ts';
 
 const PET_PAGE = 'world:desktop-pet';
@@ -88,7 +88,7 @@ async function mount(ctx: PageContext): Promise<void> {
   const expanded = new Set<string>();
 
   // ---- layout
-  // the page's heading as on every page; the run phase and the way to the run trace take the note's line
+  // the page's heading as on every page; the run phase and the way to the Terminal page take the note's line
   const phaseEl = ui.h('span', 'chat-phase');
   const phaseDot = ui.h('span', 'dot');
   const phaseText = ui.h('span');
@@ -96,7 +96,7 @@ async function mount(ctx: PageContext): Promise<void> {
   const trace = ui.h('button', 'chat-trace', S.trace);
   trace.type = 'button';
   trace.title = S.traceHint;
-  trace.addEventListener('click', () => openAdvanced('#/live'), { signal: ctx.signal });
+  trace.addEventListener('click', () => { requestMode('advanced'); ctx.router.navigate(['live']); }, { signal: ctx.signal });
   const note = ui.h('div', 'chat-note-line');
   note.append(phaseEl, trace);
   const top = intro(ui, S.title, { desc: note });

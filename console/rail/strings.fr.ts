@@ -3,6 +3,9 @@ import type { en } from './strings.ts';
 export const S: Partial<typeof en> = {
   // index.ts
   navAria: 'Navigation de la console',
+  groupWorlds: 'World',
+  moduleInstancesAria: 'Instances de World',
+
   runResume: 'Reprendre',
   runPause: 'Mettre en pause',
   shutdownAria: 'Arrêter',
@@ -20,7 +23,7 @@ export const S: Partial<typeof en> = {
   resultUnverified: "Étapes d'arrêt exécutées ; état non vérifié",
   resultDefault: "Étapes d'arrêt exécutées.",
   noReceipt: (msg: string) =>
-    `Aucun résultat d'arrêt reçu (${msg}) ; le processus s'est peut-être terminé. Consultez les entrées shutdown dans data/runs/<run>/log.jsonl de l'exécution en cours.`,
+    `Aucun résultat d'arrêt reçu (${msg}) ; le processus s'est peut-être terminé.`,
   docTitle: (name: string) => `Console · ${name}`,
   renameTitle: 'Cliquer pour renommer',
   renameSaved: 'Nom affiché enregistré',

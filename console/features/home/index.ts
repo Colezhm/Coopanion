@@ -6,8 +6,8 @@
  * for the console's language; outside Chinese the services that take mainland China accounts only
  * behind a More button); the picked one's model and key boxes are below, and 「保存并开始」 saves the
  * key to that service's own endpoint on the platform for the language unless switched, tests it,
- * makes the endpoint active and resumes the run. The link to other model services opens the Model
- * page of the advanced mode (Cortico's console) in its own window. 「我的桌宠」 says
+ * makes the endpoint active and resumes the run. The link to other model services asks, in the
+ * normal mode, before it switches to the advanced mode, where the model pages are. 「我的桌宠」 says
  * whether the pet is on the desktop, shows it live (the pet page in a tab, which draws its own wall,
  * floor and night/day button), and under it hides it, shows it and opens the dressing page. Voice
  * input and computer use have their own pages (features/voice, features/cua); 「使用向导」 at the top
@@ -15,13 +15,13 @@
  * for it). Saving and testing the key lives in model.ts. Every control calls an endpoint the rest of
  * the console already uses. Styles are in home.css, which scripts/stage.ts adds to the console stylesheet.
  */
-import { post } from '../../base/api.ts';
+import { invokePanel } from '../../base/api.ts';
 import { LANGUAGE } from '../../base/language.ts';
 import type { Page, PageContext } from '../../base/page.ts';
 import { intro } from '../intro.ts';
 import { revealWhenPainted } from '../frame-reveal.ts';
 import { schemesCard } from '../schemes/index.ts';
-import { openAdvanced } from '../../advanced.ts';
+import { readMode, requestMode } from '../mode.ts';
 import {
   connectVendor, consoleCall, defaultRegion, localized, locate, readStatus, regionsOf, siteOf, testEndpoint, VENDOR_ICONS, vendorName, vendorsFor,
   type ConnectResult, type Region, type Status, type Vendor,
@@ -41,7 +41,6 @@ const PREVIEW_MIN = 180;
 const PREVIEW_MAX = 560;
 const PREVIEW_GAP = 20;
 
-const panelPath = (page: string, panel: string, method: string) => `/api/console/providers/${encodeURIComponent(page)}/panels/${panel}/${method}`;
 const errText = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
 async function mount(ctx: PageContext): Promise<void> {
@@ -50,7 +49,7 @@ async function mount(ctx: PageContext): Promise<void> {
   root.classList.add('home');
 
   /* ---------- heading ---------- */
-  const guide = ui.button(S.guide, { size: 'sm', onClick: () => { void post(panelPath(PET_PAGE, 'pet', 'guide'), { args: [] }, opts).catch((err) => ui.toast(String(err instanceof Error ? err.message : err))); } });
+  const guide = ui.button(S.guide, { size: 'sm', onClick: () => { void invokePanel(PET_PAGE, 'pet', 'guide', [], opts).catch((err) => ui.toast(String(err instanceof Error ? err.message : err))); } });
   guide.title = S.guideHint;
   root.append(intro(ui, S.nav, { actions: [guide] }));
 
@@ -162,12 +161,15 @@ async function mount(ctx: PageContext): Promise<void> {
   };
   pickVendor(vendor);
   const need = ui.h('p', 'home-note', S.modelNeed(vendorName(shown[0]!, LANGUAGE)));
-  // the Model page of the advanced mode, in its own window
+  // in the normal mode it asks before switching to the advanced mode, where the Model page is
   const otherLink = ui.h('a', 'home-link', S.otherProvider);
-  otherLink.href = '/#/providers';
-  otherLink.addEventListener('click', (e) => {
+  otherLink.href = '#/providers';
+  otherLink.addEventListener('click', async (e) => {
+    if (readMode() === 'advanced') return;
     e.preventDefault();
-    openAdvanced('#/providers');
+    if (!await ui.confirm({ title: S.toAdvancedTitle, body: S.toAdvancedBody })) return;
+    requestMode('advanced');
+    ctx.router.navigate(['providers']);
   }, opts);
   const links = ui.rowbar();
   links.classList.add('home-links');
@@ -275,7 +277,7 @@ async function mount(ctx: PageContext): Promise<void> {
   let petState: PetState | null = null;
   const refreshPet = async () => {
     try {
-      petState = await post<PetState>(panelPath(PET_PAGE, 'pet', 'state'), { args: [] }, opts);
+      petState = await invokePanel<PetState>(PET_PAGE, 'pet', 'state', [], opts);
     } catch { petState = null; }
     const onDesktop = petState?.onDesktop === true;
     petPill.textContent = onDesktop ? S.petShown : S.petHidden;
@@ -287,7 +289,7 @@ async function mount(ctx: PageContext): Promise<void> {
       preview.src = petState.url;
     }
   };
-  const petCall = (method: string) => post(panelPath(PET_PAGE, 'pet', method), { args: [] }, opts).catch(() => null);
+  const petCall = (method: string) => invokePanel(PET_PAGE, 'pet', method, [], opts).catch(() => null);
   showPet.addEventListener('click', async () => {
     // a hidden window comes back by opening it again
     await petCall('closeWindow');

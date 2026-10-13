@@ -55,10 +55,10 @@ async function mount(ctx: PageContext): Promise<void> {
       const content = editor.value;
       say(P.saving);
       try {
-        const out = await post<{ result?: string; revision?: string }>('/api/prompts', { key: DOC_KEY, content, baseRevision: persona.revision }, { signal });
+        const out = await post<{ revision?: string }>('/api/prompts', { key: DOC_KEY, content, baseRevision: persona.revision }, { signal });
         saved = content;
         persona.revision = out?.revision;
-        say(out?.result || '');
+        say(P.saved);
       } catch (err) {
         if (signal.aborted) return;
         say((err as { status?: number }).status === 409 ? P.conflict : P.saveFailed(errText(err)), true);

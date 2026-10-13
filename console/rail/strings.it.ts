@@ -3,6 +3,9 @@ import type { en } from './strings.ts';
 export const S: Partial<typeof en> = {
   // index.ts
   navAria: 'Navigazione della console',
+  groupWorlds: 'World',
+  moduleInstancesAria: 'Istanze dei World',
+
   runResume: 'Riprendi',
   runPause: 'Metti in pausa',
   shutdownAria: 'Arresta',
@@ -20,7 +23,7 @@ export const S: Partial<typeof en> = {
   resultUnverified: 'Passaggi di arresto eseguiti; stato non verificato',
   resultDefault: 'Passaggi di arresto eseguiti.',
   noReceipt: (msg: string) =>
-    `Nessun risultato di arresto ricevuto (${msg}); il processo potrebbe essere terminato. Vedi le voci shutdown in data/runs/<run>/log.jsonl dell'esecuzione corrente.`,
+    `Nessun risultato di arresto ricevuto (${msg}); il processo potrebbe essere terminato.`,
   docTitle: (name: string) => `Console · ${name}`,
   renameTitle: 'Clicca per rinominare',
   renameSaved: 'Nome visualizzato salvato',

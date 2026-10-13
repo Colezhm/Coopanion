@@ -1,7 +1,9 @@
 /**
  * The settings window's left rail: the Coopanion mark with the version under it and a new release's
- * link, the button that folds the rail to icons, one entry per page, the 高级模式 button, and the
- * foot (shut down, pause/resume with the run state in words, the avatar and the bot's name).
+ * link, the button that folds the rail to icons, the pages in their groups (setNav), the button that
+ * switches between the normal and the advanced mode, and the foot (shut down, pause/resume with the
+ * run state in words, the avatar and the bot's name). The normal mode shows only the entries marked
+ * basic; switching fades the others in or out.
  *
  * Folded, the rail shows icons only and a tooltip names what is under the pointer. Below 1000px
  * wide it starts folded unless it was set by hand (kept in the memo); below 720px it opens over the
@@ -10,9 +12,11 @@
  */
 import type { ConsoleMemo, ConsoleUi } from 'cortico/web/shared/client-panel.ts';
 import { get, post, setConfig } from '../base/api.ts';
-import type { Page } from '../base/page.ts';
+import type { ConsoleLamp } from 'cortico/web/shared/console-protocol.ts';
 import { buildHash, type Route, type Router } from '../base/router.ts';
-import { icon } from '../base/ui/icons.ts';
+import { icon, type ConsoleIconName } from '../base/ui/icons.ts';
+import { lampRow, paintLamps } from '../base/ui/lamp.ts';
+import type { ConsoleMode } from '../features/mode.ts';
 import { mountRelease } from '../features/release.ts';
 import { sidebarBrand } from './brand.ts';
 import { L } from '../strings.ts';
@@ -22,17 +26,36 @@ import { S } from './strings.ts';
 const COLLAPSED_KEY = 'companion.sidebar.collapsed';
 const DEFAULT_NAME = 'bot';
 
+/** One entry: where it goes, and the page whose lamps it shows (a page from the manifest). */
+export interface NavItem {
+  label: string;
+  icon?: ConsoleIconName;
+  segments: readonly string[];
+  /** Listed in the normal mode too. */
+  basic: boolean;
+  pageId?: string;
+  lamps?: readonly ConsoleLamp[];
+}
+
+/** `primary` entries stand alone; the others sit under a title. `modules` are a World tree's instances. */
+export interface NavGroup {
+  kind: 'primary' | 'world-tree' | 'framework' | 'persona';
+  label: string;
+  items: readonly NavItem[];
+  modules?: readonly NavItem[];
+}
+
 export interface RailDeps {
   doc: Document;
   ui: ConsoleUi;
   router: Router;
-  pages: readonly Page[];
+  mode: ConsoleMode;
   memo: ConsoleMemo;
   signal: AbortSignal;
   /** The page area: inert while the narrow rail is open over it. */
   content: HTMLElement;
-  /** 高级模式. */
-  onAdvanced(): void;
+  /** The mode button was pressed. */
+  onModeToggle(): void;
   onError(err: unknown): void;
 }
 
@@ -41,6 +64,10 @@ export interface Rail {
   /** Goes right after `el`: on a narrow window it covers the page while the rail is open. */
   readonly backdrop: HTMLElement;
   setRoute(route: Route): void;
+  setNav(groups: readonly NavGroup[]): void;
+  setMode(mode: ConsoleMode, animate: boolean): void;
+  /** A new reading of the manifest pages' lamps; only the dots change. */
+  setLamps(lamps: Record<string, readonly ConsoleLamp[]>): void;
   setCapabilities(capabilities: Record<string, boolean>): void;
 }
 
@@ -79,39 +106,150 @@ export function createRail(deps: RailDeps): Rail {
   const nav = ui.h('nav', 'stack');
   nav.id = 'companion-navigation';
   nav.setAttribute('aria-label', S.navAria);
-  const entries = deps.pages.map((page) => {
-    const group = ui.h('div', 'navgroup navgroup-framework navgroup-primary');
-    group.setAttribute('role', 'group');
-    group.setAttribute('aria-label', page.label);
+  let entries: Array<{ item: HTMLAnchorElement; segments: readonly string[]; pageId?: string; lamps?: HTMLSpanElement }> = [];
+  let lamps: Record<string, readonly ConsoleLamp[]> = {};
+  let navLife: AbortController | null = null;
+  signal.addEventListener('abort', () => navLife?.abort(), { once: true });
+  let route: Route | null = null;
+  let mode: ConsoleMode = deps.mode;
+
+  const addItem = (parent: HTMLElement, it: NavItem, itemSignal: AbortSignal): void => {
     const item = ui.h('a', 'navitem');
-    item.href = buildHash([page.route]);
-    item.setAttribute('aria-label', page.label);
-    item.title = page.label;
-    item.append(icon(doc, page.icon, 'navicon'), ui.h('span', 'lbl', page.label));
+    item.href = buildHash(it.segments);
+    item.setAttribute('aria-label', it.label);
+    item.title = it.label;
+    item.dataset.basic = String(it.basic);
+    // a World instance has no icon of its own: the folded rail shows a generic one
+    item.append(icon(doc, it.icon ?? 'boxes', it.icon ? 'navicon' : 'navicon companion-module-icon'));
+    item.append(ui.h('span', 'lbl', it.label));
+    const entry: (typeof entries)[number] = { item, segments: it.segments };
+    if (it.pageId) {
+      entry.pageId = it.pageId;
+      entry.lamps = lampRow(doc, lamps[it.pageId] ?? it.lamps ?? []);
+      item.append(entry.lamps);
+    }
     // a modified or middle click keeps the browser's own behaviour
     item.addEventListener('click', (ev) => {
       if (ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
       ev.preventDefault();
-      router.navigate([page.route]);
-    }, { signal });
-    group.append(item);
-    nav.append(group);
-    return { route: page.route, item };
-  });
+      router.navigate(it.segments);
+    }, { signal: itemSignal });
+    parent.append(item);
+    entries.push(entry);
+  };
 
-  const advanced = ui.h('button', 'companion-mode');
-  advanced.type = 'button';
-  advanced.title = L.toAdvancedHint;
-  advanced.setAttribute('aria-label', L.toAdvanced);
-  advanced.append(icon(doc, 'settings', 'navicon'), ui.h('span', 'lbl', L.toAdvanced));
-  advanced.addEventListener('click', () => {
+  const group = (cls: string, label: string, titled: boolean): HTMLElement => {
+    const g = ui.h('div', `navgroup ${cls}`);
+    g.setAttribute('role', 'group');
+    g.setAttribute('aria-label', label);
+    if (titled) g.append(ui.h('div', 'stacklabel', label));
+    nav.append(g);
+    return g;
+  };
+
+  /** Draws the groups in order; entries the normal mode does not list are hidden at once. */
+  const setNav = (groups: readonly NavGroup[]): void => {
+    navLife?.abort();
+    navLife = new AbortController();
+    const itemSignal = navLife.signal;
+    entries = [];
+    nav.replaceChildren();
+    for (const g of groups) {
+      if (!g.items.length && !g.modules?.length) continue;
+      if (g.kind === 'primary') {
+        for (const it of g.items) addItem(group('navgroup-framework navgroup-primary', it.label, false), it, itemSignal);
+        continue;
+      }
+      const box = group(g.kind === 'persona' ? 'navgroup-persona navgroup-provider' : g.kind === 'world-tree' ? 'navgroup-world-tree' : 'navgroup-framework', g.label, true);
+      for (const it of g.items) addItem(box, it, itemSignal);
+      if (g.modules?.length) {
+        const list = ui.h('div', 'navmodule-list');
+        list.setAttribute('role', 'group');
+        list.setAttribute('aria-label', S.moduleInstancesAria);
+        box.append(list);
+        for (const it of g.modules) addItem(list, it, itemSignal);
+      }
+    }
+    applyRoute();
+    filterNav(false);
+  };
+
+  const applyRoute = (): void => {
+    for (const { item, segments } of entries) {
+      const on = !!route && segments.every((s, i) => route!.segments[i] === s);
+      item.classList.toggle('active', on);
+      if (on) item.setAttribute('aria-current', 'page');
+      else item.removeAttribute('aria-current');
+    }
+  };
+
+  /** How long an entry takes to fade in or out when the mode changes (companion.css `.companion-enter`, `.companion-leave`). */
+  const FADE_MS = 200;
+  /** Shows or hides one entry or group; on a mode change it fades, at once otherwise. */
+  const showEntry = (x: HTMLElement, show: boolean, animate: boolean): void => {
+    x.classList.remove('companion-enter', 'companion-leave');
+    if (!animate || show === !x.hidden) { x.hidden = !show; return; }
+    if (show) {
+      x.hidden = false;
+      void x.offsetWidth;
+      x.classList.add('companion-enter');
+      x.addEventListener('animationend', () => x.classList.remove('companion-enter'), { once: true });
+    } else {
+      x.classList.add('companion-leave');
+      setTimeout(() => { if (x.classList.contains('companion-leave')) { x.classList.remove('companion-leave'); x.hidden = true; } }, FADE_MS);
+    }
+  };
+  /** In the normal mode only the entries marked basic show; a group with none of them goes as a whole. */
+  const filterNav = (animate: boolean): void => {
+    const shown = (item: HTMLElement) => mode === 'advanced' || item.dataset.basic === 'true';
+    const fading = animate && !nav.querySelector('.companion-leave');
+    for (const g of nav.querySelectorAll<HTMLElement>('.navgroup')) {
+      const items = [...g.querySelectorAll<HTMLAnchorElement>('a.navitem')];
+      const any = items.some(shown);
+      // a group that goes as a whole fades as a whole, its entries untouched until it is gone; inside a group that
+      // stays, each entry fades on its own
+      if (!(animate && !any && !g.hidden)) for (const item of items) showEntry(item, shown(item), animate && any);
+      showEntry(g, any, animate);
+    }
+    // entries going out shorten the list: scroll to where it will end up while they fade, rather than jump there after
+    if (fading && nav.querySelector('.companion-leave')) {
+      const from = nav.scrollTop;
+      const leaving = [...nav.querySelectorAll<HTMLElement>('.companion-leave')];
+      for (const x of leaving) x.style.display = 'none';
+      const to = Math.max(0, Math.min(from, nav.scrollHeight - nav.clientHeight));
+      for (const x of leaving) x.style.display = '';
+      nav.scrollTop = from;
+      if (to < from && !win.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) {
+        const start = performance.now();
+        const step = (now: number): void => {
+          const k = Math.min(1, (now - start) / FADE_MS);
+          nav.scrollTop = from + (to - from) * (1 - (1 - k) ** 3);
+          if (k < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      } else nav.scrollTop = to;
+    }
+  };
+
+  const modeButton = ui.h('button', 'companion-mode');
+  modeButton.type = 'button';
+  modeButton.addEventListener('click', () => {
     // a short press animation on the button itself
-    advanced.classList.remove('companion-pressed');
-    void advanced.offsetWidth;
-    advanced.classList.add('companion-pressed');
-    deps.onAdvanced();
+    modeButton.classList.remove('companion-pressed');
+    void modeButton.offsetWidth;
+    modeButton.classList.add('companion-pressed');
+    deps.onModeToggle();
   }, { signal });
-  advanced.addEventListener('animationend', () => advanced.classList.remove('companion-pressed'), { signal });
+  modeButton.addEventListener('animationend', () => modeButton.classList.remove('companion-pressed'), { signal });
+  const renderMode = (animate: boolean): void => {
+    const advanced = mode === 'advanced';
+    modeButton.title = advanced ? L.toNormalHint : L.toAdvancedHint;
+    modeButton.setAttribute('aria-label', advanced ? L.toNormal : L.toAdvanced);
+    modeButton.replaceChildren(icon(doc, advanced ? 'eye-off' : 'settings', 'navicon'), ui.h('span', 'lbl', advanced ? L.toNormal : L.toAdvanced));
+    doc.body.classList.toggle('companion-normal', !advanced);
+    filterNav(animate);
+  };
+  renderMode(false);
 
   /* ---------- foot ---------- */
   const foot = ui.h('div', 'railfoot');
@@ -141,7 +279,7 @@ export function createRail(deps: RailDeps): Rail {
   actions.append(shutdown, run, runState);
   foot.append(who, actions);
 
-  el.append(brand, nav, advanced, foot);
+  el.append(brand, nav, modeButton, foot);
 
   let paused = false;
   let runPending = false;
@@ -380,13 +518,18 @@ export function createRail(deps: RailDeps): Rail {
   return {
     el,
     backdrop,
-    setRoute(route: Route): void {
-      for (const { route: r, item } of entries) {
-        const on = route.segments[0] === r;
-        item.classList.toggle('active', on);
-        if (on) item.setAttribute('aria-current', 'page');
-        else item.removeAttribute('aria-current');
-      }
+    setRoute(next: Route): void {
+      route = next;
+      applyRoute();
+    },
+    setNav,
+    setMode(next: ConsoleMode, animate: boolean): void {
+      mode = next;
+      renderMode(animate);
+    },
+    setLamps(next: Record<string, readonly ConsoleLamp[]>): void {
+      lamps = next;
+      for (const entry of entries) if (entry.lamps && entry.pageId) paintLamps(entry.lamps, lamps[entry.pageId] ?? []);
     },
     setCapabilities(next: Record<string, boolean>): void {
       capabilities = next;

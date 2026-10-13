@@ -3,6 +3,9 @@ import type { en } from './strings.ts';
 export const S: Partial<typeof en> = {
   // index.ts
   navAria: 'Navegación de la consola',
+  groupWorlds: 'World',
+  moduleInstancesAria: 'Instancias de World',
+
   runResume: 'Reanudar',
   runPause: 'Pausar',
   shutdownAria: 'Apagar',
@@ -20,7 +23,7 @@ export const S: Partial<typeof en> = {
   resultUnverified: 'Pasos de apagado ejecutados; estado sin verificar',
   resultDefault: 'Pasos de apagado ejecutados.',
   noReceipt: (msg: string) =>
-    `No se recibió el resultado del apagado (${msg}); es posible que el proceso haya terminado. Consulta los registros de shutdown en data/runs/<run>/log.jsonl de la ejecución actual.`,
+    `No se recibió el resultado del apagado (${msg}); es posible que el proceso haya terminado.`,
   docTitle: (name: string) => `Consola · ${name}`,
   renameTitle: 'Haz clic para cambiar el nombre',
   renameSaved: 'Nombre visible guardado',

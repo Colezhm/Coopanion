@@ -7,7 +7,7 @@
  * writes the deployment's theme.json); while this page is open it reads that record every
  * `THEME_POLL_MS` and applies it when the scheme or mode differs from what the window shows.
  */
-import { post } from '../../base/api.ts';
+import { invokePanel } from '../../base/api.ts';
 import type { Page, PageContext } from '../../base/page.ts';
 import { applyStoredTheme, disposeThemeStudio, getThemeStudio } from '../../base/theme/studio.ts';
 import { fetchTheme } from '../../base/theme/storage.ts';
@@ -19,7 +19,6 @@ const PET_PAGE = 'world:desktop-pet';
 /** How often the open page reads the theme record, one local request each time. */
 const THEME_POLL_MS = 1000;
 
-const panelPath = (method: string) => `/api/console/providers/${encodeURIComponent(PET_PAGE)}/panels/pet/${method}`;
 
 async function mount(ctx: PageContext): Promise<void> {
   const { ui, root, signal } = ctx;
@@ -52,7 +51,7 @@ async function mount(ctx: PageContext): Promise<void> {
   const refresh = async () => {
     let url: string | null = null;
     try {
-      url = (await post<{ dressUrl: string | null }>(panelPath('state'), { args: [] }, { signal }))?.dressUrl ?? null;
+      url = (await invokePanel<{ dressUrl: string | null }>(PET_PAGE, 'pet', 'state', [], { signal }))?.dressUrl ?? null;
     } catch { url = null; }
     frame.hidden = !url;
     note.hidden = !!url;

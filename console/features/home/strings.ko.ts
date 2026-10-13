@@ -14,6 +14,8 @@ export const S: Partial<typeof en> = {
   saveStart: '저장하고 시작',
   test: '테스트',
   otherProvider: '찾는 모델이 없나요? 다른 모델 직접 설정',
+  toAdvancedTitle: '고급 모드로 전환하시겠습니까?',
+  toAdvancedBody: '다른 모델 서비스는 고급 모드의 모델 페이지에서 설정합니다. 왼쪽 아래에서 일반 모드로 다시 전환할 수 있습니다.',
   testing: '테스트하는 중…',
   testOk: (ms: number | null) => `연결 정상${ms !== null ? `, ${ms} ms` : ''}`,
   testFail: (why: string) => `연결 실패: ${why}`,

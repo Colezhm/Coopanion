@@ -3,6 +3,9 @@ import type { en } from './strings.ts';
 export const S: Partial<typeof en> = {
   // index.ts
   navAria: 'コンソールのナビゲーション',
+  groupWorlds: 'World',
+  moduleInstancesAria: 'World インスタンス',
+
   runResume: '再開',
   runPause: '一時停止',
   shutdownAria: 'シャットダウン',
@@ -20,7 +23,7 @@ export const S: Partial<typeof en> = {
   resultUnverified: 'シャットダウン手順を実行済み、状態は未確認',
   resultDefault: 'シャットダウン手順を実行しました。',
   noReceipt: (msg: string) =>
-    `シャットダウンの結果を受信できませんでした（${msg}）。プロセスは既に終了している可能性があります。詳細は現在の実行の data/runs/<run>/log.jsonl にある shutdown レコードを参照してください。`,
+    `シャットダウンの結果を受信できませんでした（${msg}）。プロセスは既に終了している可能性があります。`,
   docTitle: (name: string) => `コンソール · ${name}`,
   renameTitle: 'クリックして名前を変更',
   renameSaved: '表示名を保存しました',

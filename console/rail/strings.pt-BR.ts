@@ -3,6 +3,9 @@ import type { en } from './strings.ts';
 export const S: Partial<typeof en> = {
   // index.ts
   navAria: 'Navegação do console',
+  groupWorlds: 'World',
+  moduleInstancesAria: 'Instâncias de World',
+
   runResume: 'Retomar',
   runPause: 'Pausar',
   shutdownAria: 'Desligar',
@@ -20,7 +23,7 @@ export const S: Partial<typeof en> = {
   resultUnverified: 'Etapas de desligamento executadas; estado não verificado',
   resultDefault: 'Etapas de desligamento executadas.',
   noReceipt: (msg: string) =>
-    `Nenhum resultado de desligamento recebido (${msg}); o processo pode ter sido encerrado. Veja os registros de shutdown em data/runs/<run>/log.jsonl da execução atual.`,
+    `Nenhum resultado de desligamento recebido (${msg}); o processo pode ter sido encerrado.`,
   docTitle: (name: string) => `Console · ${name}`,
   renameTitle: 'Clique para renomear',
   renameSaved: 'Nome de exibição salvo',

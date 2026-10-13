@@ -12,6 +12,9 @@ import { S as ru } from './strings.ru.ts';
 const zh = {
   // index.ts
   navAria: '控制台导航',
+  groupWorlds: 'World',
+  moduleInstancesAria: 'World 实例',
+
   runResume: '继续运行',
   runPause: '暂停运行',
   shutdownAria: '关机',
@@ -19,21 +22,21 @@ const zh = {
   shutdownTitle: '关机',
   shutdownBody: '进程将退出，控制台连接将断开。',
   confirmShutdownTitle: '⚠ 关机',
-  confirmShutdownAgainTitle: '⚠⚠ 确认关机?',
+  confirmShutdownAgainTitle: '⚠⚠ 确认关机？',
   confirmShutdownAgainBody: '停止运行并退出进程？',
   finishingToast: '正在关闭…',
   stepIncomplete: '未完成',
   doneShutdown: '已关机',
   resultLocalIncomplete: '本地关闭步骤未全部完成',
-  resultExternalUnverified: '本地已关机,外部状态未确认',
+  resultExternalUnverified: '本地已关机，外部状态未确认',
   resultUnverified: '关闭步骤已执行，状态未确认',
   resultDefault: '关闭步骤已执行。',
   noReceipt: (msg: string) =>
-    `未收到关闭结果（${msg}）；进程可能已退出。详情见当前运行的 data/runs/<run>/log.jsonl 中的 shutdown 记录。`,
+    `未收到关闭结果（${msg}）；进程可能已退出。`,
   docTitle: (name: string) => `控制台 · ${name}`,
   renameTitle: '点击改名',
   renameSaved: '展示名已保存',
-  renameFailed: (msg: string) => `展示名没保存成:${msg}`,
+  renameFailed: (msg: string) => `展示名没保存成：${msg}`,
   // avatar.ts
   changeAvatar: '更换 bot 头像',
   uploadAvatar: '上传并裁剪 bot 头像',
@@ -52,6 +55,9 @@ const zh = {
 export const en: typeof zh = {
   // index.ts
   navAria: 'Console navigation',
+  groupWorlds: 'World',
+  moduleInstancesAria: 'World instances',
+
   runResume: 'Resume',
   runPause: 'Pause',
   shutdownAria: 'Shut down',
@@ -69,7 +75,7 @@ export const en: typeof zh = {
   resultUnverified: 'Shutdown steps executed; state unverified',
   resultDefault: 'Shutdown steps executed.',
   noReceipt: (msg: string) =>
-    `No shutdown result received (${msg}); the process may have exited. See the shutdown records in data/runs/<run>/log.jsonl for the current run.`,
+    `No shutdown result received (${msg}); the process may have exited.`,
   docTitle: (name: string) => `Console · ${name}`,
   renameTitle: 'Click to rename',
   renameSaved: 'Display name saved',

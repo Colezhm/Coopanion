@@ -4,7 +4,7 @@
  * and panel streams. Types of the panel contract come from Cortico (`import type` only);
  * tests/console-api.test.ts locks the routes these build.
  */
-import type { Disposable } from 'cortico/web/shared/client-panel.ts';
+import type { ConsoleClientBundle, Disposable } from 'cortico/web/shared/client-panel.ts';
 
 export type { Disposable };
 
@@ -45,4 +45,14 @@ export function toDisposable(cleanup: () => void): Disposable {
       cleanup();
     },
   };
+}
+
+export type {
+  ConsoleClientBundle, ConsoleMemo, ConsolePanel, ConsolePanelContext, ConsoleStreamHandle, ConsoleStreamHandlers,
+} from 'cortico/web/shared/client-panel.ts';
+
+/** What a panel bundle's default export must look like: an object of panels by id. */
+export function isConsoleClientBundle(v: unknown): v is ConsoleClientBundle {
+  const panels = (v as { panels?: unknown } | null)?.panels;
+  return !!panels && typeof panels === 'object' && !Array.isArray(panels);
 }

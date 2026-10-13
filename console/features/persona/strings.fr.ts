@@ -4,6 +4,7 @@ export const P: Partial<typeof en> = {
   title: 'Prompt système',
   save: 'Enregistrer',
   saving: 'Enregistrement…',
+  saved: 'Enregistré ; appliqué à partir de la prochaine session.',
   dirty: 'Modifications non enregistrées ; Ctrl+S enregistre',
   saveFailed: (why: string) => `Non enregistré : ${why}`,
   conflict: 'Le persona a été modifié ailleurs. Copiez vos modifications, rouvrez cette page et refaites-les.',

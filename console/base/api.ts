@@ -3,6 +3,8 @@
  * A non-2xx reply or a body that is not JSON throws `ConsoleInvokeError`, with the server's
  * `error` when it gave one; an abort is thrown as it is. An empty success is null.
  */
+import type { ConsoleManifest } from 'cortico/web/shared/console-protocol.ts';
+import type { PathPickerOptions } from 'cortico/web/shared/path-picker.ts';
 import { languageHeaders } from './language.ts';
 import { AUTH_HEADER, ConsoleInvokeError, panelRoute } from './protocol.ts';
 import { S } from './strings.ts';
@@ -123,4 +125,14 @@ export async function invokePanelBinary(pageId: string, panelId: string, method:
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ args: args ?? [] }),
   }, opts));
+}
+
+/** Opens a path picker on the machine that runs Core (`POST /api/path-picker`); null when it was cancelled. */
+export async function pickPath(options: PathPickerOptions, opts?: RequestOptions): Promise<string | null> {
+  return (await post<{ path: string | null }>('/api/path-picker', options, opts)).path;
+}
+
+/** Every page's declaration (`GET /api/console/manifest`). */
+export function fetchManifest(opts?: RequestOptions): Promise<ConsoleManifest> {
+  return get<ConsoleManifest>('/api/console/manifest', opts);
 }
