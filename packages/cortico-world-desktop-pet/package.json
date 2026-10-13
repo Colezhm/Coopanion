@@ -29,7 +29,6 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./console": "./src/console/client.ts",
     "./web/*": "./web/*",
     "./host/*": "./host/*"
   },
