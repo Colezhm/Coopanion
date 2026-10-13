@@ -6,7 +6,9 @@
  * for the console's language; outside Chinese the services that take mainland China accounts only
  * behind a More button); the picked one's model and key boxes are below, and 「保存并开始」 saves the
  * key to that service's own endpoint on the platform for the language unless switched, tests it,
- * makes the endpoint active and resumes the run. The link to other model services asks, in the
+ * makes the endpoint active and resumes the run. ChatGPT is signed in instead: its pick hides the model
+ * and key boxes, and the button opens the sign-in in the system browser (features/chatgpt), then
+ * connects the plan the same way. The link to other model services asks, in the
  * normal mode, before it switches to the advanced mode, where the model pages are. 「我的桌宠」 says
  * whether the pet is on the desktop, shows it live (the pet page in a tab, which draws its own wall,
  * floor and night/day button), and under it hides it, shows it and opens the dressing page. Voice
@@ -21,9 +23,10 @@ import type { Page, PageContext } from '../../base/page.ts';
 import { intro } from '../intro.ts';
 import { revealWhenPainted } from '../frame-reveal.ts';
 import { schemesCard } from '../schemes/index.ts';
+import { CHATGPT_TEXT, openInBrowser } from '../chatgpt/index.ts';
 import { readMode, requestMode } from '../mode.ts';
 import {
-  connectVendor, consoleCall, defaultRegion, localized, locate, readStatus, regionsOf, siteOf, testEndpoint, VENDOR_ICONS, vendorName, vendorsFor,
+  connectChatGPT, connectionVendor, connectVendor, consoleCall, defaultRegion, localized, readStatus, regionsOf, siteOf, testEndpoint, VENDOR_ICONS, vendorName, vendorsFor,
   type ConnectResult, type Region, type Status, type Vendor,
 } from './model.ts';
 import { S } from './strings.ts';
@@ -120,6 +123,8 @@ async function mount(ctx: PageContext): Promise<void> {
   getKey.target = '_blank'; getKey.rel = 'noopener';
   const regionLink = ui.h('a', 'home-link', '');
   regionLink.href = '#';
+  // a ChatGPT plan's quota is the person's to watch
+  const quota = ui.h('p', 'home-note', CHATGPT_TEXT.quota);
   regionLink.addEventListener('click', (e) => {
     e.preventDefault();
     pickVendor(vendor, region === 'cn' ? 'intl' : 'cn');
@@ -156,8 +161,12 @@ async function mount(ctx: PageContext): Promise<void> {
     if (label) label.textContent = S.keyLabel(vendorName(v, LANGUAGE));
     getKey.textContent = S.getKey(vendorName(v, LANGUAGE));
     getKey.href = siteOf(v, region).keyUrl;
-    regionLink.hidden = !regionsOf(v).length;
+    regionLink.hidden = !regionsOf(v).length || !!v.signIn;
     regionLink.textContent = region === 'cn' ? S.toIntl : S.toCn;
+    // ChatGPT takes no key and picks its model from the plan's list once signed in
+    keyField.hidden = modelField.hidden = getKey.hidden = !!v.signIn;
+    quota.hidden = !v.signIn;
+    save.textContent = v.signIn ? CHATGPT_TEXT.go : S.saveStart;
   };
   pickVendor(vendor);
   const need = ui.h('p', 'home-note', S.modelNeed(vendorName(shown[0]!, LANGUAGE)));
@@ -174,7 +183,7 @@ async function mount(ctx: PageContext): Promise<void> {
   const links = ui.rowbar();
   links.classList.add('home-links');
   links.append(getKey, regionLink, ui.h('span', 'grow'), otherLink);
-  model.body.append(need, picker, keyRow, links, modelMsg);
+  model.body.append(need, picker, keyRow, quota, links, modelMsg);
   root.append(model.el);
 
   /* ---------- pet ---------- */
@@ -224,7 +233,7 @@ async function mount(ctx: PageContext): Promise<void> {
     const mc = st.modelConnection;
     const ready = !!mc?.ready;
     need.hidden = ready;
-    const at = ready ? locate(mc?.baseUrl) : null;
+    const at = ready && mc ? connectionVendor(mc) : null;
     const current = at?.vendor ?? null;
     active = { vendor: current, region: at?.region ?? null, model: mc?.model ?? '' };
     elsewhere = ready && !current && mc ? { title: mc.moduleTitle, model: mc.model ?? '' } : null;
@@ -248,6 +257,18 @@ async function mount(ctx: PageContext): Promise<void> {
   };
 
   save.addEventListener('click', async () => {
+    if (vendor.signIn) {
+      save.disabled = true;
+      modelMsg.textContent = CHATGPT_TEXT.waiting;
+      modelMsg.classList.remove('bad');
+      const r = await connectChatGPT(call, openInBrowser, { signal });
+      save.disabled = false;
+      if (signal.aborted) return;
+      showTest(r);
+      if (r.ok) modelMsg.textContent = S.started;
+      await refreshModel();
+      return;
+    }
     const key = keyInput.value.trim();
     // only the endpoint in use has a key saved to keep
     if (!key && !inUse()) { keyInput.focus(); return; }

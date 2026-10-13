@@ -8,6 +8,9 @@ import { LANGUAGE } from '../../../base/language.ts';
 import { pricingEditor } from '../../console-pages/builtins/llm-settings/pricing-panel.ts';
 import type { Disposable } from 'cortico/web/shared/client-panel.ts';
 import { S } from './strings.ts';
+import { CHATGPT_TEXT, accountRow } from '../../../features/chatgpt/index.ts';
+import { CHATGPT_MODULE } from 'cortico-provider-coo/src/vendors.ts';
+import { SIGN_IN_PANEL } from 'cortico-provider-coo/src/connect.ts';
 
 export interface DetailController { dispose(): void; }
 interface Options {
@@ -119,8 +122,11 @@ export async function mountDetail(options: Options): Promise<DetailController> {
     field(body, 'baseUrl', S.url, editing.entry.baseUrl, value => { editing.entry.baseUrl = value; }, value => {
       try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? null : S.required; } catch { return S.required; }
     });
-    const key = field(body, 'key', S.key, editing.secretValue, value => { editing.secretValue = value; }, undefined, 'password');
-    key.placeholder = saved?.secretConfigured !== 'none' && saved ? '••••••••' : S.keyEmpty;
+    // a ChatGPT plan's endpoint is signed in (its own section) instead of taking a key
+    if (editing.entry.kind !== CHATGPT_MODULE) {
+      const key = field(body, 'key', S.key, editing.secretValue, value => { editing.secretValue = value; }, undefined, 'password');
+      key.placeholder = saved?.secretConfigured !== 'none' && saved ? '••••••••' : S.keyEmpty;
+    }
     const testResult = ui.msgline();
     const test = ui.button(S.test, { onClick: () => void (async () => {
       test.disabled = true;
@@ -314,7 +320,11 @@ export async function mountDetail(options: Options): Promise<DetailController> {
           break;
         case 'connection-pricing': pricingBlock(box, section); break;
         case 'connection-protocol': protocolBlock(box, section, groups); break;
-        default: pending.push({ section, host: block(box, section, true) });
+        default:
+          // the ChatGPT module's sign-in section is drawn here; it ships no browser bundle
+          if (editing.entry.kind === CHATGPT_MODULE && section.id === SIGN_IN_PANEL)
+            block(box, section, true).append(saved ? accountRow(ui, saved.name, lifecycle.signal) : ui.msgline(CHATGPT_TEXT.saveFirst));
+          else pending.push({ section, host: block(box, section, true) });
       }
     }
     if (!pending.length || !ctx.consolePageHost) return;
