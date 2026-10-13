@@ -6,6 +6,8 @@
  */
 import type { ConsoleUi } from 'cortico/web/shared/client-panel.ts';
 import { chatgptState, signInChatGPT, signOutChatGPT, type SignInState } from 'cortico-provider-coo/src/connect.ts';
+import { signInReason } from 'cortico-provider-coo/src/strings.ts';
+import { LANGUAGE } from '../../base/language.ts';
 import { consoleCall } from '../home/model.ts';
 import { S } from './strings.ts';
 
@@ -13,6 +15,9 @@ export { S as CHATGPT_TEXT };
 
 /** Opens the authorization page, which the main process takes to the system browser. */
 export const openInBrowser = (url: string): void => { window.open(url, '_blank'); };
+
+/** Signs the `chatgpt` endpoint `name` out (its refresh token revoked) before it is deleted; a failure does not stop the deletion. */
+export const signOutBeforeDelete = (name: string, signal?: AbortSignal): Promise<unknown> => signOutChatGPT(consoleCall(signal), name).catch(() => {});
 
 /** The account line of the saved `chatgpt` endpoint `name` with its sign-in and sign-out buttons, and the quota note. */
 export function accountRow(ui: ConsoleUi, name: string, signal: AbortSignal): HTMLElement {
@@ -22,7 +27,7 @@ export function accountRow(ui: ConsoleUi, name: string, signal: AbortSignal): HT
   const signOut = ui.button(S.signOut, { size: 'sm' });
   signOut.hidden = true;
   const show = (state: SignInState) => {
-    line.textContent = state.signedIn ? S.signedIn(state.email ?? '') : state.phase === 'failed' ? S.failed(state.reason ?? '') : S.signedOut;
+    line.textContent = state.signedIn ? S.signedIn(state.email ?? '') : state.phase === 'failed' ? S.failed(signInReason(state.reason ?? '', LANGUAGE)) : S.signedOut;
     line.classList.toggle('bad', state.phase === 'failed');
     signOut.hidden = !state.signedIn;
   };

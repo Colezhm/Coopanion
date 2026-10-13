@@ -24,6 +24,7 @@ import { intro } from '../intro.ts';
 import { revealWhenPainted } from '../frame-reveal.ts';
 import { schemesCard } from '../schemes/index.ts';
 import { CHATGPT_TEXT, openInBrowser } from '../chatgpt/index.ts';
+import { signInReason } from 'cortico-provider-coo/src/strings.ts';
 import { readMode, requestMode } from '../mode.ts';
 import {
   connectChatGPT, connectionVendor, connectVendor, consoleCall, defaultRegion, localized, readStatus, regionsOf, siteOf, testEndpoint, VENDOR_ICONS, vendorName, vendorsFor,
@@ -161,7 +162,7 @@ async function mount(ctx: PageContext): Promise<void> {
     if (label) label.textContent = S.keyLabel(vendorName(v, LANGUAGE));
     getKey.textContent = S.getKey(vendorName(v, LANGUAGE));
     getKey.href = siteOf(v, region).keyUrl;
-    regionLink.hidden = !regionsOf(v).length || !!v.signIn;
+    regionLink.hidden = !regionsOf(v).length;
     regionLink.textContent = region === 'cn' ? S.toIntl : S.toCn;
     // ChatGPT takes no key and picks its model from the plan's list once signed in
     keyField.hidden = modelField.hidden = getKey.hidden = !!v.signIn;
@@ -264,7 +265,7 @@ async function mount(ctx: PageContext): Promise<void> {
       const r = await connectChatGPT(call, openInBrowser, { signal });
       save.disabled = false;
       if (signal.aborted) return;
-      showTest(r);
+      showTest({ ...r, why: r.why && signInReason(r.why, LANGUAGE) });
       if (r.ok) modelMsg.textContent = S.started;
       await refreshModel();
       return;

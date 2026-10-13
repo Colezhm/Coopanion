@@ -6,6 +6,8 @@ import { get, post } from '../../../base/api.ts';
 import { S } from './strings.ts';
 import { connectionPath, type HubState, type Connection, type Module, type Detail, type Editing } from './types.ts';
 import { mountDetail, type DetailController } from './detail.ts';
+import { signOutBeforeDelete } from '../../../features/chatgpt/index.ts';
+import { CHATGPT_MODULE } from 'cortico-provider-coo/src/vendors.ts';
 
 /** How often the card list re-reads other deployments' usage. */
 const USAGE_REFRESH_MS = 5000;
@@ -123,6 +125,7 @@ export async function mountProviders(ctx: FeatureContext): Promise<void> {
       if (selected === NEW_DRAFT_ID) await select(fallback(), true); else paint();
       return;
     }
+    if (rows.get(identity)?.module === CHATGPT_MODULE) await signOutBeforeDelete(identity, ctx.signal);
     await post(connectionPath(identity) + '/delete', { expectedRevision: rows.get(identity)?.revision }, opts);
     drafts.remove(identity); invalid.delete(identity);
     await refresh();

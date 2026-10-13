@@ -188,7 +188,7 @@ describe('the console API the settings window reads', () => {
     expect(status).toBe(200);
     expect(body.displayName).toEqual(expect.any(String));
     expect(body.loop.paused).toBe(true);
-    expect(body.modelConnection).toMatchObject({ ready: expect.any(Boolean), name: 'fixture', model: 'test-model', moduleTitle: expect.any(String), baseUrl: 'http://127.0.0.1:9/v1' });
+    expect(body.modelConnection).toMatchObject({ ready: expect.any(Boolean), name: 'fixture', model: 'test-model', module: expect.any(String), moduleTitle: expect.any(String), baseUrl: 'http://127.0.0.1:9/v1' });
   });
 
   it('capabilities: a table of booleans with the surfaces the window uses', async () => {

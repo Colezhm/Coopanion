@@ -8,7 +8,7 @@ import { LANGUAGE } from '../../../base/language.ts';
 import { pricingEditor } from '../../console-pages/builtins/llm-settings/pricing-panel.ts';
 import type { Disposable } from 'cortico/web/shared/client-panel.ts';
 import { S } from './strings.ts';
-import { CHATGPT_TEXT, accountRow } from '../../../features/chatgpt/index.ts';
+import { CHATGPT_TEXT, accountRow, signOutBeforeDelete } from '../../../features/chatgpt/index.ts';
 import { CHATGPT_MODULE } from 'cortico-provider-coo/src/vendors.ts';
 import { SIGN_IN_PANEL } from 'cortico-provider-coo/src/connect.ts';
 
@@ -296,8 +296,11 @@ export async function mountDetail(options: Options): Promise<DetailController> {
         const current = await get<Detail>(connectionPath(saved.name), opts);
         if (current.references.length) { await ui.confirm({ title: S.remove, body: S.referenced + current.references.join(', ') }); return; }
         if (!(await ui.confirm({ title: S.remove, body: S.deleteConfirm, danger: true }))) return;
+        if (saved.entry.kind === CHATGPT_MODULE) await signOutBeforeDelete(saved.name, lifecycle.signal);
         await post(connectionPath(saved.name) + '/delete', { expectedRevision: saved.revision }, opts); await options.deleted();
-      }, ev.currentTarget as HTMLElement) }), ui.button(S.duplicate, { onClick: ev => run(() => options.duplicate({ original: null, copyFrom: { name: saved.name, revision: saved.revision }, name: (validateProviderName(saved.name) ? 'Connection' : saved.name) + '-Copy', entry: structuredClone(saved.entry), secretValue: '', raw: {} }), ev.currentTarget as HTMLElement) }));
+      }, ev.currentTarget as HTMLElement) }));
+      // a copy of a ChatGPT connection would share its refresh token, which each refresh replaces
+      if (saved.entry.kind !== CHATGPT_MODULE) actions.append(ui.button(S.duplicate, { onClick: ev => run(() => options.duplicate({ original: null, copyFrom: { name: saved.name, revision: saved.revision }, name: (validateProviderName(saved.name) ? 'Connection' : saved.name) + '-Copy', entry: structuredClone(saved.entry), secretValue: '', raw: {} }), ev.currentTarget as HTMLElement) }));
     }
     cancel = ui.button(S.cancel, { onClick: () => run(() => options.cancelled()) });
     cancel.hidden = !!saved && !dirty();
