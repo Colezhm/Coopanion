@@ -38,7 +38,7 @@ Coopanion is a desktop pet. **Coo** lives on the bottom edge of your screen: it 
 
 ## Features
 
-- **Many model services**: OpenAI, Anthropic, Gemini, xAI, OpenRouter, DeepSeek, Kimi, Qwen, MiniMax, Zhipu GLM, Doubao, Baidu Qianfan and StepFun. Pick one and paste an API key.
+- **Many model services**: OpenAI, Anthropic, Gemini, xAI, OpenRouter, DeepSeek, Kimi, Qwen, MiniMax, Zhipu GLM, Doubao, Baidu Qianfan and StepFun. Pick one and paste an API key, or sign in with a ChatGPT account to use its ChatGPT plan.
 - **Chat**: hold the talk key and speak, or type; Coo answers in a bubble. Speech is recognized on your machine with FunASR or Whisper, picked by the app language.
 - **Memory**: Coo remembers what you talked about, and knows when you poke it or pat its head.
 - **Computer use**: clicking buttons, typing, switching windows. Coo asks before it acts.
@@ -57,7 +57,7 @@ You need one of:
 - macOS 13 or later (Apple silicon or Intel)
 - A 64-bit Linux desktop (X11, or XWayland under Wayland); speech recognition needs glibc 2.32 or later (Ubuntu 22.04, Debian 12 and later)
 
-You also need an API key from one model service, which bills you for usage (see [Cost and privacy](#cost-and-privacy)). The guide lists DeepSeek first when the app language is Simplified Chinese and OpenAI first in every other language. Installing does not need administrator rights.
+You also need an API key from one model service, which bills you for usage (see [Cost and privacy](#cost-and-privacy)), or a ChatGPT account with a plan. The guide lists DeepSeek first when the app language is Simplified Chinese and OpenAI first in every other language. Installing does not need administrator rights.
 
 ### Windows: installer
 
@@ -153,6 +153,8 @@ Each default is the fast, cheap, vision-capable tier of that vendor. To use anot
 Kimi, Qwen, MiniMax and Zhipu GLM have separate mainland China and international platforms, with separate accounts and keys. New connections use the mainland China platform when the app language is Simplified Chinese and the international one otherwise; switch between them on the Start page. Doubao, Baidu Qianfan and StepFun take mainland China accounts only and appear under **More** in other languages.
 
 Only DeepSeek and Anthropic have been tested with real keys; the others follow their documentation. Open an issue if one fails.
+
+**ChatGPT** takes no key: pick it and press **Continue with ChatGPT**, then sign in in the browser that opens (Sign in with ChatGPT). Coo's requests count toward that account's ChatGPT plan, and its usage limits apply; keep an eye on them in ChatGPT's settings. When the limit is reached, Coo goes quiet for a few minutes and tries again. The connection starts on the first model the plan lists; the sign-in is kept in the connection's folder and renewed by itself. The ChatGPT section of the connection on the Model page in advanced mode signs in again or out. Signing in has not been tried with a real account yet.
 
 </details>
 
@@ -250,9 +252,9 @@ After installing, click **Restart process** and enable it in **World Overview**.
 
 ## Cost and privacy
 
-- **Cost**: Coopanion is free. The model service you choose bills you for usage; see the Usage & cost page (built-in prices exist for DeepSeek, OpenAI, Anthropic, Gemini's paid tier and xAI).
+- **Cost**: Coopanion is free. The model service you choose bills you for usage; see the Usage & cost page (built-in prices exist for DeepSeek, OpenAI, Anthropic, Gemini's paid tier and xAI). Signed in with ChatGPT, requests count toward the ChatGPT plan instead and show no cost.
 - **Sent to the model service**: what you say and type, your interactions with Coo, and screenshots during computer use. Only the service you configured receives them.
-- **Kept on your machine**: API keys, memory, conversation history, settings and logs. Speech is recognized locally and only the text is sent.
+- **Kept on your machine**: API keys and the ChatGPT sign-in, memory, conversation history, settings and logs. Speech is recognized locally and only the text is sent.
 - **Anonymous usage statistics**: sent to `survey.palailab.org`. Only counts, time used, settings and a random install ID; no conversations, screenshots, keys or files. Every field is listed in [docs/TELEMETRY.md](docs/TELEMETRY.md). Turn it off in Habits.
 - **Other network access**: a check for new releases on GitHub when the settings window opens; npm when installing extensions; ModelScope (or Hugging Face as a fallback) when downloading the speech model.
 

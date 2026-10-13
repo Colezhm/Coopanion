@@ -38,7 +38,7 @@ Coopanion 是一个桌宠。桌宠 **Coo** 待在屏幕底边，可以用气泡�
 
 ## 功能
 
-- **多家模型**：DeepSeek、通义千问、Kimi、智谱 GLM、豆包、MiniMax、阶跃星辰、百度千帆、OpenRouter、OpenAI、Anthropic、Gemini、xAI。选一家，贴上 API Key 就能用。
+- **多家模型**：DeepSeek、通义千问、Kimi、智谱 GLM、豆包、MiniMax、阶跃星辰、百度千帆、OpenRouter、OpenAI、Anthropic、Gemini、xAI。选一家，贴上 API Key 就能用；也可以登录 ChatGPT 账号，使用它的 ChatGPT 套餐。
 - **聊天**：按说话键说话，或者打字，Coo 在气泡里回复。语音在本机用 FunASR 或 Whisper 识别，按应用语言选。
 - **记忆**：记得聊过的内容，也知道你戳了它、摸了它的头。
 - **操作电脑**：点按钮、打字、切窗口。动手前先问你。
@@ -57,7 +57,7 @@ Coopanion 是一个桌宠。桌宠 **Coo** 待在屏幕底边，可以用气泡�
 - macOS 13 及以上（Apple 芯片和 Intel 都可以）
 - 64 位 Linux 桌面（X11，或 Wayland 下的 XWayland）；语音识别要 glibc 2.32 及以上（Ubuntu 22.04、Debian 12 起）
 
-另外需要一家模型服务的 API Key，按用量付费，见[费用与隐私](#费用与隐私)。应用语言是简体中文时引导把 DeepSeek 排在第一，其他语言把 OpenAI 排在第一。安装不需要管理员权限。
+另外需要一家模型服务的 API Key，按用量付费，见[费用与隐私](#费用与隐私)；或者一个有套餐的 ChatGPT 账号。应用语言是简体中文时引导把 DeepSeek 排在第一，其他语言把 OpenAI 排在第一。安装不需要管理员权限。
 
 ### Windows：下载安装包
 
@@ -151,6 +151,8 @@ irm https://raw.githubusercontent.com/Pal-AI-Lab/Coopanion/main/installer/instal
 通义千问、Kimi、智谱 GLM、MiniMax 各有国内和国际两个平台，账号和 Key 不通用。新建连接时，应用语言是简体中文用国内平台，其他语言用国际平台；「开始」页可以切换。豆包、百度千帆、阶跃星辰只收中国大陆账号，简体中文以外的语言把它们收在「更多」里。
 
 拿真实 Key 测过的只有 DeepSeek 和 Anthropic，其他几家是照文档接入的。连不上请开 issue。
+
+**ChatGPT** 不用 Key：选它，点「使用 ChatGPT 继续」，在打开的浏览器里登录（Sign in with ChatGPT）。Coo 的请求计入这个账号的 ChatGPT 套餐用量，受套餐的用量上限约束，请在 ChatGPT 的设置里留意额度。到了上限，Coo 停几分钟再试。连接先用套餐列出的第一个模型；登录状态存在这个连接的目录里，到期自动续。高级模式「模型」页这个连接的「ChatGPT 账号」一节可以重新登录或退出登录。还没有用真实账号试过登录。
 
 </details>
 
@@ -248,9 +250,9 @@ irm https://raw.githubusercontent.com/Pal-AI-Lab/Coopanion/main/installer/instal
 
 ## 费用与隐私
 
-- **费用**：Coopanion 免费。聊天的费用由你选的模型服务按用量收取，可在「用量与成本」页查看（内置价目的有 DeepSeek、OpenAI、Anthropic、Gemini 付费档、xAI）。
+- **费用**：Coopanion 免费。聊天的费用由你选的模型服务按用量收取，可在「用量与成本」页查看（内置价目的有 DeepSeek、OpenAI、Anthropic、Gemini 付费档、xAI）。登录 ChatGPT 时，请求计入 ChatGPT 套餐，不显示费用。
 - **发给模型服务的内容**：你说的话、打的字、和 Coo 的互动，以及操作电脑时的截图。只发给你配置的那一家。
-- **留在本机的内容**：API Key、记忆、对话记录、设置、日志。语音在本机识别，只把识别出的文字发出去。
+- **留在本机的内容**：API Key 和 ChatGPT 的登录状态、记忆、对话记录、设置、日志。语音在本机识别，只把识别出的文字发出去。
 - **匿名使用统计**：发到 `survey.palailab.org`，只有使用次数、时长、设置和随机生成的安装编号，不含对话、截图、Key 和文件。字段见 [docs/TELEMETRY.md](docs/TELEMETRY.md)，可在「习惯」页关闭。
 - **其他联网**：打开设置窗口时向 GitHub 查询新版本；安装扩展时访问 npm；下载语音模型时访问 ModelScope（失败时用 Hugging Face）。
 
