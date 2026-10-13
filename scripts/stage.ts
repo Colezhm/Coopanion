@@ -3,10 +3,11 @@
  *
  * 1. `build/cortico/`: `vendor/cortico` without the built-in platform Worlds (minecraft, qq, bilibili,
  *    websearch, the console fixture), the llamacpp provider, the other bots, and repository tooling
- *    (`terminal` stays because the console's chat page talks to it). Its `src/web/client` is
- *    vendor's as it is; Cortico's console (the advanced mode) is built with Cortico's own `buildWeb`
- *    and its stylesheet with Tailwind;
- * 2. the desktop pet World's panel bundle, which Core serves to its console;
+ *    (`terminal` stays: core/companion.ts mounts it). Its `src/web/client` is vendor's as it is.
+ *    Cortico's own `buildWeb` builds its console and the panel bundles of the Persona and the
+ *    built-in Worlds, which the settings window loads through the manifest; its stylesheet is built
+ *    with Tailwind;
+ * 2. the desktop pet World's panel bundle, which the settings window loads the same way;
  * 3. `build/console/`: the settings window (`console/index.ts`, `console/index.html`), which the
  *    Electron main process serves under `/coopanion/` on Core's origin.
  *
