@@ -407,6 +407,8 @@ core.on('ready', ({ language: next }) => {
 core.on('language', followLanguage);
 core.on('update-install', () => updater?.installNow());
 core.on('releases', () => void shell.openExternal(RELEASES_URL));
+// a page the Core sends to the system browser: the ChatGPT sign-in of the introduction
+core.on('browse', (url) => { if (/^https:\/\//.test(url)) void shell.openExternal(url); });
 core.on('state', (state, exit) => {
   if (!exit) return;
   const detail = exit.kind === 'locked' ? T().coreLocked(exit.pid, exit.file)
