@@ -22,7 +22,11 @@ export interface PageContext {
   /** `lifecycle.signal`. */
   readonly signal: AbortSignal;
   readonly ui: ConsoleUi;
-  readonly router: { navigate(segments: readonly string[]): void };
+  readonly router: {
+    navigate(segments: readonly string[]): void;
+    /** While `guard` returns a sentence, leaving the page asks first; disposed with the page. */
+    addLeaveGuard(guard: () => string | null): Disposable;
+  };
   /** `/api/capabilities`: which surfaces Core has. */
   readonly capabilities: Record<string, boolean>;
   onError(err: unknown): void;

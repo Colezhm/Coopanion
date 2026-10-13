@@ -20,15 +20,17 @@ import { fetchTheme } from './base/theme/storage.ts';
 import { createConsoleUi } from './base/ui/index.ts';
 import { openAdvanced } from './advanced.ts';
 import { chatPage } from './features/chat/index.ts';
+import { usagePage } from './features/cost/index.ts';
 import { dressPage } from './features/dress/index.ts';
 import { homePage } from './features/home/index.ts';
+import { personaPage } from './features/persona/index.ts';
 import { petPage } from './features/pet/index.ts';
 import { voicePage } from './features/voice/index.ts';
 import { createRail } from './rail/index.ts';
 import { L } from './strings.ts';
 
 /** The pages, in the rail's order. */
-export const PAGES: readonly Page[] = [homePage, petPage, dressPage, voicePage, chatPage];
+export const PAGES: readonly Page[] = [homePage, petPage, dressPage, voicePage, personaPage, usagePage, chatPage];
 
 const HOME = homePage.route;
 
