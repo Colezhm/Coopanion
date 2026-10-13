@@ -44,7 +44,9 @@ is unavoidable.
 2. **The settings window uses Core through the console HTTP API only**: the public routes listed
    in Cortico's `docs/console.md` and the panel contract. It depends on nothing of Cortico's own
    console (its pages, DOM, class names or `src/web/client/` modules) and takes types only from
-   Cortico (`tests/console-imports.test.ts`). When the API lacks something, that is a Cortico issue.
+   Cortico (`tests/console-imports.test.ts`). `tests/console-api.test.ts` locks every route it calls;
+   one outside that table is listed there apart and goes to Cortico to be made public. When the API
+   lacks something, that is a Cortico issue.
 3. **Vendor quirks stay in provider-coo.** How one model service deviates from its protocol is
    handled in `packages/cortico-provider-coo`, keyed by its base URL, and never in Cortico.
 4. **Text for the model and text for people are separate.** What Coo reads lives in each
