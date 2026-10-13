@@ -33,11 +33,12 @@ import { usageFeature } from './features/usage/index.ts';
 import { providersFeature } from './features/providers/index.ts';
 import { worldsFeature } from './features/worlds/index.ts';
 import { extensionsFeature } from './features/extensions/index.ts';
-import { homeFeature } from './features/home/index.ts';
-import { petFeature } from './features/pet/index.ts';
-import { dressFeature } from './features/dress/index.ts';
-import { voiceFeature } from './features/voice/index.ts';
-import { chatFeature } from './features/chat/index.ts';
+import { homePage } from './features/home/index.ts';
+import { petPage } from './features/pet/index.ts';
+import { dressPage } from './features/dress/index.ts';
+import { voicePage } from './features/voice/index.ts';
+import { chatPage } from './features/chat/index.ts';
+import type { Page } from './base/page.ts';
 import { traceFeature } from './features/trace.ts';
 import { promptsWithClearFeature } from './features/clear-session.ts';
 import { mountRelease } from './features/release.ts';
@@ -47,14 +48,29 @@ import { mountSidebar } from './sidebar.ts';
 import { L } from './strings.ts';
 import type { ConsoleMemo } from '../shared/client-panel.ts';
 
+/** A Coopanion page in Cortico's shell: a top-level entry; a World's panel mounts through the shell's page host. */
+function asFeature(page: Page): FrameworkFeature {
+  return {
+    route: page.route, label: page.label, icon: page.icon, navMode: 'primary',
+    mount: (ctx) => page.mount({
+      ...ctx,
+      mountPanel: async (pageId, panelId, box) => {
+        const host = ctx.consolePageHost!({ root: box.ownerDocument.createElement('div'), route: () => [page.route] });
+        await host.load();
+        return host.mountConnection(pageId, panelId, box, {}, (context) => context);
+      },
+    }),
+  };
+}
+
 /**
  * 普通模式的全部页面:关于桌宠的四页、系统提示词(人设在里面,带清空重开)、花了多少钱,和对话页(以使用者身份
  * 打字发图,看桌宠说过的话与做过的事)。高级模式里它们仍排在最前。
  */
 export const BASIC_FEATURES: readonly FrameworkFeature[] = [
-  homeFeature, petFeature, dressFeature, voiceFeature,
+  asFeature(homePage), asFeature(petPage), asFeature(dressPage), asFeature(voicePage),
   promptsWithClearFeature, { ...usageFeature, navMode: 'primary' },
-  chatFeature,
+  asFeature(chatPage),
 ];
 
 /**

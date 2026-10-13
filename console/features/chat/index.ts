@@ -8,13 +8,12 @@
  * Everything shown comes from the World's stream (packages/cortico-world-desktop-pet/src/chat.ts);
  * the phase line is Core's RunPhase as the World passes it on.
  */
-import { panelStreamRoute } from '../../../shared/console-protocol.ts';
-import type { ConsoleImageAttachment } from '../../../shared/client-panel.ts';
-import { baseLanguage } from '../../../../core/language.ts';
-import { LANGUAGE } from '../../core/language.ts';
-import { openStream } from '../../core/stream.ts';
-import { browserSocketEnv } from '../../core/websocket.ts';
-import type { FeatureContext, FrameworkFeature } from '../feature.ts';
+import type { ConsoleImageAttachment } from 'cortico/web/shared/client-panel.ts';
+import { baseLanguage, LANGUAGE } from '../../base/language.ts';
+import type { Page, PageContext } from '../../base/page.ts';
+import { panelStreamRoute } from '../../base/protocol.ts';
+import { openStream } from '../../base/stream.ts';
+import { browserSocketEnv } from '../../base/websocket.ts';
 import { intro } from '../intro.ts';
 import { requestMode } from '../mode.ts';
 import { S, STEP } from './strings.ts';
@@ -51,7 +50,7 @@ const localName = (names: Record<string, string>): string => names[LANGUAGE] ?? 
 const AVATAR_URL = '/api/avatar';
 const blobUrl = (ref: string): string => `/api/blob?handle=${encodeURIComponent(ref)}`;
 
-async function mount(ctx: FeatureContext): Promise<void> {
+async function mount(ctx: PageContext): Promise<void> {
   const { ui, root } = ctx;
   const doc = root.ownerDocument;
   const env = browserSocketEnv(window);
@@ -424,10 +423,9 @@ async function mount(ctx: FeatureContext): Promise<void> {
   thread.append(ui.h('div', 'chat-empty', S.connecting));
 }
 
-export const chatFeature: FrameworkFeature = {
+export const chatPage: Page = {
   route: 'chat',
   label: S.nav,
   icon: 'message',
-  navMode: 'primary',
   mount,
 };

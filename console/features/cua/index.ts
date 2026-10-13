@@ -4,8 +4,8 @@
  * computer-use config group through `/api/config` (only the keys shown here are sent). Yielding to the
  * person and screenshot sizes stay on the desktop-pet World's page in the advanced mode.
  */
-import { get, setConfig } from '../../core/api.ts';
-import type { FeatureContext } from '../feature.ts';
+import { get, setConfig } from '../../base/api.ts';
+import type { PageContext } from '../../base/page.ts';
 import { S } from './strings.ts';
 
 const GROUP = 'world:desktop-pet:cua';
@@ -30,7 +30,7 @@ const errText = (err: unknown) => (err instanceof Error ? err.message : String(e
 /** One row of the 「习惯」 page: the label column, the setting, an optional note under it. */
 type Row = (label: string, control: HTMLElement, hint?: HTMLElement | string) => HTMLElement;
 /** The section, its values read in the background; `row` is the page's. */
-export function cuaSection(ctx: FeatureContext, row: Row): HTMLElement {
+export function cuaSection(ctx: PageContext, row: Row): HTMLElement {
   const { ui, signal } = ctx;
   const opts = { signal };
 

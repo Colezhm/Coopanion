@@ -3,8 +3,8 @@
  * under it only when there is one, a rule below, held at the top while the page scrolls). Controls
  * that belong to the whole page sit at the right of the title row.
  */
-import type { ConsoleUi } from '../../shared/client-panel.ts';
-import { pageIntro } from '../ui/page.ts';
+import type { ConsoleUi } from 'cortico/web/shared/client-panel.ts';
+import { pageIntro } from '../base/ui/page.ts';
 
 export function intro(ui: Pick<ConsoleUi, 'h'>, title: string, opts: { desc?: string | HTMLElement; actions?: HTMLElement[] } = {}): HTMLElement {
   const el = pageIntro(ui, title, typeof opts.desc === 'string' ? opts.desc : undefined);

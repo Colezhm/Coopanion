@@ -7,8 +7,8 @@
  * writes the deployment's theme.json); while this page is open it reads that record every
  * `THEME_POLL_MS` and applies it when the scheme or mode differs from what the window shows.
  */
-import { get, post } from '../../core/api.ts';
-import type { FeatureContext, FrameworkFeature } from '../feature.ts';
+import { get, post } from '../../base/api.ts';
+import type { Page, PageContext } from '../../base/page.ts';
 import { applyStoredTheme, disposeThemeStudio, getThemeStudio } from '../../theme/studio.ts';
 import type { InjectedTheme } from '../../../shared/theme.ts';
 import { intro } from '../intro.ts';
@@ -21,7 +21,7 @@ const THEME_POLL_MS = 1000;
 
 const panelPath = (method: string) => `/api/console/providers/${encodeURIComponent(PET_PAGE)}/panels/pet/${method}`;
 
-async function mount(ctx: FeatureContext): Promise<void> {
+async function mount(ctx: PageContext): Promise<void> {
   const { ui, root, signal } = ctx;
   root.classList.add('home');
 
@@ -83,10 +83,9 @@ async function mount(ctx: FeatureContext): Promise<void> {
   ctx.lifecycle.interval(() => void followTheme(), THEME_POLL_MS);
 }
 
-export const dressFeature: FrameworkFeature = {
+export const dressPage: Page = {
   route: 'dress',
   label: S.nav,
   icon: 'shirt',
-  navMode: 'primary',
   mount,
 };

@@ -3,7 +3,7 @@
  * connecting a service through the console's own routes (Coo Pet Provider's `connectVendor`, the
  * same the guide on the desktop uses). Only the provider package's browser-safe files are imported.
  */
-import { get, post } from '../../core/api.ts';
+import { get, post } from '../../base/api.ts';
 import { connectVendor, testEndpoint, type ConnectResult, type ConsoleCall } from 'cortico-provider-coo/src/connect.ts';
 
 export { defaultRegion, localized, locate, regionsOf, siteOf, vendorName, vendorsFor, type Region, type Vendor } from 'cortico-provider-coo/src/vendors.ts';

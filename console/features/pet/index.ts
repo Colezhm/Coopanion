@@ -20,8 +20,8 @@
  * `setWakeKinds` and `setSelfAdjustCustom`, which set the mode to `custom` in the same write.
  */
 import { ICONS } from 'cortico-world-desktop-pet/web/ui.js';
-import { get, post, setConfig } from '../../core/api.ts';
-import type { FeatureContext, FrameworkFeature } from '../feature.ts';
+import { get, post, setConfig } from '../../base/api.ts';
+import type { Page, PageContext } from '../../base/page.ts';
 import { intro } from '../intro.ts';
 import { cuaSection } from '../cua/index.ts';
 import { scaleSlider } from './scale-slider.ts';
@@ -94,7 +94,7 @@ const SCALE_SEND_MS = 80;
 
 const errText = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
-async function mount(ctx: FeatureContext): Promise<void> {
+async function mount(ctx: PageContext): Promise<void> {
   const { ui, root, signal } = ctx;
   const opts = { signal };
   root.classList.add('home');
@@ -463,10 +463,9 @@ async function mount(ctx: FeatureContext): Promise<void> {
   ctx.lifecycle.interval(() => void refreshValues(), 3000);
 }
 
-export const petFeature: FrameworkFeature = {
+export const petPage: Page = {
   route: 'pet',
   label: S.nav,
   icon: 'bot',
-  navMode: 'primary',
   mount,
 };

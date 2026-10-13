@@ -15,9 +15,9 @@
  * for it). Saving and testing the key lives in model.ts. Every control calls an endpoint the rest of
  * the console already uses. Styles are in home.css, which scripts/stage.ts adds to the console stylesheet.
  */
-import { post } from '../../core/api.ts';
-import { LANGUAGE } from '../../core/language.ts';
-import type { FeatureContext, FrameworkFeature } from '../feature.ts';
+import { post } from '../../base/api.ts';
+import { LANGUAGE } from '../../base/language.ts';
+import type { Page, PageContext } from '../../base/page.ts';
 import { intro } from '../intro.ts';
 import { revealWhenPainted } from '../frame-reveal.ts';
 import { mountSchemes } from './appearance.ts';
@@ -44,7 +44,7 @@ const PREVIEW_GAP = 20;
 const panelPath = (page: string, panel: string, method: string) => `/api/console/providers/${encodeURIComponent(page)}/panels/${panel}/${method}`;
 const errText = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
-async function mount(ctx: FeatureContext): Promise<void> {
+async function mount(ctx: PageContext): Promise<void> {
   const { ui, root, signal } = ctx;
   const opts = { signal };
   root.classList.add('home');
@@ -310,10 +310,9 @@ async function mount(ctx: FeatureContext): Promise<void> {
   ctx.lifecycle.interval(() => { void refreshModel(); void refreshPet(); }, 2000);
 }
 
-export const homeFeature: FrameworkFeature = {
+export const homePage: Page = {
   route: 'home',
   label: S.nav,
   icon: 'play',
-  navMode: 'primary',
   mount,
 };

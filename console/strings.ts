@@ -1,4 +1,4 @@
-import { pick } from './core/language.ts';
+import { pick } from './base/language.ts';
 import { L as zhHant } from './strings.zh-Hant.ts';
 import { L as ja } from './strings.ja.ts';
 import { L as ko } from './strings.ko.ts';

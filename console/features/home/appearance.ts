@@ -5,12 +5,14 @@
  */
 import { mountAppearance } from '../appearance/index.ts';
 import type { FeatureContext } from '../feature.ts';
+import type { PageContext } from '../../base/page.ts';
 import { S } from './strings.ts';
 
-export function mountSchemes(ctx: FeatureContext): HTMLElement {
+export function mountSchemes(ctx: PageContext): HTMLElement {
   const { ui } = ctx;
   const box = ui.h('div');
-  mountAppearance({ ...ctx, root: box }, { embedded: true });
+  // the context is the shell's own FeatureContext (main.ts asFeature)
+  mountAppearance({ ...(ctx as unknown as FeatureContext), root: box }, { embedded: true });
   const schemes = box.firstElementChild as HTMLElement;
   schemes.querySelector(':scope > h3')!.replaceChildren(S.schemeTitle);
   schemes.classList.add('home-schemes');

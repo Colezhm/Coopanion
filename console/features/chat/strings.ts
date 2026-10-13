@@ -1,4 +1,4 @@
-import { pick } from '../../core/language.ts';
+import { pick } from '../../base/language.ts';
 import type { Touch } from './index.ts';
 import { S as zhHant, STEP as zhHantStep } from './strings.zh-Hant.ts';
 import { S as ja, STEP as jaStep } from './strings.ja.ts';
