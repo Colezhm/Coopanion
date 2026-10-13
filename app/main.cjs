@@ -176,8 +176,9 @@ const settingsUrl = (path = '') => consoleUrl(`coopanion/${path}`);
  *
  * Responses made here skip Chromium's CORS check, so the handler checks instead. A request goes out, through
  * Node's http with its method, headers and body, only to the Core when it comes from the Core's own origin,
- * and only to the pet's server when it comes from the Core's origin or the pet's own, or is a read with no
- * referrer (the figure pack's frame); everything else is refused (403). The origin is the request's
+ * and only to the pet's server when it comes from the Core's origin or the pet's own, or is a read of the figure
+ * frame's files (`/figure-frame`, `/web/…`, `/packs/…`) with no referrer, sent on with Origin `null`; everything
+ * else is refused (403). The origin is the request's
  * referrer: Chromium hands this handler neither the Origin
  * header nor cookies, so the Origin sent on is the referrer's and no cookie goes along (a console behind a
  * login password does not open here). The answer streams back as it arrives; a redirect comes back as it
@@ -207,8 +208,10 @@ async function serveWindow(request) {
   }
   if (url.origin !== petOrigin && url.origin !== await learnPetOrigin()) return refused();
   if (from === coreOrigin() || from === petOrigin) return forward(request, url, from);
-  // the figure pack's sandboxed frame loads its scripts with no referrer: reading the pet's files is all it gets
-  return !from && (request.method === 'GET' || request.method === 'HEAD') ? forward(request, url, null) : refused();
+  // the figure pack's sandboxed frame loads its files with no referrer: it gets those files and nothing else, sent as
+  // the opaque origin it is so the pet server's own rule for it applies
+  const frameFile = url.pathname === '/figure-frame' || /^\/(web|packs)\//.test(url.pathname);
+  return !from && frameFile && (request.method === 'GET' || request.method === 'HEAD') ? forward(request, url, 'null') : refused();
 }
 
 function windowFile(url) {
