@@ -150,16 +150,24 @@ export function boot(doc: Document = document): Disposable {
   };
   renderNav();
 
+  // the lamps of the manifest pages, which only the advanced mode lists (`/api/console/lamps` is an internal route)
+  let lamps: Disposable | null = null;
+  const followLamps = (): void => {
+    if (mode === 'advanced') lamps ??= subscribeLamps(doc, (next) => rail.setLamps(next));
+    else { lamps?.dispose(); lamps = null; }
+  };
+  life.add(() => lamps?.dispose());
+  followLamps();
   const setMode = (next: ConsoleMode): void => {
     if (next === mode) return;
     mode = next;
     writeMode(mode);
     rail.setMode(mode, true);
+    followLamps();
     // the page open now stays, even one the normal mode does not list; the next page picked is checked as usual
   };
   onModeRequest(setMode, life.signal);
   const offNav = host.onNavChange(renderNav);
-  life.own(subscribeLamps(doc, (lamps) => rail.setLamps(lamps)));
 
   let mounted: { route: string; lifecycle: Lifecycle } | null = null;
   let generation = 0;
