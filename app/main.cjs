@@ -3,8 +3,8 @@
  *
  * Two modes share this executable:
  * - the app: tray icon, the settings window (Coopanion's own front end, `build/console`, served under
- *   `/coopanion/` on the Core child's console origin, see serveWindow), and the Core child process (`core-host.cjs`). A start shows the pet and the tray
- *   icon only; the settings window opens from the tray, the pet's menu, or when the pet asks for
+ *   `/coopanion/` on the Core child's console origin in a session of its own, see serveWindow), and
+ *   the Core child process (`core-host.cjs`). A start shows the pet and the tray icon only; the settings window opens from the tray, the pet's menu, or when the pet asks for
  *   a missing model key (`core/companion.ts`). Starting it again while it runs brings the pet back;
  * - `--pet-host --pet-url=… --parent-pid=…`: the desktop pet's transparent window, started by
  *   the desktop-pet World through `CORTICO_DESKTOP_PET_HOST`. It uses its own profile directory.
@@ -31,7 +31,9 @@
  * system's, handed to the Core as `COOPANION_SYSTEM_LANGUAGE`. The settings window's preload keeps the
  * console in the app language (`settings-preload.cjs`).
  */
-const { app, BrowserWindow, Menu, Notification, Tray, dialog, ipcMain, nativeImage, net, screen, session, shell } = require('electron');
+const { app, BrowserWindow, Menu, Notification, Tray, dialog, ipcMain, nativeImage, screen, session, shell } = require('electron');
+const http = require('node:http');
+const { Readable } = require('node:stream');
 const { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmdirSync, rmSync, writeFileSync } = require('node:fs');
 const { delimiter, dirname, extname, join, resolve, sep } = require('node:path');
 
@@ -162,22 +164,68 @@ const consoleUrl = (path = '') => (core.port ? `http://127.0.0.1:${core.port}/${
 const settingsUrl = (path = '') => consoleUrl(`coopanion/${path}`);
 
 /**
- * The settings window's files (scripts/stage.ts builds them) are answered here for `/coopanion/…` on the
- * Core's console origin; every other http request of the session goes to the network unchanged. The page
- * and the console API thus share one origin: requests need no CORS and pass the console's same-origin
- * check, and the window's storage is the console's. WebSockets do not pass through here.
+ * The settings window lives in a session of its own (SETTINGS_PARTITION); this handler answers every http
+ * request of that session. Its files (scripts/stage.ts builds them) are served for `/coopanion/…` on the
+ * Core's console origin, so the page and the console API share one origin: no CORS, and Core's same-origin
+ * check applies. Other requests to a loopback address (the console API, the pet's pages in their frames) go
+ * out through Node's http with the page's method, headers and body; their answer streams back as it
+ * arrives and a redirect comes back as it is, unfollowed. Chromium hands this handler neither the Origin
+ * header nor cookies: Origin is set from the request's referrer, a write without one is refused (403), and
+ * no cookie is sent, so a console behind a login password does not open here. Requests to anything but a
+ * loopback address are refused. WebSockets do not pass through here.
  */
+const SETTINGS_PARTITION = 'persist:coopanion-settings';
 const WINDOW_DIR = join(APP_ROOT, 'build', 'console');
 const WINDOW_PREFIX = '/coopanion/';
 const WINDOW_TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.map': 'application/json' };
+const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
+
 function serveWindow(request) {
   const url = new URL(request.url);
-  if (!core.port || url.host !== `127.0.0.1:${core.port}` || !url.pathname.startsWith(WINDOW_PREFIX)) {
-    return net.fetch(request, { bypassCustomProtocolHandlers: true });
-  }
+  if (!LOOPBACK.has(url.hostname)) return new Response(null, { status: 403 });
+  if (!core.port || url.host !== `127.0.0.1:${core.port}` || !url.pathname.startsWith(WINDOW_PREFIX)) return forward(request, url);
   const file = resolve(WINDOW_DIR, decodeURIComponent(url.pathname.slice(WINDOW_PREFIX.length)) || 'index.html');
   if (!file.startsWith(WINDOW_DIR + sep) || !existsSync(file)) return new Response(null, { status: 404 });
   return new Response(readFileSync(file), { headers: { 'content-type': WINDOW_TYPES[extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-store' } });
+}
+
+function forward(request, url) {
+  const headers = {};
+  for (const [key, value] of request.headers) headers[key] = value;
+  headers.host = url.host;
+  const from = request.referrer ? new URL(request.referrer).origin : 'null';
+  if (from !== 'null') headers.origin = from;
+  else if (request.method !== 'GET' && request.method !== 'HEAD') return new Response(null, { status: 403 });
+  return new Promise((done) => {
+    const out = http.request({ host: url.hostname.replace(/^\[|\]$/g, ''), port: url.port || 80, method: request.method, path: url.pathname + url.search, headers }, (res) => {
+      const back = new Headers();
+      for (const [key, value] of Object.entries(res.headers)) {
+        if (Array.isArray(value)) for (const v of value) back.append(key, v);
+        else if (value !== undefined) back.set(key, value);
+      }
+      const empty = request.method === 'HEAD' || res.statusCode === 204 || res.statusCode === 304;
+      done(new Response(empty ? null : Readable.toWeb(res), { status: res.statusCode, statusText: res.statusMessage, headers: back }));
+    });
+    out.on('error', () => done(new Response(null, { status: 502 })));
+    if (request.body) Readable.fromWeb(request.body).pipe(out);
+    else out.end();
+  });
+}
+
+/** Pages of the settings partition stay on Core's console; anything else opens in the system browser. */
+function keepOnConsole(contents) {
+  const ours = (url) => !!core.port && url.startsWith(`http://127.0.0.1:${core.port}/`);
+  contents.setWindowOpenHandler(({ url }) => {
+    if (ours(url)) return { action: 'allow', overrideBrowserWindowOptions: { autoHideMenuBar: true, icon: join(ICONS, 'icon.png') } };
+    if (/^https?:/.test(url)) void shell.openExternal(url);
+    return { action: 'deny' };
+  });
+  contents.on('will-navigate', (e, url) => {
+    if (ours(url)) return;
+    e.preventDefault();
+    if (/^https?:/.test(url)) void shell.openExternal(url);
+  });
+  contents.on('did-create-window', (child) => keepOnConsole(child.webContents));
 }
 
 function loadingPage(text) {
@@ -203,18 +251,11 @@ function openSettings(path = '') {
     width: Math.min(1200, area.width), height: Math.min(800, area.height), minWidth: 880, minHeight: 600,
     title: 'Coopanion', icon: join(ICONS, 'icon.png'), autoHideMenuBar: true, show: false,
     backgroundColor: '#f4f5f4',
-    webPreferences: { preload: join(__dirname, 'settings-preload.cjs'), contextIsolation: true, sandbox: true, spellcheck: false },
+    webPreferences: { partition: SETTINGS_PARTITION, preload: join(__dirname, 'settings-preload.cjs'), contextIsolation: true, sandbox: true, spellcheck: false },
   });
   settings.once('ready-to-show', () => settings.show());
   settings.on('page-title-updated', (e) => e.preventDefault());
-  settings.webContents.setWindowOpenHandler(({ url }) => {
-    const origin = core.port ? `http://127.0.0.1:${core.port}` : null;
-    const local = /^http:\/\/(127\.0\.0\.1|localhost):\d+\//.test(url);
-    if (local) return { action: 'allow', overrideBrowserWindowOptions: { autoHideMenuBar: true, icon: join(ICONS, 'icon.png') } };
-    if (origin && url.startsWith(origin)) return { action: 'allow' };
-    shell.openExternal(url);
-    return { action: 'deny' };
-  });
+  keepOnConsole(settings.webContents);
   settings.on('close', (e) => {
     if (quitting) return;
     e.preventDefault();
@@ -374,7 +415,7 @@ ipcMain.on('settings:language', (e) => { e.returnValue = language; });
 ipcMain.on('settings:language-picked', (_e, picked) => { adoptConsoleLanguage(picked).catch(() => { /* the Core went away: the pick is dropped */ }); });
 
 app.whenReady().then(() => {
-  session.defaultSession.protocol.handle('http', serveWindow);
+  session.fromPartition(SETTINGS_PARTITION).protocol.handle('http', serveWindow);
   app.setAppUserModelId('ai.pal.coopanion');
   const system = systemLanguage(app);
   core.opts.env.COOPANION_SYSTEM_LANGUAGE = system;
