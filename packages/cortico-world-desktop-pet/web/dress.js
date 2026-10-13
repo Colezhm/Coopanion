@@ -185,14 +185,14 @@ function renderFigure() {
   const box = $('#optFigure');
   box.textContent = '';
   const opts = el('div', 'opts');
-  const choices = [{ id: 'coo', label: 'Coo', pic: `<svg viewBox="${CROP.palette}" aria-hidden="true">${mini('neutral', skin)}</svg>` },
+  const choices = [{ id: 'coo', label: 'Coo', svg: `<svg viewBox="${CROP.palette}" aria-hidden="true">${mini('neutral', skin)}</svg>` },
     // a pack shows its own picture whatever it wears; the rows below show the picks
-    ...packs.filter((p) => p.id !== 'coo').map((p) => ({ id: p.id, label: nameOf(p.name), pic: p.thumb ? `<img src="${p.base}${p.thumb}" alt="">` : '' }))];
+    ...packs.filter((p) => p.id !== 'coo').map((p) => ({ id: p.id, label: nameOf(p.name), thumb: p.thumb ? p.base + p.thumb : null }))];
   for (const c of choices) {
-    const b = el('button', 'opt wide figure');
+    const b = el('button', 'opt wide figure', c.svg);
     b.setAttribute('aria-pressed', String(skin.figure === c.id));
-    b.innerHTML = `${c.pic}<span></span>`;
-    b.querySelector('span').textContent = c.label;
+    if (c.thumb) Object.assign(b.appendChild(el('img')), { src: c.thumb, alt: '' });
+    b.appendChild(el('span')).textContent = c.label;
     b.addEventListener('click', () => {
       if (skin.figure === c.id) return;
       const pack = packs.find((p) => p.id === c.id);
@@ -237,8 +237,8 @@ function renderFigure() {
     for (const o of axis.options) {
       const b = el('button', 'opt wide');
       b.setAttribute('aria-pressed', String(picks[axis.id] === o.id));
-      b.innerHTML = `${o.thumb ? `<img src="${pack.base}${o.thumb}" alt="">` : ''}<span></span>`;
-      b.querySelector('span').textContent = nameOf(o.name);
+      if (o.thumb) Object.assign(b.appendChild(el('img')), { src: pack.base + o.thumb, alt: '' });
+      b.appendChild(el('span')).textContent = nameOf(o.name);
       b.addEventListener('click', () => {
         apply({ ...skin, scheme: schemeOf(pack, { ...picks, [axis.id]: o.id }) }, true);
         sfx.sparkle(); body?.cue('cheer'); body?.cue('bounce');

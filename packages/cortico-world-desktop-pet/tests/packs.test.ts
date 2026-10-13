@@ -27,6 +27,13 @@ describe('figure packs', () => {
     expect(readManifest(pack({ ...base, sounds: { boing: { file: '../boing.ogg', kind: 'move' } } }))).toMatch(/sounds/);
   });
 
+  it('refuses a file path holding markup characters', () => {
+    const markup = 't.png"><iframe src="x.html"></iframe>';
+    expect(readManifest(pack({ ...base, thumb: markup }))).toMatch(/thumb/);
+    const axis = { id: 'tone', name: { zh: '色调' }, options: [{ id: 'day', name: { zh: '白天' }, thumb: markup }] };
+    expect(readManifest(pack({ ...base, axes: [axis] }))).toMatch(/day/);
+  });
+
   it('a built-in id is not taken over by an installed pack, Coo\'s included', () => {
     const root = mkdtempSync(join(tmpdir(), 'packs-'));
     for (const id of ['whale', 'coo']) {
