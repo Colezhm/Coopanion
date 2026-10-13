@@ -118,7 +118,7 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 const { CoreHost } = require('./core-host.cjs');
-const { LANGUAGES, configuredLanguage, systemLanguage, textOf } = require('./i18n/index.cjs');
+const { configuredLanguage, systemLanguage, textOf } = require('./i18n/index.cjs');
 const { RELEASES_URL, startUpdater } = require('./updater.cjs');
 
 const userData = app.getPath('userData');
@@ -164,40 +164,71 @@ const consoleUrl = (path = '') => (core.port ? `http://127.0.0.1:${core.port}/${
 const settingsUrl = (path = '') => consoleUrl(`coopanion/${path}`);
 
 /**
- * The settings window lives in a session of its own (SETTINGS_PARTITION); this handler answers every http
- * request of that session. Its files (scripts/stage.ts builds them) are served for `/coopanion/…` on the
- * Core's console origin, so the page and the console API share one origin: no CORS, and Core's same-origin
- * check applies. Other requests to a loopback address (the console API, the pet's pages in their frames) go
- * out through Node's http with the page's method, headers and body; their answer streams back as it
- * arrives and a redirect comes back as it is, unfollowed. Chromium hands this handler neither the Origin
- * header nor cookies: Origin is set from the request's referrer, a write without one is refused (403), and
- * no cookie is sent, so a console behind a login password does not open here. Requests to anything but a
- * loopback address are refused. WebSockets do not pass through here.
+ * The settings window lives in a session of its own (SETTINGS_PARTITION), and serveWindow answers every
+ * http request of that session. Its files (scripts/stage.ts builds them) are served for `/coopanion/…` on
+ * the Core's console origin, so the page and the console API share one origin and Core's same-origin check
+ * applies.
+ *
+ * Who runs what in that session: the settings page, and the extension panels it loads into its own
+ * document, run with the Core's full rights, as in Cortico's own console. The pet's pages (its preview on
+ * 开始, the 装扮 page) are frames from the desktop-pet World's own server, and a figure pack's code runs
+ * inside them sandboxed: it is not trusted, and must neither read nor write the Core's API.
+ *
+ * Responses made here skip Chromium's CORS check, so the handler checks instead. A request goes out, through
+ * Node's http with its method, headers and body, only to the Core when it comes from the Core's own origin,
+ * and only to the pet's server when it comes from the Core's origin or the pet's own, or is a read with no
+ * referrer (the figure pack's frame); everything else is refused (403). The origin is the request's
+ * referrer: Chromium hands this handler neither the Origin
+ * header nor cookies, so the Origin sent on is the referrer's and no cookie goes along (a console behind a
+ * login password does not open here). The answer streams back as it arrives; a redirect comes back as it
+ * is, unfollowed. WebSockets do not pass through here; keepRemoteOut keeps the session's other traffic and
+ * its frames on this machine.
  */
 const SETTINGS_PARTITION = 'persist:coopanion-settings';
 const WINDOW_DIR = join(APP_ROOT, 'build', 'console');
 const WINDOW_PREFIX = '/coopanion/';
 const WINDOW_TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.map': 'application/json' };
-const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
-
-function serveWindow(request) {
-  const url = new URL(request.url);
-  if (!LOOPBACK.has(url.hostname)) return new Response(null, { status: 403 });
-  if (!core.port || url.host !== `127.0.0.1:${core.port}` || !url.pathname.startsWith(WINDOW_PREFIX)) return forward(request, url);
-  const file = resolve(WINDOW_DIR, decodeURIComponent(url.pathname.slice(WINDOW_PREFIX.length)) || 'index.html');
-  if (!file.startsWith(WINDOW_DIR + sep) || !existsSync(file)) return new Response(null, { status: 404 });
-  return new Response(readFileSync(file), { headers: { 'content-type': WINDOW_TYPES[extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-store' } });
+const refused = () => new Response(null, { status: 403 });
+const coreOrigin = () => (core.port ? `http://127.0.0.1:${core.port}` : null);
+/** The desktop-pet World's server, as its panel reports it; asked again when a request names another origin. */
+let petOrigin = null;
+async function learnPetOrigin() {
+  const state = await panel('world:desktop-pet', 'pet', 'state').catch(() => null);
+  petOrigin = state?.url ? new URL(state.url).origin : null;
+  return petOrigin;
 }
 
-function forward(request, url) {
+async function serveWindow(request) {
+  const url = new URL(request.url);
+  const from = request.referrer ? new URL(request.referrer).origin : null;
+  if (url.origin === coreOrigin()) {
+    if (url.pathname.startsWith(WINDOW_PREFIX)) return windowFile(url);
+    return from === coreOrigin() ? forward(request, url, from) : refused();
+  }
+  if (url.origin !== petOrigin && url.origin !== await learnPetOrigin()) return refused();
+  if (from === coreOrigin() || from === petOrigin) return forward(request, url, from);
+  // the figure pack's sandboxed frame loads its scripts with no referrer: reading the pet's files is all it gets
+  return !from && (request.method === 'GET' || request.method === 'HEAD') ? forward(request, url, null) : refused();
+}
+
+function windowFile(url) {
+  try {
+    const file = resolve(WINDOW_DIR, decodeURIComponent(url.pathname.slice(WINDOW_PREFIX.length)) || 'index.html');
+    if (!file.startsWith(WINDOW_DIR + sep)) return new Response(null, { status: 404 });
+    return new Response(readFileSync(file), { headers: { 'content-type': WINDOW_TYPES[extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-store' } });
+  } catch {
+    // a malformed escape, a directory, a file that is not there
+    return new Response(null, { status: 404 });
+  }
+}
+
+function forward(request, url, origin) {
   const headers = {};
   for (const [key, value] of request.headers) headers[key] = value;
   headers.host = url.host;
-  const from = request.referrer ? new URL(request.referrer).origin : 'null';
-  if (from !== 'null') headers.origin = from;
-  else if (request.method !== 'GET' && request.method !== 'HEAD') return new Response(null, { status: 403 });
+  if (origin) headers.origin = origin;
   return new Promise((done) => {
-    const out = http.request({ host: url.hostname.replace(/^\[|\]$/g, ''), port: url.port || 80, method: request.method, path: url.pathname + url.search, headers }, (res) => {
+    const out = http.request({ host: url.hostname, port: url.port || 80, method: request.method, path: url.pathname + url.search, headers }, (res) => {
       const back = new Headers();
       for (const [key, value] of Object.entries(res.headers)) {
         if (Array.isArray(value)) for (const v of value) back.append(key, v);
@@ -207,14 +238,30 @@ function forward(request, url) {
       done(new Response(empty ? null : Readable.toWeb(res), { status: res.statusCode, statusText: res.statusMessage, headers: back }));
     });
     out.on('error', () => done(new Response(null, { status: 502 })));
-    if (request.body) Readable.fromWeb(request.body).pipe(out);
-    else out.end();
+    if (!request.body) { out.end(); return; }
+    // a body that breaks off is not sent as if complete
+    const body = Readable.fromWeb(request.body);
+    body.on('error', (err) => out.destroy(err));
+    body.pipe(out);
   });
 }
 
-/** Pages of the settings partition stay on Core's console; anything else opens in the system browser. */
+/** The only remote address the settings page asks: the latest Coopanion release, for the hint under the wordmark. */
+const RELEASE_CHECK = 'https://api.github.com/repos/Pal-AI-Lab/Coopanion/releases/latest';
+const isLocal = (url) => /^(https?|wss?):\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?\//.test(url);
+/** Requests of the settings session leave the machine only for the release check. */
+function keepRemoteOut(ses) {
+  ses.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*'] }, (details, answer) => {
+    answer({ cancel: !(isLocal(details.url) || details.url === RELEASE_CHECK) });
+  });
+}
+
+/**
+ * Pages of the settings partition stay on Core's console, and their frames on this machine; a link anywhere
+ * else opens in the system browser.
+ */
 function keepOnConsole(contents) {
-  const ours = (url) => !!core.port && url.startsWith(`http://127.0.0.1:${core.port}/`);
+  const ours = (url) => !!core.port && url.startsWith(`${coreOrigin()}/`);
   contents.setWindowOpenHandler(({ url }) => {
     if (ours(url)) return { action: 'allow', overrideBrowserWindowOptions: { autoHideMenuBar: true, icon: join(ICONS, 'icon.png') } };
     if (/^https?:/.test(url)) void shell.openExternal(url);
@@ -224,6 +271,13 @@ function keepOnConsole(contents) {
     if (ours(url)) return;
     e.preventDefault();
     if (/^https?:/.test(url)) void shell.openExternal(url);
+  });
+  // a frame (the pet's pages and what a figure pack loads in them) stays on this machine and off the Core's
+  // own origin, whose pages would run with its rights
+  contents.on('will-frame-navigate', (e) => {
+    if (e.isMainFrame || /^about:(blank|srcdoc)$/.test(e.url)) return;
+    if (isLocal(e.url) && !e.url.startsWith(`${coreOrigin()}/`)) return;
+    e.preventDefault();
   });
   contents.on('did-create-window', (child) => keepOnConsole(child.webContents));
 }
@@ -328,16 +382,6 @@ function followLanguage(next) {
   if (settings && consoleUrl()) settings.webContents.reload();
 }
 
-/**
- * A language picked on Cortico's own settings page in the settings window (`settings-preload.cjs`)
- * becomes the app language, written through the console API as the 「习惯」 page writes it.
- */
-async function adoptConsoleLanguage(picked) {
-  const url = consoleUrl('api/config');
-  if (!url || !LANGUAGES.includes(picked)) return;
-  await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ group: 'companion', values: { language: picked } }) });
-}
-
 function buildTray() {
   // macOS: a black template image the menu bar tints to its own color
   const name = MAC ? 'trayTemplate' : 'tray';
@@ -412,10 +456,11 @@ function askRestoreStranded() {
 }
 
 ipcMain.on('settings:language', (e) => { e.returnValue = language; });
-ipcMain.on('settings:language-picked', (_e, picked) => { adoptConsoleLanguage(picked).catch(() => { /* the Core went away: the pick is dropped */ }); });
 
 app.whenReady().then(() => {
-  session.fromPartition(SETTINGS_PARTITION).protocol.handle('http', serveWindow);
+  const settingsSession = session.fromPartition(SETTINGS_PARTITION);
+  settingsSession.protocol.handle('http', serveWindow);
+  keepRemoteOut(settingsSession);
   app.setAppUserModelId('ai.pal.coopanion');
   const system = systemLanguage(app);
   core.opts.env.COOPANION_SYSTEM_LANGUAGE = system;
