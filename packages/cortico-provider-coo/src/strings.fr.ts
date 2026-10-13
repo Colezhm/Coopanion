@@ -6,4 +6,10 @@ export const cooText: Partial<typeof en> = {
   protocol: 'Protocole',
   protocolHint: "Non défini : un service listé utilise son propre protocole, toute autre URL utilise responses. responses : POST <URL>/responses ; chat : POST <URL>/chat/completions ; anthropic : la Messages API, avec l'URL avant /v1 ; gemini : la Gemini API, avec l'URL avant /models.",
   badProtocol: (protocols: string) => `Le protocole doit être l'un de ${protocols}`,
+  chatgpt: {
+    panel: 'Compte ChatGPT',
+    description: "Connexion avec un compte ChatGPT ; les requêtes sont décomptées de l'offre ChatGPT de ce compte.",
+    signedOut: 'Non connecté à ChatGPT',
+    returnToApp: "L'application affiche le résultat de la connexion. Vous pouvez fermer cet onglet.",
+  },
 };

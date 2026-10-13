@@ -6,4 +6,10 @@ export const cooText: Partial<typeof en> = {
   protocol: 'プロトコル',
   protocolHint: '未設定のとき、一覧にあるサービスはそれぞれのプロトコルを、それ以外の URL は responses を使います。responses：POST <URL>/responses、chat：POST <URL>/chat/completions、anthropic：Messages API（URL は /v1 より前の部分）、gemini：Gemini API（URL は /models より前の部分）。',
   badProtocol: (protocols: string) => `プロトコルは ${protocols} のいずれかにしてください`,
+  chatgpt: {
+    panel: 'ChatGPT アカウント',
+    description: 'ChatGPT アカウントでサインインし、リクエストはそのアカウントの ChatGPT プランの利用量に含まれます。',
+    signedOut: 'ChatGPT にサインインしていません',
+    returnToApp: 'サインインの結果はアプリに表示されます。このタブは閉じてかまいません。',
+  },
 };

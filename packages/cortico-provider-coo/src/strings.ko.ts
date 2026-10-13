@@ -6,4 +6,10 @@ export const cooText: Partial<typeof en> = {
   protocol: '프로토콜',
   protocolHint: '비워 두면 목록에 있는 서비스는 자체 프로토콜을, 그 밖의 URL은 responses를 씁니다. responses: POST <URL>/responses, chat: POST <URL>/chat/completions, anthropic: Messages API이며 URL은 /v1 앞부분까지, gemini: Gemini API이며 URL은 /models 앞부분까지 입력합니다.',
   badProtocol: (protocols: string) => `프로토콜은 ${protocols} 중 하나여야 합니다`,
+  chatgpt: {
+    panel: 'ChatGPT 계정',
+    description: 'ChatGPT 계정으로 로그인하며, 요청은 해당 계정의 ChatGPT 요금제 사용량에 포함됩니다.',
+    signedOut: 'ChatGPT에 로그인하지 않았습니다',
+    returnToApp: '로그인 결과는 앱에 표시됩니다. 이 탭은 닫아도 됩니다.',
+  },
 };

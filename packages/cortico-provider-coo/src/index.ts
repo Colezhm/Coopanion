@@ -178,7 +178,9 @@ export const COO = {
 export default COO;
 export { anthropicPrices, deepseekPrices, vendorPrices, OFF_PEAK } from './pricing.ts';
 export {
-  VENDORS, defaultRegion, endpointName, firstVendor, localized, locate, regionsOf, siteOf, vendorById, vendorEntry, vendorName, vendorOf, vendorsFor,
+  CHATGPT, CHATGPT_MODULE, VENDORS, chatgptEntry, connectionVendor, defaultRegion, endpointName, firstVendor, localized, locate, regionsOf, siteOf,
+  vendorById, vendorEntry, vendorName, vendorOf, vendorsFor,
   type Language, type Localized, type Protocol, type Region, type Site, type Vendor,
 } from './vendors.ts';
 export { VENDOR_ICONS } from './icons.ts';
+export { CHATGPT_PROVIDER, SIGN_IN_PANEL, USAGE_LIMIT, chatgptModule, signedIn, usageLimited, type SignInStatus } from './chatgpt/index.ts';

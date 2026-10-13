@@ -77,6 +77,11 @@ export interface Vendor {
   toolOutputText?: true;
   /** Responses: past reasoning goes back as the signed blocks the service returned, not as text. */
   encryptedReasoning?: true;
+  /**
+   * Connected by signing in instead of with a key: the endpoint is the `chatgpt` module's (`chatgptEntry`),
+   * `keyHint` and `secret` are empty, and the site's `keyUrl` is the account's usage page.
+   */
+  signIn?: true;
 }
 
 const PASTE_KEY: Localized = {
@@ -85,6 +90,18 @@ const PASTE_KEY: Localized = {
 };
 const brand = (name: string): Localized => ({ zh: name, en: name });
 const hint = (prefix: string): Localized => brand(`${prefix}…`);
+
+/** OpenAI's API; `CHATGPT` takes its models from it. */
+const OPENAI: Vendor = {
+  // gpt-6-luna takes none / low / medium / high / xhigh / max; the larger two have no none
+  id: 'openai', names: brand('OpenAI'), keyHint: hint('sk-'), secret: 'OPENAI_API_KEY',
+  sites: { global: { baseUrl: 'https://api.openai.com/v1', protocol: 'responses', keyUrl: 'https://platform.openai.com/settings/organization/api-keys' } },
+  model: 'gpt-6-luna', models: ['gpt-6.1-sol', 'gpt-6-astra'],
+  vision: ['gpt-6-luna', 'gpt-6.1-sol', 'gpt-6-astra'],
+  contextWindows: { 'gpt-6-luna': 1_050_000, 'gpt-6.1-sol': 1_050_000, 'gpt-6-astra': 1_050_000 },
+  modelEffort: { 'gpt-6.1-sol': { none: 'low' }, 'gpt-6-astra': { none: 'low' } },
+  encryptedReasoning: true,
+};
 
 /** In the order the app lists them for Chinese; `vendorsFor` gives the order for each language. */
 export const VENDORS: readonly Vendor[] = [
@@ -190,16 +207,7 @@ export const VENDORS: readonly Vendor[] = [
     contextWindows: { 'deepseek/deepseek-v4.1-flash': 1_048_576, 'qwen/qwen3.8-flash': 1_000_000 },
     modelEffort: { 'z-ai/glm-5.3-flash': { none: 'low' } },
   },
-  {
-    // gpt-6-luna takes none / low / medium / high / xhigh / max; the larger two have no none
-    id: 'openai', names: brand('OpenAI'), keyHint: hint('sk-'), secret: 'OPENAI_API_KEY',
-    sites: { global: { baseUrl: 'https://api.openai.com/v1', protocol: 'responses', keyUrl: 'https://platform.openai.com/settings/organization/api-keys' } },
-    model: 'gpt-6-luna', models: ['gpt-6.1-sol', 'gpt-6-astra'],
-    vision: ['gpt-6-luna', 'gpt-6.1-sol', 'gpt-6-astra'],
-    contextWindows: { 'gpt-6-luna': 1_050_000, 'gpt-6.1-sol': 1_050_000, 'gpt-6-astra': 1_050_000 },
-    modelEffort: { 'gpt-6.1-sol': { none: 'low' }, 'gpt-6-astra': { none: 'low' } },
-    encryptedReasoning: true,
-  },
+  OPENAI,
   {
     // thinking and effort are sent in the Messages API's own form (`thinkingParams` in anthropic/wire.ts)
     id: 'anthropic', names: brand('Anthropic'), keyHint: hint('sk-ant-'), secret: 'ANTHROPIC_API_KEY',
@@ -227,7 +235,20 @@ export const VENDORS: readonly Vendor[] = [
   },
 ];
 
-export const vendorById = (id: string): Vendor | null => VENDORS.find((v) => v.id === id) ?? null;
+/** The provider module of a signed-in ChatGPT plan's endpoint (`chatgpt/index.ts`). */
+export const CHATGPT_MODULE = 'chatgpt';
+
+/**
+ * A ChatGPT plan, signed in with the account (Sign in with ChatGPT): OpenAI's API and models, billed
+ * to the plan. Its endpoint is the `chatgpt` module's, so it is listed for people (`vendorsFor`) but
+ * kept out of `VENDORS`, which `locate` reads: the base URL is OpenAI's.
+ */
+export const CHATGPT: Vendor = {
+  ...OPENAI, id: 'chatgpt', names: brand('ChatGPT'), keyHint: brand(''), secret: '', signIn: true,
+  sites: { global: { ...(OPENAI.sites as { global: Site }).global, keyUrl: 'https://chatgpt.com/settings/usage' } },
+};
+
+export const vendorById = (id: string): Vendor | null => (id === CHATGPT.id ? CHATGPT : VENDORS.find((v) => v.id === id) ?? null);
 
 /** The regions a service has separate platforms for; none for a service with one platform. */
 export const regionsOf = (v: Vendor): Region[] => ('global' in v.sites ? [] : [...REGIONS]);
@@ -269,8 +290,8 @@ export const vendorOf = (baseUrl: string | undefined): Vendor | null => locate(b
 /** Mainland China for Chinese, the international platforms for every other language. */
 export const defaultRegion = (language: Language): Region => (language === 'zh' ? 'cn' : 'intl');
 
-const ORDER_ZH = ['deepseek', 'qwen', 'kimi', 'glm', 'doubao', 'minimax', 'stepfun', 'qianfan', 'openrouter', 'openai', 'anthropic', 'gemini', 'xai'];
-const ORDER_OTHER = ['openai', 'anthropic', 'gemini', 'xai', 'openrouter', 'deepseek', 'kimi', 'qwen', 'minimax', 'glm'];
+const ORDER_ZH = ['deepseek', 'qwen', 'kimi', 'glm', 'doubao', 'minimax', 'stepfun', 'qianfan', 'openrouter', 'openai', 'chatgpt', 'anthropic', 'gemini', 'xai'];
+const ORDER_OTHER = ['openai', 'chatgpt', 'anthropic', 'gemini', 'xai', 'openrouter', 'deepseek', 'kimi', 'qwen', 'minimax', 'glm'];
 /** Services that take mainland China accounts only. */
 const MAINLAND_ONLY = ['doubao', 'qianfan', 'stepfun'];
 
@@ -282,6 +303,24 @@ export function vendorsFor(language: Language): { shown: Vendor[]; more: Vendor[
 
 /** The service a new install for `language` starts on. */
 export const firstVendor = (language: Language): Vendor => vendorsFor(language).shown[0]!;
+
+/** The service of the active endpoint as `/api/status` reports it: a ChatGPT plan by its module, the rest by base URL. */
+export function connectionVendor(connection: { module?: string; baseUrl?: string }): Located | null {
+  if (connection.module === CHATGPT_MODULE) return { vendor: CHATGPT, region: null, site: siteOf(CHATGPT, 'cn') };
+  return locate(connection.baseUrl);
+}
+
+/** A new ChatGPT plan endpoint with `model`; it has no key, the sign-in writes the account's tokens to its `.env`. */
+export function chatgptEntry(model = CHATGPT.model) {
+  return {
+    kind: CHATGPT_MODULE,
+    baseUrl: siteOf(CHATGPT, 'cn').baseUrl,
+    spec: { model, thinking: true, reasoningEffort: 'high', maxTokens: 8192 },
+    multimodal: (CHATGPT.vision ?? []).includes(model),
+    pricing: [],
+    options: {},
+  };
+}
 
 /** A new endpoint's config for `v` on `region` (`kind: 'coo'`) with `model`; the key goes into its `.env` under `v.secret`. */
 export function vendorEntry(v: Vendor, model = v.model, region: Region = 'cn') {

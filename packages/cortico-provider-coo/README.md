@@ -58,6 +58,29 @@ Coo Pet Provider:[Cortico](https://github.com/Pal-AI-Lab/Cortico) 的一个 prov
   (密钥存在该端点 `.env` 的 `Vendor.secret` 下,模型按传入的名字,留空用默认)、测试,通过后设为当前端点并恢复运行;
   已有端点留空 Key 时沿用存着的。Coopanion 的桌面引导和「开始」页都用它。
 
+## ChatGPT 套餐(`chatgpt` 模块)
+
+`src/chatgpt/` 是同包的第二个 provider 模块(`kind: "chatgpt"`,`CHATGPT_PROVIDER`):用 ChatGPT 账号登录(OpenAI 的
+[Sign in with ChatGPT](https://developers.openai.com/siwc/token-sharing-open-source/sign-in),开源应用的做法),请求计入该账号的
+ChatGPT 套餐。表里的 `CHATGPT`(`vendors.ts`)给界面列出它,模型、思考档位、上下文窗口沿用 OpenAI 那行;它不在 `VENDORS` 里,
+因为接口地址和 OpenAI 相同,`locate` 只按地址认。
+
+- **登录**(`auth.ts`):授权码 + PKCE(S256),系统浏览器打开授权页,回调在 `127.0.0.1` 上系统分配的端口;第一次用
+  `client_id=dynamic_agent_client`、`agent_name_hint=Coopanion` 和端点自己的 `ext_agent_host_id` 注册,回调带回签发的 client id,
+  之后的登录和刷新都用它。ID token 按签发方公布的密钥验签,并核对 issuer、audience、过期时间和 nonce;授予的 scope 里要有
+  `chatgpt.tokens.use.direct`。
+- **存放**:都在端点目录的 `.env`,和别家的 API Key 同处,每项一行 `CHATGPT_*`(host id、client id、账号、邮箱、access token、过期时间、
+  refresh token、scope),整份写临时文件再替换。access token 剩不到 5 分钟或接口回 401/403 时刷新,同一目录的刷新排队共用一次;
+  每次刷新换新的 refresh token,写盘后才交出新的 access token。refresh token 不再被接受时删掉令牌,client id 与 host id 保留。
+- **请求**(`client.ts`):`POST <baseUrl>/responses`,始终 `stream: true`、`store: false`、整段上下文重放;system 文本进 `instructions`;
+  去掉该路由不收的参数(`max_output_tokens`、`temperature`、`top_p`、`service_tier`、`metadata`、`truncation`、`user`、`previous_response_id` 等);
+  function / custom 工具放进一个 namespace(`app`),重放的调用带上它的名字。模型表是 `GET <baseUrl>/models` 里 `visibility: "list"` 的那些,按服务给的顺序。
+- **用量上限**:`subscription_sharing_usage_limit_exceeded`(HTTP 429 或流里的 `response.failed`)按限流交给 Core,日志里单独记一条,
+  之后 5 分钟不发请求,期间的请求直接以同样的 429 失败。Coopanion 的失败气泡不算它。
+- **控制台方法**:页 `llm:chatgpt` 的面板 `chatgpt`,参数是端点名:`signIn` 回授权 URL,由调用方送到系统浏览器;`state` 报登录进度,
+  登录完成后带上套餐的模型名;`signOut` 撤销 refresh token 并删掉令牌。`connect.ts` 的 `connectChatGPT` 建端点、登录、选模型、测试并设为当前端点。
+- **没用真实账号验证过**:以上都只对着本地假的授权服务器和 Responses 流测过。
+
 端点配置示例(`<CORTICO_HOME>/providers/qwen/config.json`,密钥在同目录 `.env` 的 `QWEN_API_KEY`):
 
 ```json

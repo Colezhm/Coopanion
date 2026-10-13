@@ -1,10 +1,11 @@
 /**
  * Connecting a service through a Cortico console's provider routes, as the app's guide and its
  * Start page do: each service gets its own endpoint for each of its platforms (`endpointName`), so
- * switching back and forth keeps each key. `call` is the caller's way to reach the console (fetch in the Core, the
+ * switching back and forth keeps each key. A ChatGPT plan is signed in instead (`connectChatGPT`),
+ * through the `chatgpt` module's console methods. `call` is the caller's way to reach the console (fetch in the Core, the
  * console's own api in the browser); nothing here imports Node or the DOM.
  */
-import { endpointName, locate, vendorEntry, type Region, type Vendor } from './vendors.ts';
+import { CHATGPT, CHATGPT_MODULE, chatgptEntry, connectionVendor, endpointName, vendorEntry, type Region, type Vendor } from './vendors.ts';
 
 /** GET when `body` is left out, POST otherwise; throws on an error status. */
 export type ConsoleCall = <T>(path: string, body?: unknown) => Promise<T>;
@@ -21,7 +22,7 @@ export interface Connection {
 
 export interface ConnectResult { ok: boolean; why: string | null; ms: number | null }
 
-interface Status { modelConnection?: { ready: boolean; model: string | null; baseUrl?: string } | null }
+interface Status { modelConnection?: { ready: boolean; model: string | null; module?: string; baseUrl?: string } | null }
 interface Detail { name: string; entry: Record<string, unknown>; revision: string }
 interface TestReply { ok?: boolean; elapsedMs?: number; error?: string; status?: number; hint?: string }
 
@@ -29,7 +30,7 @@ const errText = (err: unknown) => (err instanceof Error ? err.message : String(e
 
 export async function currentConnection(call: ConsoleCall): Promise<Connection> {
   const mc = (await call<Status>('/api/status').catch(() => null))?.modelConnection;
-  const at = locate(mc?.baseUrl);
+  const at = mc ? connectionVendor(mc) : null;
   return { ready: !!mc?.ready, vendor: at?.vendor ?? null, region: at?.region ?? null, model: mc?.model ?? '' };
 }
 
@@ -71,6 +72,11 @@ export async function connectVendor(call: ConsoleCall, vendor: Vendor, key: stri
   } catch (err) {
     return { ok: false, ms: null, why: errText(err) };
   }
+  return testAndStart(call, name);
+}
+
+/** Tests the endpoint `name` and, once the test passes, makes it the active endpoint and resumes the run. */
+async function testAndStart(call: ConsoleCall, name: string): Promise<ConnectResult> {
   const r = await testEndpoint(call, name);
   if (!r.ok) return r;
   try {
@@ -80,4 +86,79 @@ export async function connectVendor(call: ConsoleCall, vendor: Vendor, key: stri
     return { ok: false, ms: r.ms, why: errText(err) };
   }
   return r;
+}
+
+/** A ChatGPT endpoint's sign-in as its `state` method reports it (`SignInStatus` in chatgpt/auth.ts). */
+export interface SignInState {
+  signedIn: boolean;
+  email: string | null;
+  phase: 'idle' | 'waiting' | 'done' | 'failed';
+  reason: string | null;
+  /** The plan's models, once a sign-in is done. */
+  models?: string[];
+}
+
+/** The console panel of the `chatgpt` module's sign-in methods. */
+export const SIGN_IN_PANEL = 'chatgpt';
+
+/** The console route of a sign-in method of the `chatgpt` module. */
+const signInRoute = (method: string) => `/api/console/providers/${encodeURIComponent(`llm:${CHATGPT_MODULE}`)}/panels/${SIGN_IN_PANEL}/${method}`;
+
+export const chatgptState = (call: ConsoleCall, name: string) => call<SignInState>(signInRoute('state'), { args: [name] });
+
+/** Revokes and removes the tokens of the ChatGPT endpoint `name`. */
+export const signOutChatGPT = (call: ConsoleCall, name: string) => call<SignInState & { revoked: boolean }>(signInRoute('signOut'), { args: [name] });
+
+/** How often a sign-in under way is looked at. */
+const SIGN_IN_POLL_MS = 1000;
+
+const wait = (ms: number, signal?: AbortSignal) => new Promise<void>((done, fail) => {
+  if (signal?.aborted) return fail(new Error('cancelled'));
+  const timer = setTimeout(done, ms);
+  signal?.addEventListener('abort', () => { clearTimeout(timer); fail(new Error('cancelled')); }, { once: true });
+});
+
+interface SignInOptions { signal?: AbortSignal; pollMs?: number }
+
+/**
+ * Signs the saved ChatGPT endpoint `name` in: `open` takes the authorization URL to the system
+ * browser, and the sign-in is looked at until the browser comes back, it fails or times out
+ * (`SIGN_IN_MS` in chatgpt/auth.ts), or `signal` aborts the wait (which throws).
+ */
+export async function signInChatGPT(call: ConsoleCall, name: string, open: (url: string) => void, opts: SignInOptions = {}): Promise<SignInState> {
+  const { url } = await call<{ url: string }>(signInRoute('signIn'), { args: [name] });
+  open(url);
+  let state: SignInState;
+  do {
+    await wait(opts.pollMs ?? SIGN_IN_POLL_MS, opts.signal);
+    state = await chatgptState(call, name);
+  } while (state.phase === 'waiting');
+  return state;
+}
+
+/**
+ * Signs the ChatGPT endpoint `name` in (`signInChatGPT`), creating the app's endpoint the first time,
+ * and once it is in and its test passes makes it active and resumes the run. When the plan's model
+ * list leaves out the endpoint's model, the endpoint takes the first model it lists.
+ */
+export async function connectChatGPT(call: ConsoleCall, open: (url: string) => void, opts: SignInOptions & { name?: string } = {}): Promise<ConnectResult> {
+  const name = opts.name ?? endpointName(CHATGPT, 'cn');
+  try {
+    const list = await call<{ providers: Array<{ name: string }> }>('/api/providers');
+    if (!list.providers.some((p) => p.name === name)) await call('/api/providers', { name, entry: chatgptEntry() });
+    const state = await signInChatGPT(call, name, open, opts);
+    if (state.phase !== 'done' || !state.signedIn) return { ok: false, ms: null, why: state.reason ?? state.phase };
+    const first = state.models?.[0];
+    if (first) {
+      const d = await call<Detail>(`/api/providers/${encodeURIComponent(name)}`);
+      const spec = d.entry.spec as Record<string, unknown> | undefined;
+      if (!state.models!.includes(String(spec?.model ?? ''))) {
+        const entry = { ...d.entry, spec: { ...spec, model: first }, multimodal: (CHATGPT.vision ?? []).includes(first) };
+        await call(`/api/providers/${encodeURIComponent(name)}/save`, { name: d.name, entry, expectedRevision: d.revision });
+      }
+    }
+  } catch (err) {
+    return { ok: false, ms: null, why: errText(err) };
+  }
+  return testAndStart(call, name);
 }
