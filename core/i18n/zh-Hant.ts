@@ -80,7 +80,7 @@ const zhHant: Translation<CoreText> = {
     connecting: '正在連線…',
     keyOk: (name: string, model: string) => `連上 ${name} 了${model ? `（${model}）` : ''}！現在我能說話囉，庫...`,
     keyFail: (why: string) => `沒連上：${why}。看看 Key 是不是完整，帳戶裡還有沒有餘額？再貼一次試試。`,
-    chatgptAsk: '按下面的按鈕，在瀏覽器裡登入 ChatGPT 帳號。我說的話會計入你的 ChatGPT 方案用量，記得留意額度喔。',
+    chatgptAsk: '點擊下面的按鈕，在瀏覽器裡登入 ChatGPT 帳號。我說的話會計入你的 ChatGPT 方案用量，記得留意額度喔。',
     chatgptGo: '使用 ChatGPT 繼續',
     chatgptWaiting: '在瀏覽器裡登入好就回來，我在這裡等你。',
     chatgptFail: (why: string) => `沒登入成功：${why}。再試一次吧？`,

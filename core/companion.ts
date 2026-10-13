@@ -32,7 +32,7 @@
  *
  * The parent (Electron main) gets `{ type: 'companion:ready', port, dataDir, keyMissing, language }` once the
  * console listens, `{ type: 'companion:language', language }` after the app language changes, `{ type: 'companion:open', path }` to show the settings window at a console
- * route, `{ type: 'companion:browse', url }` to open an https page in the system browser,
+ * route, `{ type: 'companion:browse', url }` to open the ChatGPT sign-in page in the system browser,
  * `{ type: 'companion:hide' }` to put it away (the introduction runs again on the desktop)
  * and `{ type: 'companion:quit' }` to quit the whole app; it asks for a clean stop with
  * `{ type: 'companion:shutdown' }`.

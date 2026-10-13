@@ -34,6 +34,7 @@ import type { DesktopPetWorld, PetDialog, PetDialogAnswer, PetDialogHandle } fro
 import { USER_MAX, capFor, petText } from 'cortico-world-desktop-pet';
 import { CHATGPT, VENDOR_ICONS, defaultRegion, localized, siteOf, vendorName, vendorsFor, type Region, type Vendor } from 'cortico-provider-coo';
 import { connectChatGPT, connectVendor, currentConnection, type ConsoleCall } from 'cortico-provider-coo/src/connect.ts';
+import { signInReason } from 'cortico-provider-coo/src/strings.ts';
 import { coreText } from './i18n/index.ts';
 import type { ModelLanguage } from './language.ts';
 
@@ -252,7 +253,7 @@ async function signIn(show: (d: PetDialog, at: string) => Promise<PetDialogAnswe
       await show({ ...ask, text: S.keyOk(name, model), marks: [name], actions: ['love', 'jump'] }, 'key-ok');
       return true;
     }
-    if (!stop.signal.aborted) step = { ...step, text: S.chatgptFail(trimEnd(r.why ?? '?')), actions: ['sad'] };
+    if (!stop.signal.aborted) step = { ...step, text: S.chatgptFail(trimEnd(signInReason(r.why ?? '?', language))), actions: ['sad'] };
   }
 }
 
