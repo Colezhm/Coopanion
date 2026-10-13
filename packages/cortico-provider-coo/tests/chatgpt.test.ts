@@ -47,7 +47,7 @@ const jwt = (claims: Record<string, unknown>, key: KeyObject = KEY.privateKey) =
 };
 
 /** The fake authorization server. `scope` is what it grants; `signWith` the key of its ID tokens. */
-async function authServer(opts: { scope?: string; signWith?: KeyObject; refreshError?: string } = {}) {
+async function authServer(opts: { scope?: string; signWith?: KeyObject; refreshError?: string; onRefresh?: () => void } = {}) {
   const seen = { exchanges: [] as Array<Record<string, string>>, refreshes: [] as Array<Record<string, string>>, revoked: [] as string[] };
   let challenge = '';
   let nonce = '';
@@ -70,6 +70,7 @@ async function authServer(opts: { scope?: string; signWith?: KeyObject; refreshE
       });
     }
     seen.refreshes.push(form);
+    opts.onRefresh?.();
     if (opts.refreshError) return json(400, { error: opts.refreshError });
     if (form.refresh_token !== `rt-${rotation}`) return json(400, { error: 'refresh_token_reused' });
     rotation += 1;
@@ -222,6 +223,25 @@ describe('Sign in with ChatGPT', () => {
     // the token the API refused is refreshed even before it expires
     expect(await account.accessToken('at-2')).toBe('at-3');
     expect(readStored(dir).refreshToken).toBe('rt-3');
+  });
+
+  it('a sign-in that lands while a refresh is under way keeps its tokens, and the refresh hands them out', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'chatgpt-'));
+    const signedInAgain = `CHATGPT_CLIENT_ID=${CLIENT}
+CHATGPT_ACCESS_TOKEN=at-new
+CHATGPT_EXPIRES_AT=${Date.now() + 3_600_000}
+CHATGPT_REFRESH_TOKEN=rt-new
+CHATGPT_SCOPE=${PLAN_SCOPE}
+`;
+    const auth = await authServer({ onRefresh: () => writeFileSync(join(dir, '.env'), signedInAgain) });
+    writeFileSync(join(dir, '.env'), `CHATGPT_CLIENT_ID=${CLIENT}
+CHATGPT_ACCESS_TOKEN=at-1
+CHATGPT_EXPIRES_AT=0
+CHATGPT_REFRESH_TOKEN=rt-1
+CHATGPT_SCOPE=${PLAN_SCOPE}
+`);
+    expect(await accountAt(dir, svc(auth.issuer)).accessToken()).toBe('at-new');
+    expect(readStored(dir)).toMatchObject({ accessToken: 'at-new', refreshToken: 'rt-new' });
   });
 
   it('signs out when the refresh token is refused, keeping the registration; signing out revokes the refresh token', async () => {

@@ -285,6 +285,8 @@ export class ChatGPTAccount {
     const stored = this.read();
     if (stored.subject && stored.subject !== identity.subject) throw new ChatGPTAuthError('account_mismatch', 'This is another ChatGPT account than the one this endpoint signed in with');
     writeStored(this.dir, { ...tokens, refreshToken: reply.refresh_token, scope: scopes.join(','), subject: identity.subject, email: identity.email ?? undefined });
+    // a new sign-in starts without the pause of the old one's usage limit
+    this.pausedUntil = 0;
   }
 
   private tokenFields(reply: TokenReply): { accessToken: string; expiresAt: string } {
@@ -329,12 +331,21 @@ export class ChatGPTAccount {
     try {
       reply = await this.tokenRequest({ grant_type: 'refresh_token', client_id: clientId, refresh_token: refreshToken, resource: CHATGPT_RESOURCE });
     } catch (err) {
-      if (err instanceof ChatGPTAuthError && SIGNED_OUT_CODES.has(err.code)) writeStored(this.dir, Object.fromEntries(TOKENS.map((f) => [f, undefined])));
+      // only the tokens this refresh used go: a sign-in that replaced them meanwhile keeps its own
+      if (err instanceof ChatGPTAuthError && SIGNED_OUT_CODES.has(err.code) && this.read().refreshToken === refreshToken)
+        writeStored(this.dir, Object.fromEntries(TOKENS.map((f) => [f, undefined])));
+      const replaced = this.read();
+      if (replaced.refreshToken && replaced.refreshToken !== refreshToken && replaced.accessToken) return replaced.accessToken;
       throw err;
     }
     const tokens = this.tokenFields(reply);
-    // signed out while the refresh was under way: its tokens are not written back
-    if (this.read().refreshToken !== refreshToken) throw new ChatGPTAuthError('signed_out', 'The endpoint was signed out of ChatGPT', 401);
+    // signed out or signed in again while the refresh was under way: its tokens are not written back,
+    // and a new sign-in's token is used instead
+    const current = this.read();
+    if (current.refreshToken !== refreshToken) {
+      if (current.refreshToken && current.accessToken) return current.accessToken;
+      throw new ChatGPTAuthError('signed_out', 'The endpoint was signed out of ChatGPT', 401);
+    }
     // the service may leave the scope out when it is unchanged
     const granted = typeof reply.scope === 'string' ? reply.scope.split(/\s+/).filter(Boolean).join(',') : scope;
     writeStored(this.dir, { ...tokens, refreshToken: typeof reply.refresh_token === 'string' && reply.refresh_token ? reply.refresh_token : refreshToken, scope: granted });
@@ -351,6 +362,7 @@ export class ChatGPTAccount {
     const stored = this.read();
     writeStored(this.dir, Object.fromEntries(TOKENS.map((f) => [f, undefined])));
     this.outcome = null;
+    this.pausedUntil = 0;
     if (!stored.refreshToken || !stored.clientId) return;
     try {
       const { revocation_endpoint: endpoint } = await discover(this.service, this.fetchImpl);
