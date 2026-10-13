@@ -188,9 +188,17 @@ describe('the console API the settings window reads', () => {
     expect(body.result).toEqual(expect.any(String));
   });
 
-  // last: resuming delivers what waited and starts a model call
+  // near the end: resuming delivers what waited and starts a model call
   it('run: resume and pause answer with the new state', async () => {
     expect((await json(await post('/api/run/resume'))).body).toMatchObject({ paused: false, result: expect.any(String) });
     expect((await json(await post('/api/run/pause'))).body).toMatchObject({ paused: true, result: expect.any(String) });
   });
+
+  // last: it stops the bot
+  it('shutdown: answers with the steps it ran', async () => {
+    const { status, body } = await json(await post('/api/run/shutdown'));
+    expect(status).toBe(200);
+    expect(body).toMatchObject({ ok: expect.any(Boolean), result: expect.any(String), steps: expect.any(Array) });
+    expect(body.steps[0]).toMatchObject({ label: expect.any(String), ok: expect.any(Boolean), elapsedMs: expect.any(Number) });
+  }, 60000);
 });
