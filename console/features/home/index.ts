@@ -1,7 +1,7 @@
 /**
  * 「开始」: the app's home page. Everything the first minutes need on one page, top to bottom in
  * the order it is needed: the model service and its key, then the pet, then the console's color
- * scheme (appearance.ts). The model card is one view:
+ * scheme (features/schemes). The model card is one view:
  * the service in use on the first row (with 「测试连接」), every other one on the second (in the order
  * for the console's language; outside Chinese the services that take mainland China accounts only
  * behind a More button); the picked one's model and key boxes are below, and 「保存并开始」 saves the
@@ -20,7 +20,7 @@ import { LANGUAGE } from '../../base/language.ts';
 import type { Page, PageContext } from '../../base/page.ts';
 import { intro } from '../intro.ts';
 import { revealWhenPainted } from '../frame-reveal.ts';
-import { mountSchemes } from './appearance.ts';
+import { schemesCard } from '../schemes/index.ts';
 import { readMode, requestMode } from '../mode.ts';
 import {
   connectVendor, consoleCall, defaultRegion, localized, locate, readStatus, regionsOf, siteOf, testEndpoint, VENDOR_ICONS, vendorName, vendorsFor,
@@ -304,7 +304,7 @@ async function mount(ctx: PageContext): Promise<void> {
   dress.addEventListener('click', () => ctx.router.navigate(['dress']));
 
   /* ---------- color scheme ---------- */
-  root.append(mountSchemes(ctx));
+  root.append(schemesCard(ctx, S.schemeTitle));
 
   await Promise.all([refreshModel(), refreshPet()]);
   ctx.lifecycle.interval(() => { void refreshModel(); void refreshPet(); }, 2000);

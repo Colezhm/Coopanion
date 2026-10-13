@@ -220,7 +220,7 @@ export function boot(doc: Document = document): { dispose(): void } {
   doc.body.insertBefore(shell.el, doc.body.firstChild);
 
   const brandMeta = mountSidebar(shell.el, memo, shellLife.signal);
-  mountRelease(doc, brandMeta, shellLife.signal);
+  mountRelease(doc, brandMeta, (hint) => brandMeta.append(hint), shellLife.signal);
 
   /** 普通模式下藏起不在 BASIC_FEATURES 里的项(含 manifest 的页),项都藏起来的组也藏起来;每次导航重画后再排一遍。 */
   const basicRoutes = new Set(BASIC_FEATURES.map((f) => f.route));

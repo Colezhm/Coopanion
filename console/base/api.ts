@@ -3,7 +3,6 @@
  * A non-2xx reply or a body that is not JSON throws `ConsoleInvokeError`, with the server's
  * `error` when it gave one; an abort is thrown as it is. An empty success is null.
  */
-import type { PathPickerOptions } from 'cortico/web/shared/path-picker.ts';
 import { languageHeaders } from './language.ts';
 import { AUTH_HEADER, ConsoleInvokeError, panelRoute } from './protocol.ts';
 import { S } from './strings.ts';
@@ -110,11 +109,6 @@ export async function postBlob<T>(path: string, body: Blob, opts?: RequestOption
 export async function setConfig(groupId: string, values: Record<string, unknown>, opts?: RequestOptions): Promise<string> {
   const response = await post<{ result?: string }>('/api/config', { group: groupId, values }, opts);
   return response.result || groupId;
-}
-
-/** Opens a path picker on the machine that runs Core; null when it was cancelled. */
-export async function pickPath(options: PathPickerOptions, opts?: RequestOptions): Promise<string | null> {
-  return (await post<{ path: string | null }>('/api/path-picker', options, opts)).path;
 }
 
 /** Calls a panel method: POST `{ args }`. */

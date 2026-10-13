@@ -7,7 +7,9 @@
  * 2. lays `console/` over `src/web/client/` (the app's entry and home page) and writes the app's
  *    version and channel there as `app-version.ts`, for the release check under the wordmark;
  * 3. builds the console bundle with Cortico's own `buildWeb` and the stylesheet with Tailwind;
- * 4. builds the desktop pet World's panel bundle.
+ * 4. builds the desktop pet World's panel bundle;
+ * 5. builds the settings window (`console/index.ts`, `console/index.html`) into `build/console/`,
+ *    which the Electron main process serves under `/coopanion/` on Core's origin.
  *
  * Run: `pnpm run build:cortico`. Idempotent; the previous `build/cortico` is replaced.
  */
@@ -20,6 +22,7 @@ const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const VENDOR = join(ROOT, 'vendor', 'cortico');
 const OUT = join(ROOT, 'build', 'cortico');
 const OVERLAY = join(ROOT, 'console');
+const WINDOW_OUT = join(ROOT, 'build', 'console');
 
 if (!existsSync(join(VENDOR, 'src', 'core'))) {
   console.error('vendor/cortico 是空的:先运行 git submodule update --init --recursive');
@@ -83,5 +86,40 @@ rmSync(entry);
 const pet = join(ROOT, 'packages', 'cortico-world-desktop-pet');
 const panel = spawnSync(process.execPath, [join(pet, 'scripts', 'build-console.mjs')], { cwd: pet, stdio: 'inherit' });
 if (panel.status !== 0) process.exit(panel.status ?? 1);
+
+// the settings window: one ES module bundle (the CSS it imports becomes index.css), its stylesheet, the page
+rmSync(WINDOW_OUT, { recursive: true, force: true });
+mkdirSync(WINDOW_OUT, { recursive: true });
+const esbuild = await import('esbuild');
+await esbuild.build({
+  entryPoints: [join(OVERLAY, 'index.ts')],
+  outdir: WINDOW_OUT,
+  entryNames: 'index',
+  bundle: true,
+  format: 'esm',
+  target: 'es2022',
+  platform: 'browser',
+  minify: true,
+  sourcemap: true,
+  jsx: 'automatic',
+  define: {
+    COOPANION_VERSION: JSON.stringify(version),
+    COOPANION_CHANNEL: JSON.stringify(process.env.COOPANION_CHANNEL === 'steam' ? 'steam' : 'github'),
+    'process.env.NODE_ENV': '"production"',
+  },
+  logLevel: 'warning',
+});
+cpSync(join(OVERLAY, 'index.html'), join(WINDOW_OUT, 'index.html'));
+const slash = (path: string) => relative(WINDOW_OUT, path).split(sep).join('/');
+const windowEntry = join(WINDOW_OUT, 'tailwind.entry.css');
+writeFileSync(windowEntry, [
+  ...['styles.css', 'features/home/home.css', 'features/chat/chat.css', 'companion.css'].map((f) => `@import "${slash(join(OVERLAY, f))}";`),
+  `@source "${slash(OVERLAY)}";`,
+  `@source "${slash(join(pet, 'src', 'console'))}";`,
+  '',
+].join('\n'));
+const windowCss = spawnSync(process.execPath, [cli, '-i', windowEntry, '-o', join(WINDOW_OUT, 'styles.css'), '--minify'], { cwd: WINDOW_OUT, stdio: 'inherit' });
+if (windowCss.status !== 0) process.exit(windowCss.status ?? 1);
+rmSync(windowEntry);
 
 console.log(`stage done in ${((Date.now() - t0) / 1000).toFixed(1)} s → ${relative(ROOT, OUT)}`);

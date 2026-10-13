@@ -53,14 +53,14 @@ function link(doc: Document, className: string, text: string, href: string): HTM
   return a;
 }
 
-/** 把版本行放进字标容器;有新版本时在它下面补上下载链接。 */
-export function mountRelease(doc: Document, brand: Element, signal: AbortSignal): void {
+/** 把版本行放进字标容器;有新版本时把下载链接交给 `onUpdate`。 */
+export function mountRelease(doc: Document, brand: Element, onUpdate: (link: HTMLAnchorElement) => void, signal: AbortSignal): void {
   const repo = link(doc, 'companion-version', `v${APP_VERSION} · GitHub`, REPO_URL);
   repo.title = S.repoHint;
   brand.appendChild(repo);
   if (APP_CHANNEL === 'steam') return;
   void checkRelease().then((update) => {
     if (signal.aborted || !update) return;
-    brand.appendChild(link(doc, 'release-hint', S.update(update.version), update.url));
+    onUpdate(link(doc, 'release-hint', S.update(update.version), update.url));
   });
 }

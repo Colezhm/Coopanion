@@ -1,5 +1,5 @@
 import { coopanionLettering } from './branding.ts';
-import { brandMark } from './ui/icons.ts';
+import { brandMark } from './base/ui/icons.ts';
 
 /** The same C and two eyes form the wordmark and the compact mark; CSS moves their strokes. */
 export function sidebarBrand(doc: Document): HTMLDivElement {

@@ -7,10 +7,10 @@
  * writes the deployment's theme.json); while this page is open it reads that record every
  * `THEME_POLL_MS` and applies it when the scheme or mode differs from what the window shows.
  */
-import { get, post } from '../../base/api.ts';
+import { post } from '../../base/api.ts';
 import type { Page, PageContext } from '../../base/page.ts';
-import { applyStoredTheme, disposeThemeStudio, getThemeStudio } from '../../theme/studio.ts';
-import type { InjectedTheme } from '../../../shared/theme.ts';
+import { applyStoredTheme, disposeThemeStudio, getThemeStudio } from '../../base/theme/studio.ts';
+import { fetchTheme } from '../../base/theme/storage.ts';
 import { intro } from '../intro.ts';
 import { revealWhenPainted } from '../frame-reveal.ts';
 import { S } from './strings.ts';
@@ -68,7 +68,7 @@ async function mount(ctx: PageContext): Promise<void> {
   };
 
   const followTheme = async () => {
-    const injected = await get<InjectedTheme>('/api/theme', { signal }).catch(() => null);
+    const injected = await fetchTheme(signal).catch(() => null);
     const theme = injected?.theme;
     if (!injected || !theme || signal.aborted) return;
     const shown = getThemeStudio().snapshot();

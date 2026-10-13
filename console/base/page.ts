@@ -13,6 +13,7 @@ export interface PageLifecycle {
   own<T extends Disposable>(d: T): T;
   add(cleanup: () => void): Disposable;
   interval(fn: () => void, ms: number): Disposable;
+  timeout(fn: () => void, ms: number): Disposable;
 }
 
 export interface PageContext {

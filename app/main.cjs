@@ -2,8 +2,8 @@
  * Coopanion main process.
  *
  * Two modes share this executable:
- * - the app: tray icon, the settings window (the Cortico console served by the Core child on
- *   127.0.0.1), and the Core child process (`core-host.cjs`). A start shows the pet and the tray
+ * - the app: tray icon, the settings window (Coopanion's own front end, `build/console`, served under
+ *   `/coopanion/` on the Core child's console origin, see serveWindow), and the Core child process (`core-host.cjs`). A start shows the pet and the tray
  *   icon only; the settings window opens from the tray, the pet's menu, or when the pet asks for
  *   a missing model key (`core/companion.ts`). Starting it again while it runs brings the pet back;
  * - `--pet-host --pet-url=… --parent-pid=…`: the desktop pet's transparent window, started by
@@ -31,9 +31,9 @@
  * system's, handed to the Core as `COOPANION_SYSTEM_LANGUAGE`. The settings window's preload keeps the
  * console in the app language (`settings-preload.cjs`).
  */
-const { app, BrowserWindow, Menu, Notification, Tray, dialog, ipcMain, nativeImage, screen, shell } = require('electron');
+const { app, BrowserWindow, Menu, Notification, Tray, dialog, ipcMain, nativeImage, net, screen, session, shell } = require('electron');
 const { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmdirSync, rmSync, writeFileSync } = require('node:fs');
-const { delimiter, dirname, join } = require('node:path');
+const { delimiter, dirname, extname, join, resolve, sep } = require('node:path');
 
 const MAC = process.platform === 'darwin';
 const LINUX = process.platform === 'linux';
@@ -158,6 +158,27 @@ let language = 'en';
 const T = () => textOf(language);
 
 const consoleUrl = (path = '') => (core.port ? `http://127.0.0.1:${core.port}/${path}` : null);
+/** The settings window's page; `path` is a hash route such as `#/dress`. */
+const settingsUrl = (path = '') => consoleUrl(`coopanion/${path}`);
+
+/**
+ * The settings window's files (scripts/stage.ts builds them) are answered here for `/coopanion/…` on the
+ * Core's console origin; every other http request of the session goes to the network unchanged. The page
+ * and the console API thus share one origin: requests need no CORS and pass the console's same-origin
+ * check, and the window's storage is the console's. WebSockets do not pass through here.
+ */
+const WINDOW_DIR = join(APP_ROOT, 'build', 'console');
+const WINDOW_PREFIX = '/coopanion/';
+const WINDOW_TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.map': 'application/json' };
+function serveWindow(request) {
+  const url = new URL(request.url);
+  if (!core.port || url.host !== `127.0.0.1:${core.port}` || !url.pathname.startsWith(WINDOW_PREFIX)) {
+    return net.fetch(request, { bypassCustomProtocolHandlers: true });
+  }
+  const file = resolve(WINDOW_DIR, decodeURIComponent(url.pathname.slice(WINDOW_PREFIX.length)) || 'index.html');
+  if (!file.startsWith(WINDOW_DIR + sep) || !existsSync(file)) return new Response(null, { status: 404 });
+  return new Response(readFileSync(file), { headers: { 'content-type': WINDOW_TYPES[extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-store' } });
+}
 
 function loadingPage(text) {
   // with lang set, Chromium takes the system's Chinese, Japanese or Korean font for the language
@@ -172,7 +193,7 @@ function openSettings(path = '') {
     if (settings.isMinimized()) settings.restore();
     settings.show();
     settings.focus();
-    const url = consoleUrl(path);
+    const url = settingsUrl(path);
     if (url && path) settings.loadURL(url);
     return;
   }
@@ -201,7 +222,7 @@ function openSettings(path = '') {
     if (MAC) app.dock?.hide();
   });
   settings.on('closed', () => { settings = null; });
-  const url = consoleUrl(path);
+  const url = settingsUrl(path);
   settings.loadURL(url ?? loadingPage(T().starting));
 }
 
@@ -292,7 +313,7 @@ function buildTray() {
 
 core.on('ready', ({ language: next }) => {
   followLanguage(next);
-  if (settings) settings.loadURL(consoleUrl());
+  if (settings) settings.loadURL(settingsUrl());
   if (updateStep) core.send(updateStep);
 });
 core.on('language', followLanguage);
@@ -353,6 +374,7 @@ ipcMain.on('settings:language', (e) => { e.returnValue = language; });
 ipcMain.on('settings:language-picked', (_e, picked) => { adoptConsoleLanguage(picked).catch(() => { /* the Core went away: the pick is dropped */ }); });
 
 app.whenReady().then(() => {
+  session.defaultSession.protocol.handle('http', serveWindow);
   app.setAppUserModelId('ai.pal.coopanion');
   const system = systemLanguage(app);
   core.opts.env.COOPANION_SYSTEM_LANGUAGE = system;
