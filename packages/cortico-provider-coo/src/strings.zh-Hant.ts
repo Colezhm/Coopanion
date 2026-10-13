@@ -11,5 +11,6 @@ export const cooText: Partial<typeof en> = {
     description: '以 ChatGPT 帳號登入，請求計入該帳號的 ChatGPT 方案用量。',
     signedOut: '未登入 ChatGPT',
     returnToApp: '登入結果會在應用程式裡顯示，可以關閉這個頁面。',
+    reasons: { access_denied: '沒有同意授權', plan_not_granted: '這個帳號沒有授權使用 ChatGPT 方案', timeout: '瀏覽器裡的登入逾時了' },
   },
 };

@@ -11,5 +11,6 @@ export const cooText: Partial<typeof en> = {
     description: 'Anmeldung mit einem ChatGPT-Konto; Anfragen zählen zum ChatGPT-Tarif dieses Kontos.',
     signedOut: 'Nicht bei ChatGPT angemeldet',
     returnToApp: 'Das Ergebnis der Anmeldung steht in der App. Dieser Tab kann geschlossen werden.',
+    reasons: { access_denied: 'der Zugriff wurde nicht erlaubt', plan_not_granted: 'das Konto hat die Nutzung seines ChatGPT-Tarifs nicht erlaubt', timeout: 'die Anmeldung im Browser ist abgelaufen' },
   },
 };

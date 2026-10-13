@@ -11,5 +11,6 @@ export const cooText: Partial<typeof en> = {
     description: 'Entra com uma conta do ChatGPT; as solicitações contam no plano do ChatGPT dessa conta.',
     signedOut: 'Sem login no ChatGPT',
     returnToApp: 'O app mostra o resultado do login. Você pode fechar esta aba.',
+    reasons: { access_denied: 'o acesso não foi concedido', plan_not_granted: 'a conta não permitiu usar o plano do ChatGPT', timeout: 'o login no navegador expirou' },
   },
 };

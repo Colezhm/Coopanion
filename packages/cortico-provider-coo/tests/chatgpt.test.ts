@@ -6,6 +6,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { createHash, generateKeyPairSync, sign, type KeyObject } from 'node:crypto';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import { connect } from 'node:net';
 import { mkdtempSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -93,6 +94,9 @@ function recordingLog(): Logger & { warns: string[] } {
   return { ...nullLogger(), warns, warn: (msg: string) => { warns.push(msg); } } as Logger & { warns: string[] };
 }
 
+/** The fake services, with the Responses API at `api`. */
+const svc = (issuer: string, api = 'http://127.0.0.1:9/v1'): ChatGPTService => ({ issuer, api, appName: 'Test App' });
+
 /** The module as the app registers it, against `service`, with one endpoint `chatgpt` under a fresh directory. */
 function setup(service: ChatGPTService, baseUrl?: string, log: Logger = nullLogger()) {
   const root = mkdtempSync(join(tmpdir(), 'chatgpt-'));
@@ -129,11 +133,12 @@ describe('Sign in with ChatGPT', () => {
 
   it('registers on the first sign-in, exchanges the code with its PKCE verifier, and signs in again under the issued client id', async () => {
     const auth = await authServer();
-    const { dir, module, console, invoke } = setup({ issuer: auth.issuer, appName: 'Test App' });
+    const { dir, module, console, invoke } = setup(svc(auth.issuer));
     // the console server answers only methods of a declared panel
     expect(console.panels?.map((p) => p.id)).toContain(SIGN_IN_PANEL);
     writeFileSync(join(dir, '.env'), 'OTHER_KEY=kept\n');
     expect(module.availability!('chatgpt', entry(), 'en')).toEqual({ ready: false, reason: cooText('en').chatgpt.signedOut });
+    expect(module.normalize!(entry('https://elsewhere.example/v1')).baseUrl).toBe('http://127.0.0.1:9/v1');
 
     const { url } = await invoke<{ url: string }>('signIn');
     expect(url.startsWith(`${auth.issuer}/api/accounts/authorize?`)).toBe(true);
@@ -150,23 +155,27 @@ describe('Sign in with ChatGPT', () => {
     expect((await fetch(`${q.get('redirect_uri')}?state=forged&code=code-1`)).status).toBe(400);
     expect((await invoke<State>('state')).phase).toBe('waiting');
 
-    const page = await callback(url, { code: 'code-1', scope: CHATGPT_SCOPES, client_id: CLIENT });
-    expect(await page.text()).toContain(cooText('en').chatgpt.returnToApp);
+    // the callback page loaded twice redeems the code once
+    const [page, again] = await Promise.all([1, 2].map(() => callback(url, { code: 'code-1', scope: CHATGPT_SCOPES, client_id: CLIENT })));
+    expect([page!.status, again!.status].sort()).toEqual([200, 400]);
+    const shown = page!.status === 200 ? page! : again!;
+    expect(await shown.text()).toContain(cooText('en').chatgpt.returnToApp);
     expect(await settled(invoke)).toMatchObject({ phase: 'done', signedIn: true, email: 'person@example.com' });
+    expect(auth.seen.exchanges).toHaveLength(1);
     expect(auth.seen.exchanges[0]).toMatchObject({ client_id: CLIENT, redirect_uri: q.get('redirect_uri') });
     expect(module.availability!('chatgpt', entry(), 'en')).toEqual({ ready: true });
     const env = readFileSync(join(dir, '.env'), 'utf8');
     expect(env).toContain('OTHER_KEY=kept');
     expect(readStored(dir)).toMatchObject({ clientId: CLIENT, refreshToken: 'rt-1', accessToken: 'at-1', subject: 'account-1', hostId: q.get('ext_agent_host_id') });
 
-    const again = await invoke<{ url: string }>('signIn');
-    const q2 = auth.authorized(again.url);
+    const next = await invoke<{ url: string }>('signIn');
+    const q2 = auth.authorized(next.url);
     expect(q2.get('client_id')).toBe(CLIENT);
     expect(q2.has('agent_name_hint')).toBe(false);
     expect(q2.get('ext_agent_host_id')).toBe(q.get('ext_agent_host_id'));
     expect(q2.get('login_hint')).toBe('person@example.com');
     // a returning sign-in's callback may leave the client id out
-    await callback(again.url, { code: 'code-1', scope: CHATGPT_SCOPES });
+    await callback(next.url, { code: 'code-1', scope: CHATGPT_SCOPES });
     expect(await settled(invoke)).toMatchObject({ phase: 'done', signedIn: true });
   });
 
@@ -177,7 +186,7 @@ describe('Sign in with ChatGPT', () => {
       [{ signWith: OTHER_KEY.privateKey }, { code: 'code-1', client_id: CLIENT }, 'invalid_id_token'],
     ] as const) {
       const auth = await authServer(opts);
-      const { dir, invoke } = setup({ issuer: auth.issuer, appName: 'Test App' });
+      const { dir, invoke } = setup(svc(auth.issuer));
       const { url } = await invoke<{ url: string }>('signIn');
       auth.authorized(url);
       await callback(url, params);
@@ -186,11 +195,26 @@ describe('Sign in with ChatGPT', () => {
     }
   });
 
+  it('answers a malformed request or a state of other characters with a 400 and keeps waiting', async () => {
+    const auth = await authServer();
+    const { invoke } = setup(svc(auth.issuer));
+    const { url } = await invoke<{ url: string }>('signIn');
+    const redirect = new URL(new URL(url).searchParams.get('redirect_uri')!);
+    const raw = await new Promise<string>((done) => {
+      const socket = connect(Number(redirect.port), '127.0.0.1', () => socket.end(`GET //[ HTTP/1.1\r\nHost: ${redirect.host}\r\n\r\n`));
+      let reply = '';
+      socket.on('data', (chunk) => { reply += chunk; }).on('close', () => done(reply));
+    });
+    expect(raw).toMatch(/^HTTP\/1\.1 400/);
+    expect((await fetch(`${redirect}?state=${'%C3%A9'.repeat(43)}&code=code-1`)).status).toBe(400);
+    expect((await invoke<State>('state')).phase).toBe('waiting');
+  });
+
   it('refreshes an expiring access token once for requests waiting together and stores the rotated refresh token', async () => {
     const auth = await authServer();
     const dir = mkdtempSync(join(tmpdir(), 'chatgpt-'));
     writeFileSync(join(dir, '.env'), `CHATGPT_CLIENT_ID=${CLIENT}\nCHATGPT_ACCESS_TOKEN=at-1\nCHATGPT_EXPIRES_AT=${Date.now() + 1000}\nCHATGPT_REFRESH_TOKEN=rt-1\nCHATGPT_SCOPE=${PLAN_SCOPE}\n`);
-    const account = accountAt(dir, { issuer: auth.issuer, appName: 'Test App' });
+    const account = accountAt(dir, svc(auth.issuer));
     expect(await Promise.all([account.accessToken(), account.accessToken(), account.accessToken()])).toEqual(['at-2', 'at-2', 'at-2']);
     expect(auth.seen.refreshes).toHaveLength(1);
     expect(auth.seen.refreshes[0]).toMatchObject({ grant_type: 'refresh_token', client_id: CLIENT, refresh_token: 'rt-1', resource: CHATGPT_RESOURCE });
@@ -205,13 +229,13 @@ describe('Sign in with ChatGPT', () => {
     const dir = mkdtempSync(join(tmpdir(), 'chatgpt-'));
     const env = `CHATGPT_HOST_ID=urn:uuid:x\nCHATGPT_CLIENT_ID=${CLIENT}\nCHATGPT_ACCESS_TOKEN=at-1\nCHATGPT_EXPIRES_AT=0\nCHATGPT_REFRESH_TOKEN=rt-1\nCHATGPT_SCOPE=${PLAN_SCOPE}\n`;
     writeFileSync(join(dir, '.env'), env);
-    await expect(accountAt(dir, { issuer: refused.issuer, appName: 'Test App' }).accessToken()).rejects.toMatchObject({ code: 'invalid_grant' });
+    await expect(accountAt(dir, svc(refused.issuer)).accessToken()).rejects.toMatchObject({ code: 'invalid_grant' });
     expect(readStored(dir)).toEqual({ hostId: 'urn:uuid:x', clientId: CLIENT });
 
     const auth = await authServer();
     writeFileSync(join(dir, '.env'), env);
-    const account = accountAt(dir, { issuer: auth.issuer, appName: 'Test App' });
-    expect(await account.signOut()).toBe(true);
+    const account = accountAt(dir, svc(auth.issuer));
+    await account.signOut();
     expect(auth.seen.revoked).toEqual(['rt-1']);
     expect(readStored(dir)).toEqual({ hostId: 'urn:uuid:x', clientId: CLIENT });
   });
@@ -240,7 +264,8 @@ const LIMITED = sse([
 async function signedInEndpoint(api: (req: IncomingMessage, res: ServerResponse, body: Record<string, unknown> | null) => void, log: Logger = nullLogger()) {
   const auth = await authServer();
   const baseUrl = await listen((req, res, raw) => api(req, res, raw ? JSON.parse(raw) as Record<string, unknown> : null));
-  const s = setup({ issuer: auth.issuer, appName: 'Test App' }, `${baseUrl}/v1`, log);
+  // the endpoint's own base URL points elsewhere: requests go to the service's API all the same
+  const s = setup(svc(auth.issuer, `${baseUrl}/v1`), 'http://127.0.0.1:9/v1', log);
   writeFileSync(join(s.dir, '.env'), `CHATGPT_CLIENT_ID=${CLIENT}\nCHATGPT_ACCESS_TOKEN=at-1\nCHATGPT_EXPIRES_AT=${Date.now() + 3_600_000}\nCHATGPT_REFRESH_TOKEN=rt-1\nCHATGPT_SCOPE=${PLAN_SCOPE}\n`);
   return { ...s, auth };
 }
@@ -279,28 +304,33 @@ describe('requests billed to a ChatGPT plan', () => {
     expect(seen[0]).toMatchObject({ stream: true });
   });
 
-  it('a usage limit inside the stream fails the request as rate limited, is logged, and holds back the requests after it', async () => {
+  it('a usage limit inside the stream is logged and waited out inside the client: no request goes out until the pause ends, then it is sent again', async () => {
     let requests = 0;
+    let limited = true;
     const log = recordingLog();
-    const { create } = await signedInEndpoint((_req, res) => { requests += 1; stream(res, LIMITED); }, log);
-    const client = create().client;
-    const first = await client.respond({ model: 'm' } as unknown as Request, { context: [message('user', 'hi')] }).catch((e: unknown) => e);
-    expect(first).toBeInstanceOf(GenerationError);
-    expect(usageLimited(first)).toBe(true);
+    const { create, dir, auth } = await signedInEndpoint((_req, res) => { requests += 1; stream(res, limited ? LIMITED : COMPLETED); }, log);
+    const pending = create().client.respond({ model: 'm' } as unknown as Request, { context: [message('user', 'hi')] });
+    await new Promise((r) => setTimeout(r, 1500));
     expect(requests).toBe(1);
     expect(log.warns.filter((w) => w.includes(USAGE_LIMIT))).toHaveLength(1);
-    const second = await create().client.respond({ model: 'm' } as unknown as Request, { context: [message('user', 'again')] }).catch((e: unknown) => e);
-    expect(second).toMatchObject({ status: 429 });
-    expect(usageLimited(second)).toBe(true);
+    // a new event preempting the request ends the wait
+    const stop = new AbortController();
+    const preempted = create().client.respond({ model: 'm' } as unknown as Request, { context: [message('user', 'again')], signal: stop.signal }).catch((e: unknown) => e);
+    stop.abort();
+    expect(await preempted).toBeInstanceOf(Error);
     expect(requests).toBe(1);
-    expect(log.warns.filter((w) => w.includes(USAGE_LIMIT))).toHaveLength(1);
+    // the pause ends: the request goes out again and is answered
+    limited = false;
+    accountAt(dir, svc(auth.issuer)).pausedUntil = 0;
+    expect((await pending).response.output[0]).toMatchObject({ type: 'message', content: [{ text: 'ok' }] });
+    expect(requests).toBe(2);
   });
 
-  it('a usage limit answered with HTTP 429 fails the request as rate limited', async () => {
+  it('a usage limit answered with HTTP 429 fails the console connection test with the 429', async () => {
     const { create } = await signedInEndpoint((_req, res) => {
-      res.writeHead(429, { 'content-type': 'application/json', 'retry-after': '0' }).end(JSON.stringify({ error: { code: USAGE_LIMIT, message: 'Usage limit reached' } }));
+      res.writeHead(429, { 'content-type': 'application/json' }).end(JSON.stringify({ error: { code: USAGE_LIMIT, message: 'Usage limit reached' } }));
     });
-    const err = await create().client.respond({ model: 'm' } as unknown as Request, { context: [message('user', 'hi')] }).catch((e: unknown) => e);
+    const err = await create().client.respond({ model: 'm' } as unknown as Request, { context: [message('user', 'hi')], diagnostic: true }).catch((e: unknown) => e);
     expect(err).toMatchObject({ status: 429 });
     expect(usageLimited(err)).toBe(true);
   });

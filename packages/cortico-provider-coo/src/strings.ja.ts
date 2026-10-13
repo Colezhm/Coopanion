@@ -11,5 +11,6 @@ export const cooText: Partial<typeof en> = {
     description: 'ChatGPT アカウントでサインインし、リクエストはそのアカウントの ChatGPT プランの利用量に含まれます。',
     signedOut: 'ChatGPT にサインインしていません',
     returnToApp: 'サインインの結果はアプリに表示されます。このタブは閉じてかまいません。',
+    reasons: { access_denied: 'アクセスが許可されませんでした', plan_not_granted: 'このアカウントで ChatGPT プランの利用が許可されませんでした', timeout: 'ブラウザでのサインインがタイムアウトしました' },
   },
 };

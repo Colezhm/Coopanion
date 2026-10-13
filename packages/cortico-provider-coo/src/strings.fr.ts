@@ -11,5 +11,6 @@ export const cooText: Partial<typeof en> = {
     description: "Connexion avec un compte ChatGPT ; les requêtes sont décomptées de l'offre ChatGPT de ce compte.",
     signedOut: 'Non connecté à ChatGPT',
     returnToApp: "L'application affiche le résultat de la connexion. Vous pouvez fermer cet onglet.",
+    reasons: { access_denied: "l'accès n'a pas été accordé", plan_not_granted: "le compte n'a pas autorisé l'usage de son offre ChatGPT", timeout: 'la connexion dans le navigateur a expiré' },
   },
 };

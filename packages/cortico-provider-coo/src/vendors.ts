@@ -78,8 +78,8 @@ export interface Vendor {
   /** Responses: past reasoning goes back as the signed blocks the service returned, not as text. */
   encryptedReasoning?: true;
   /**
-   * Connected by signing in instead of with a key: the endpoint is the `chatgpt` module's (`chatgptEntry`),
-   * `keyHint` and `secret` are empty, and the site's `keyUrl` is the account's usage page.
+   * Connected by signing in instead of with a key: the endpoint is the `chatgpt` module's (`chatgptEntry`);
+   * `keyHint`, `secret` and the site's `keyUrl` are not used.
    */
   signIn?: true;
 }
@@ -245,7 +245,7 @@ export const CHATGPT_MODULE = 'chatgpt';
  */
 export const CHATGPT: Vendor = {
   ...OPENAI, id: 'chatgpt', names: brand('ChatGPT'), keyHint: brand(''), secret: '', signIn: true,
-  sites: { global: { ...(OPENAI.sites as { global: Site }).global, keyUrl: 'https://chatgpt.com/settings/usage' } },
+  sites: { global: { ...(OPENAI.sites as { global: Site }).global, keyUrl: 'https://chatgpt.com/' } },
 };
 
 export const vendorById = (id: string): Vendor | null => (id === CHATGPT.id ? CHATGPT : VENDORS.find((v) => v.id === id) ?? null);

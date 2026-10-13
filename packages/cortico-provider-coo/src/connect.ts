@@ -107,7 +107,7 @@ const signInRoute = (method: string) => `/api/console/providers/${encodeURICompo
 export const chatgptState = (call: ConsoleCall, name: string) => call<SignInState>(signInRoute('state'), { args: [name] });
 
 /** Revokes and removes the tokens of the ChatGPT endpoint `name`. */
-export const signOutChatGPT = (call: ConsoleCall, name: string) => call<SignInState & { revoked: boolean }>(signInRoute('signOut'), { args: [name] });
+export const signOutChatGPT = (call: ConsoleCall, name: string) => call<SignInState>(signInRoute('signOut'), { args: [name] });
 
 /** How often a sign-in under way is looked at. */
 const SIGN_IN_POLL_MS = 1000;

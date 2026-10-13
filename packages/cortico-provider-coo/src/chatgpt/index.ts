@@ -34,7 +34,7 @@ const tiers = (t: ReturnType<typeof cooText>['tiers']): ReasoningTier[] => [
 
 const escapeHtml = (text: string) => text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
-/** The module against `service`, with endpoint directories under `stateRoot`; tests point both at local fakes. */
+/** The module against `service` (requests go to `service.api` whatever the endpoint's base URL), with endpoint directories under `stateRoot`; tests point both at local fakes. */
 export function chatgptModule(service: ChatGPTService = CHATGPT_SERVICE, stateRoot: () => string = providersRoot, fetchImpl: typeof fetch = fetch): ProviderModule {
   const site = siteOf(CHATGPT, 'cn');
   return {
@@ -45,8 +45,10 @@ export function chatgptModule(service: ChatGPTService = CHATGPT_SERVICE, stateRo
       const t = cooText(language);
       return { description: t.chatgpt.description, reasoningTiers: tiers(t.tiers) };
     },
-    defaultBaseUrl: site.baseUrl,
-    baseUrlSuggestions: [site.baseUrl],
+    defaultBaseUrl: service.api,
+    baseUrlSuggestions: [service.api],
+    // the tokens go to the plan's API only, so the stored address is held to it
+    normalize: (entry) => ({ ...entry, baseUrl: service.api }),
     reasoningTiers: tiers(cooText('en').tiers),
     serviceTiers: [],
     availability: (name, _entry, language) =>
@@ -72,7 +74,10 @@ export function chatgptModule(service: ChatGPTService = CHATGPT_SERVICE, stateRo
           if (status.phase === 'done' && status.signedIn) status.models = (await instance.listModels!().catch(() => [])).map((m) => m.id);
           return status;
         }
-        if (method === 'signOut') return { revoked: await account.signOut(), ...account.status() };
+        if (method === 'signOut') {
+          await account.signOut();
+          return account.status();
+        }
         throw new Error(`Unknown method: ${method}`);
       },
     }),
@@ -83,10 +88,10 @@ export function chatgptModule(service: ChatGPTService = CHATGPT_SERVICE, stateRo
         control: account,
         compatibilityKey: () => [CHATGPT_MODULE, name],
         contextWindow: stated,
-        listModels: async () => (await listPlanModels(entry.baseUrl, await account.accessToken(), fetchImpl))
+        listModels: async () => (await listPlanModels(service.api, await account.accessToken(), fetchImpl))
           .map((m) => (stated(m.id) ? { ...m, contextWindow: stated(m.id) } : m)),
         client: new ChatGPTResponses({
-          baseUrl: entry.baseUrl,
+          baseUrl: service.api,
           log: host.log,
           media: { enabled: () => (host.currentEntry?.() ?? entry).multimodal === true, read: host.readBlob },
           keepThinking: host.keepThinking,

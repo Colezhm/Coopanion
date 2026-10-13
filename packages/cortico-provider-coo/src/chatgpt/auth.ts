@@ -25,13 +25,15 @@ import { join, resolve } from 'node:path';
 export interface ChatGPTService {
   /** The authorization server; its `/.well-known/openid-configuration` names the signing keys and the revocation endpoint. */
   issuer: string;
+  /** The Responses API the tokens are sent to, whatever base URL the endpoint's config holds. */
+  api: string;
   /** `agent_name_hint` of the first sign-in: the app's name, the same on every installation. */
   appName: string;
 }
 
-export const CHATGPT_SERVICE: ChatGPTService = { issuer: 'https://auth.openai.com', appName: 'Coopanion' };
 /** The API the tokens are issued for (`resource`). */
 export const CHATGPT_RESOURCE = 'https://api.openai.com/v1';
+export const CHATGPT_SERVICE: ChatGPTService = { issuer: 'https://auth.openai.com', api: CHATGPT_RESOURCE, appName: 'Coopanion' };
 export const CHATGPT_SCOPES = 'openid profile email offline_access resource.invoke chatgpt.tokens.use.direct';
 /** The scope that lets the tokens bill the ChatGPT plan. */
 export const PLAN_SCOPE = 'chatgpt.tokens.use.direct';
@@ -101,7 +103,8 @@ export function signedIn(dir: string): boolean {
 }
 
 const random = () => randomBytes(32).toString('base64url');
-const sameText = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
+/** Constant-time comparison of any two strings: their digests are always the same length. */
+const sameText = (a: string, b: string) => timingSafeEqual(createHash('sha256').update(a).digest(), createHash('sha256').update(b).digest());
 const errText = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
 /** The error code of an OAuth reply (`error`) or an API reply (`error.code`). */
@@ -166,7 +169,8 @@ export interface SignInStatus {
   reason: string | null;
 }
 
-interface Flow { server: Server; timer: ReturnType<typeof setTimeout> }
+/** A sign-in waiting for the browser; `used` once a callback with its state came back, so the code is redeemed once. */
+interface Flow { server: Server; timer: ReturnType<typeof setTimeout>; used: boolean }
 
 export class ChatGPTAccount {
   private refreshing: Promise<string> | null = null;
@@ -204,26 +208,35 @@ export class ChatGPTAccount {
     await new Promise<void>((done, fail) => { server.once('error', fail); server.listen(0, '127.0.0.1', () => done()); });
     const port = (server.address() as { port: number }).port;
     const redirectUri = `http://127.0.0.1:${port}${CALLBACK_PATH}`;
-    const timer = setTimeout(() => this.settle(new ChatGPTAuthError('timeout', 'The browser did not come back')), SIGN_IN_MS);
-    timer.unref();
-    this.flow = { server, timer };
-    const flow = this.flow;
+    const flow: Flow = { server, timer: setTimeout(() => this.settle(flow, new ChatGPTAuthError('timeout', 'The browser did not come back')), SIGN_IN_MS), used: false };
+    flow.timer.unref();
+    this.flow = flow;
+    // any page the browser has open can send requests here: whatever is not this sign-in's callback is refused
     server.on('request', (req, res) => {
-      const url = new URL(req.url ?? '/', redirectUri);
-      if (req.method !== 'GET' || req.headers.host !== `127.0.0.1:${port}` || url.pathname !== CALLBACK_PATH || this.flow !== flow) {
-        res.writeHead(404).end();
-        return;
-      }
-      const states = url.searchParams.getAll('state');
-      // a request without this sign-in's state leaves it waiting
-      if (states.length !== 1 || !sameText(states[0]!, state)) {
+      let params: URLSearchParams;
+      try {
+        const url = new URL(req.url ?? '/', redirectUri);
+        if (req.method !== 'GET' || req.headers.host !== `127.0.0.1:${port}` || url.pathname !== CALLBACK_PATH) {
+          res.writeHead(404).end();
+          return;
+        }
+        params = url.searchParams;
+        const states = params.getAll('state');
+        // a request without this sign-in's state leaves it waiting
+        if (states.length !== 1 || !sameText(states[0]!, state) || flow.used || this.flow !== flow) {
+          res.writeHead(400).end();
+          return;
+        }
+      } catch {
         res.writeHead(400).end();
         return;
       }
+      flow.used = true;
+      clearTimeout(flow.timer);
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer',
         'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'" }).end(page);
-      void this.complete(url.searchParams, { clientId: stored.clientId ?? null, redirectUri, verifier, nonce })
-        .then(() => this.settle(null), (err: unknown) => this.settle(err));
+      void this.complete(params, { clientId: stored.clientId ?? null, redirectUri, verifier, nonce })
+        .then(() => this.settle(flow, null), (err: unknown) => this.settle(flow, err));
     });
     const query = new URLSearchParams({
       client_id: stored.clientId ?? DYNAMIC_CLIENT, response_type: 'code', redirect_uri: redirectUri, scope: CHATGPT_SCOPES,
@@ -244,7 +257,9 @@ export class ChatGPTAccount {
     this.flow = null;
   }
 
-  private settle(err: unknown): void {
+  /** Ends `flow` with its outcome; a flow already replaced or cancelled leaves the current state alone. */
+  private settle(flow: Flow, err: unknown): void {
+    if (this.flow !== flow) return;
     this.cancel();
     this.outcome = err === null ? { phase: 'done', reason: null } : { phase: 'failed', reason: err instanceof ChatGPTAuthError ? err.code : errText(err) };
   }
@@ -318,6 +333,8 @@ export class ChatGPTAccount {
       throw err;
     }
     const tokens = this.tokenFields(reply);
+    // signed out while the refresh was under way: its tokens are not written back
+    if (this.read().refreshToken !== refreshToken) throw new ChatGPTAuthError('signed_out', 'The endpoint was signed out of ChatGPT', 401);
     // the service may leave the scope out when it is unchanged
     const granted = typeof reply.scope === 'string' ? reply.scope.split(/\s+/).filter(Boolean).join(',') : scope;
     writeStored(this.dir, { ...tokens, refreshToken: typeof reply.refresh_token === 'string' && reply.refresh_token ? reply.refresh_token : refreshToken, scope: granted });
@@ -325,28 +342,23 @@ export class ChatGPTAccount {
   }
 
   /**
-   * Revokes the refresh token and removes the tokens; the registration and host id stay. False when
-   * the revocation could not be confirmed (the tokens are removed all the same).
+   * Removes the tokens, after a refresh under way has stored the one it rotated to, and revokes the
+   * refresh token; the registration and host id stay. The tokens go even when the revocation fails.
    */
-  async signOut(): Promise<boolean> {
+  async signOut(): Promise<void> {
     this.cancel();
+    await this.refreshing?.catch(() => {});
     const stored = this.read();
-    let revoked = !stored.refreshToken;
-    if (stored.refreshToken && stored.clientId) {
-      try {
-        const { revocation_endpoint: endpoint } = await discover(this.service, this.fetchImpl);
-        if (endpoint) {
-          const res = await this.fetchImpl(endpoint, {
-            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, redirect: 'error', signal: AbortSignal.timeout(10_000),
-            body: new URLSearchParams({ token: stored.refreshToken, token_type_hint: 'refresh_token', client_id: stored.clientId }),
-          });
-          revoked = res.status === 200;
-        }
-      } catch { /* unconfirmed: the tokens go below all the same */ }
-    }
     writeStored(this.dir, Object.fromEntries(TOKENS.map((f) => [f, undefined])));
     this.outcome = null;
-    return revoked;
+    if (!stored.refreshToken || !stored.clientId) return;
+    try {
+      const { revocation_endpoint: endpoint } = await discover(this.service, this.fetchImpl);
+      if (endpoint) await this.fetchImpl(endpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, redirect: 'error', signal: AbortSignal.timeout(10_000),
+        body: new URLSearchParams({ token: stored.refreshToken, token_type_hint: 'refresh_token', client_id: stored.clientId }),
+      });
+    } catch { /* unconfirmed: the tokens are gone from this machine all the same */ }
   }
 }
 
