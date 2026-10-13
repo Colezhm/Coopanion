@@ -84,8 +84,8 @@ afterAll(async () => {
 
 /**
  * Routes outside the public table of Cortico's docs/console.md that the advanced mode's pages (the copies of
- * Cortico's console pages under console/advanced/) use. Listed here so a change to one fails a test until
- * Cortico makes them public.
+ * Cortico's console pages under console/advanced/) use: Cortico's internal routes, which only that
+ * directory may call. A Cortico change to one fails here at the submodule bump.
  */
 describe('routes the advanced mode uses beyond the public table', () => {
   const socketFrame = (path: string) => new Promise<Record<string, unknown>>((done, fail) => {
