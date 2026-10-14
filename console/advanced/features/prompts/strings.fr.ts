@@ -1,6 +1,7 @@
 import type { en } from './strings.ts';
 
 export const S: Partial<typeof en> = {
+  outsidePrefix: "Absent du préfixe actuel",
   constitutionTitle: "Identité et comportement",
   constitutionDesc: "Définit l’identité, la personnalité, le ton et les principes de Coo. Coo peut aussi les modifier.",
   orientationTitle: "Règles de fonctionnement",

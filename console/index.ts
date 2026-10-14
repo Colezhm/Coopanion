@@ -212,6 +212,8 @@ export function boot(doc: Document = document): Disposable {
   };
 
   const apply = (route: Route): void => {
+    // Shortcut mode changes follow the router's leave confirmation.
+    if (route.query.mode === 'advanced') setMode('advanced');
     rail.setRoute(route);
     if (!ready) return;
     const head = route.segments[0];

@@ -7,6 +7,7 @@ const plural = (n: number, one: string, few: string, many: string) => {
 };
 
 export const S: Partial<typeof en> = {
+  outsidePrefix: "Не входит в текущий префикс",
   constitutionTitle: "Личность и поведение",
   constitutionDesc: "Определяет личность, характер, манеру речи и принципы Coo. Coo тоже может их редактировать.",
   orientationTitle: "Правила работы",

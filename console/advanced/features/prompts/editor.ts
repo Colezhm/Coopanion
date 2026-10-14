@@ -12,6 +12,7 @@ export interface PrefixBlock {
   tone: 'persona' | 'world' | 'derived';
   text: string;
   vars?: readonly PromptVar[];
+  collapsed?: boolean;
 }
 interface BlockRange { block: PrefixBlock; from: number; to: number; collapsed: boolean; preview: boolean; minHeight: number; padding: number }
 const setBlocks = StateEffect.define<BlockRange[]>();
@@ -328,7 +329,7 @@ export function createPrefixEditor(options: {
         block = { ...block, text: view.state.toText(block.text).toString() };
         const from = doc.length;
         doc += block.text;
-        const range = { block, from, to: doc.length, collapsed: block.sourceKey !== 'constitution', preview: false, minHeight: 50, padding: 0 };
+        const range = { block, from, to: doc.length, collapsed: block.collapsed ?? block.sourceKey !== 'constitution', preview: false, minHeight: 50, padding: 0 };
         doc += '\n';
         return range;
       });
