@@ -1,12 +1,12 @@
 import type { en } from './strings.ts';
 
 export const S: Partial<typeof en> = {
-  // advanced/features/clear-session.ts
-  button: 'Svuota e ricomincia',
-  title: 'Svuotare questa conversazione e far ripartire Coo da zero?',
-  body: "Coo dimentica il contesto di questa conversazione e riparte dal prompt di sistema attuale. Non si può annullare. La memoria e la persona nell'area di lavoro restano.",
-  clearing: 'Svuotamento…',
-  cleared: 'Svuotata e ricominciata',
+  // advanced/features/prompts/index.ts
+  button: "Cancella conversazione e ricomincia",
+  title: "Cancellare la conversazione attuale e ricominciare?",
+  body: "Salva le modifiche di questa pagina, cancella il contesto della conversazione attuale di Coo e ricomincia con il prompt di sistema aggiornato. La cancellazione è irreversibile. Memory e la personalità vengono mantenuti.",
+  clearing: "Avvio della nuova conversazione…",
+  cleared: "Nuova conversazione avviata",
   failed: (why: string) => `Non svuotata: ${why}`,
   // release.ts
   repoHint: 'Apri il progetto Coopanion su GitHub',

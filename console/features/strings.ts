@@ -10,12 +10,12 @@ import { S as it } from './strings.it.ts';
 import { S as ru } from './strings.ru.ts';
 
 const zh = {
-  // advanced/features/clear-session.ts
-  button: '清空重开',
-  title: '清空当前对话，让 Coo 从头开始？',
-  body: 'Coo 会忘掉这段对话的上下文，按现在的系统提示词重新开始，不能撤销。工作区里的记忆和人设都保留。',
-  clearing: '正在清空…',
-  cleared: '已清空重开',
+  // advanced/features/prompts/index.ts
+  button: "清空对话并重开",
+  title: "清空当前对话并重开？",
+  body: "将先保存本页修改，再清空 Coo 当前对话的上下文，使用更新后的系统提示词重新开始。清空无法撤销；Memory 和人设保留。",
+  clearing: "正在开始新对话…",
+  cleared: "已开始新对话",
   failed: (why: string) => `清空失败：${why}`,
   // release.ts
   repoHint: '在 GitHub 上打开 Coopanion 项目',
@@ -23,12 +23,12 @@ const zh = {
 };
 
 export const en: typeof zh = {
-  // advanced/features/clear-session.ts
-  button: 'Clear and restart',
-  title: 'Clear this conversation and start Coo afresh?',
-  body: 'Coo forgets the context of this conversation and starts again from the current system prompt. This cannot be undone. Memory and persona in the workspace stay.',
-  clearing: 'Clearing…',
-  cleared: 'Cleared and restarted',
+  // advanced/features/prompts/index.ts
+  button: "Clear conversation and restart",
+  title: "Clear the current conversation and restart?",
+  body: "Save edits on this page, then clear Coo’s current conversation context and restart with the updated system prompt. Clearing cannot be undone. Memory and persona are kept.",
+  clearing: "Starting a new conversation…",
+  cleared: "New conversation started",
   failed: (why: string) => `Not cleared: ${why}`,
   // release.ts
   repoHint: 'Open the Coopanion project on GitHub',
