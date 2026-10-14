@@ -75,6 +75,8 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
     if (section.collapsed === !expanded) return;
     const index = sections.indexOf(section);
     editor.setCollapsed(index, !expanded);
+  }
+  function animateSection(section: Section, index: number): void {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const targets = host.querySelectorAll(`[data-prompt-section="${index}"], .prefix-comment[data-block="${index}"]`);
     for (const target of [...targets, section.note]) {
@@ -219,6 +221,7 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
       section.cell.hidden = collapsed;
       closePopup();
       expand.textContent = sections.every((s) => !s.collapsed) ? S.collapseAll : S.expandAll;
+      queueMicrotask(() => { if (!signal.aborted) animateSection(section, index); });
       scheduleGeometry();
     },
   });
@@ -371,6 +374,15 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
         chip.addEventListener('dblclick', () => { closePopup(); editor.insert(doc.key, variable.name, insertPosition); }, { signal });
         chip.addEventListener('keydown', (event) => {
           if (event.key === 'Enter') { event.preventDefault(); closePopup(); editor.insert(doc.key, variable.name); }
+          if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+            event.preventDefault();
+            const buttons = [...chips.values()];
+            const next = buttons[buttons.indexOf(chip) + (event.key === 'ArrowDown' ? 1 : -1)];
+            if (next) {
+              next.focus({ preventScroll: true });
+              if (popupChip !== next) next.click();
+            }
+          }
         }, { signal });
         chip.addEventListener('dragstart', (event) => {
           closePopup();

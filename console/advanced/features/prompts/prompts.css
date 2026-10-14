@@ -112,6 +112,7 @@
   .prefix-railcontent .prompt-variable-list .varchip { min-height:26px; padding:3px 8px; font:12px/1.6 var(--mono); }
   .varchip { max-width: 100%; font-size: 11.5px; overflow-wrap: anywhere; text-align: left; }
   .varchip-unused { opacity: .5; }
+  .prefix-railcontent .varchip[aria-expanded=true] { outline:none; box-shadow:inset 0 0 0 1px var(--section-color); opacity:1; }
 
 .prefix-label { position:absolute; left:0; right:0; height:0; }
 .prefix-label .prefix-flag { flex-direction:column; align-items:stretch; gap:2px; padding:4px 8px 4px 9px; border:0; text-align:left; cursor:pointer; }
@@ -170,7 +171,11 @@
   .prefix-rail { flex-basis:90px !important; }
 }
 @media (prefers-reduced-motion:reduce) { .reference-arrive { animation:none; } .prefix-flag { transition:none; } .prefix-flag:active { transform:translateY(-50%); } }
-.prefix-fold-status { flex:none; width:16px; margin-left:12px; text-align:center; font:16px/18px var(--mono); }
+.prefix-fold-status { flex:none; width:20px; margin-left:12px; padding:0; border:0; background:none; cursor:pointer; text-align:center; font:16px/18px var(--mono); transition:transform 160ms ease-out; }
+.prefix-fold-status:hover { transform:scale(1.15); }
+.prefix-fold-status:active { transform:scale(.9); }
+.prefix-fold-status:focus-visible { outline:1px solid var(--section-color); outline-offset:2px; }
+@media (prefers-reduced-motion:reduce) { .prefix-fold-status { transition:none; } .prefix-fold-status:hover,.prefix-fold-status:active { transform:none; } }
 .prefix-fold-status.is-expanded { color:var(--ok); }
 .prefix-fold-status.is-collapsed { color:var(--accent); }
 .prompt-reference { display:inline-flex; align-items:baseline; vertical-align:baseline; max-width:100%; margin:0 2px; border:1px solid color-mix(in srgb,var(--section-color) 35%,var(--border)); border-radius:3px; color:var(--section-color); background:color-mix(in srgb,var(--section-color) 8%,var(--sheet)); }

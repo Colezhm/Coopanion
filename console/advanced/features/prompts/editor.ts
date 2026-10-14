@@ -132,11 +132,17 @@ class SectionHeader extends WidgetType {
     text.className = 'prefix-comment-text';
     text.textContent = this.description;
     text.title = this.description;
-    const status = view.dom.ownerDocument.createElement('span');
+    const status = view.dom.ownerDocument.createElement('button');
+    status.type = 'button';
     status.className = `prefix-fold-status ${this.collapsed ? 'is-collapsed' : 'is-expanded'}`;
     status.textContent = this.collapsed ? '+' : '−';
     status.setAttribute('aria-label', this.collapsed ? S.collapsed : S.expanded);
+    status.setAttribute('aria-expanded', String(!this.collapsed));
     status.title = this.collapsed ? S.collapsed : S.expanded;
+    status.addEventListener('click', () => {
+      view.dispatch({ effects: setCollapsed.of({ index: this.index, collapsed: !this.collapsed }) });
+      view.contentDOM.querySelector<HTMLButtonElement>(`.prefix-comment[data-block="${this.index}"] button`)?.focus({ preventScroll: true });
+    });
     el.append(text, status);
     return el;
   }

@@ -26,8 +26,10 @@ describe('continuous prompt document', () => {
     ]);
     expect(editor.blockGeometry().map((g) => g.collapsed)).toEqual([false, true]);
     const before = editor.view.state.doc.toString();
-    editor.setCollapsed(0, true);
-    editor.setCollapsed(1, false);
+    editor.view.dom.querySelector('.prefix-comment[data-block="0"] button').click();
+    editor.view.dom.querySelector('.prefix-comment[data-block="1"] button').click();
+    expect(editor.blockGeometry().map((g) => g.collapsed)).toEqual([true, false]);
+    expect(editor.canUndo()).toBe(false);
     expect(editor.view.state.doc.toString()).toBe(before);
     expect(editor.text('constitution')).toBe('Identity\nVoice\n');
     expect(changes.size).toBe(0);
