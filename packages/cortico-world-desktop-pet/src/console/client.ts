@@ -31,8 +31,6 @@ interface VoiceState {
     mode: MicMode;
     hotkey: string;
     deviceId: string;
-    /** The mode in force: the configured one, also while the talk key cannot be read */
-    effectiveMode: MicMode;
     /** The keys alone; how they are pressed is the press choice beside them */
     keyLabel: string;
     hint: string;
@@ -288,9 +286,9 @@ const voicePanel: ConsolePanel = {
       if (!capturing) keyRow.set(input.keyLabel, input.hotkeyProblem ? 'bad' : 'on');
       pressSel.hidden = input.mode === 'always';
       keyRow.row.style.display = input.mode === 'always' ? 'none' : '';
-      modeRow.set(input.open ? t.listening : t.waitingKey, input.open ? 'on' : 'off', input.hotkeyProblem ? t.keyProblem(input.hotkeyProblem) : input.hint);
+      modeRow.set(input.open ? t.listening : t.waitingKey, input.open ? 'on' : 'off', input.hint);
       // the loudness threshold only decides where speech starts when the key is not held down
-      mark.hidden = input.effectiveMode === 'hold';
+      mark.hidden = input.mode === 'hold';
       mark.style.left = `${meterPct(next.thresholdDb)}%`;
       for (const line of next.recent) {
         if (line.at <= seen) continue;

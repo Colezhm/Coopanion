@@ -27,8 +27,7 @@ const en: PetText = {
     notRunning: 'Speech recognition is not running',
     modelMissing: (mb: number) => `The speech model is not downloaded yet (about ${mb} MB): download it on the Voice input page`,
     badKey: (hotkey: string) => `Unknown key "${hotkey}"`,
-    /** The talk key cannot be read; the configured mode stays and nothing reaches recognition. */
-    fallback: (problem: string) => `The talk key is unavailable, so speech is not recognized for now: ${problem}`,
+    keyProblem: (problem: string) => `The talk key is unavailable, so speech is not recognized for now: ${problem}`,
     always: 'Always listening: just talk',
     /** The talk key switches listening on and off; `label` is the full key name with its presses ("Double-press Left Alt"). */
     toggleTaps: (label: string, taps: number) => `${label} to start listening, ${taps === 2 ? 'double' : 'triple'}-press again to stop`,
@@ -309,7 +308,6 @@ const en: PetText = {
     capture: 'Press the new talk key: a key combination or a mouse side button… (Esc cancels)',
     listening: 'Listening',
     waitingKey: 'Waiting for the talk key',
-    keyProblem: (problem: string) => `${problem}; speech is not recognized for now`,
     results: 'What was heard',
     resultsHint: 'Struck-through lines were too short or likely hallucinated, and were not sent',
     talkKeyName: 'Talk key',

@@ -24,8 +24,7 @@ export default {
     notRunning: '识别服务没有运行',
     modelMissing: (mb: number) => `识别模型尚未下载（约 ${mb} MB），请在「语音输入」页下载`,
     badKey: (hotkey: string) => `无法识别按键「${hotkey}」`,
-    /** 说话键读不了:收音方式不变,没有声音送去识别 */
-    fallback: (problem: string) => `说话键不可用，暂不识别说话：${problem}`,
+    keyProblem: (problem: string) => `说话键不可用，暂不识别说话：${problem}`,
     always: '持续收音，直接说话即可',
     /** 用说话键开关收音;label 是含连击的完整按键名(「双击 左 Alt」) */
     toggleTaps: (label: string, taps: number) => `${label} 开始收音，再${taps === 2 ? '双击' : '三击'}停止`,
@@ -306,7 +305,6 @@ export default {
     capture: '按下新的说话键，可以是组合键或鼠标侧键…（Esc 取消）',
     listening: '正在倾听',
     waitingKey: '等待说话键',
-    keyProblem: (problem: string) => `${problem}，暂不识别说话`,
     results: '识别结果',
     resultsHint: '划线的条目过短或疑似幻觉，未发送',
     /** 语音输入页:说话键单独一行、识别结果为空时的那一行、音量条左边的字 */

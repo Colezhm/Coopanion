@@ -17,6 +17,7 @@ import type { Language } from 'cortico/core/language.ts';
 import type { SherpaModule } from '../src/asr/sherpa.ts';
 import type { ModelSpec } from '../src/runtime/store.ts';
 import { parseHotkey, type Hotkey } from '../src/asr/hotkey.ts';
+import { rmsDb } from '../src/asr/segmenter.ts';
 import { FakeHost } from './helpers/fake-host.ts';
 import { FakePage } from './helpers/page.ts';
 import { fakeSapi } from './helpers/fake-sapi.ts';
@@ -163,14 +164,16 @@ describe('voice input', () => {
     expect(host.events[0].text).toBe('[语音] 伙伴:帮我看看这个');
   });
 
-  it('a talk key that cannot be read keeps the configured mode and the recognition gate closed', async () => {
+  it('a talk key that cannot be read keeps the gate closed', async () => {
     const { watch } = scriptedKey('no keyboard here');
-    const { host, page, world } = await setup('不该听见', 'hold', watch);
-    expect(world.voiceState().input).toMatchObject({ mode: 'hold', effectiveMode: 'hold', hotkeyProblem: 'no keyboard here', open: false });
+    const { page, world } = await setup('不该听见', 'toggle', watch);
+    expect(world.voiceState().input).toMatchObject({ mode: 'toggle', hotkeyProblem: 'no keyboard here', open: false });
     expect((world.voiceState().input as { hint: string }).hint).toContain('no keyboard here');
-    for (const fr of [...tone(900, .3), ...tone(900, 0)]) page.audio(fr);
-    await new Promise((r) => setTimeout(r, 1500));
-    expect(host.events).toHaveLength(0);
+    const last = tone(20, .05)[0];
+    for (const fr of [...tone(900, .3), ...tone(900, 0), last]) page.audio(fr);
+    // frames arrive in order: once the last one is metered, every sentence the others made is counted
+    await expect.poll(() => world.voiceState().level).toBe(rmsDb(last));
+    expect((world.voiceState().counts as { utterances: number }).utterances).toBe(0);
   });
 
   it('the microphone button held down sends the sentence without waiting for its closing pause', async () => {
