@@ -25,7 +25,6 @@ export const S: Partial<typeof en> = {
   variablesTitle: "Variabili del modello",
   insertHint: "Fai clic per consultare; doppio clic o Invio per inserire. Puoi anche trascinare in questa sezione.",
   worldSettings: "Configura in World",
-  introDesc: "Modifica CONSTITUTION per cambiare la personalità. Fai clic sulle altre etichette per espandere le sezioni.",
   previewVariables: "Anteprima variabili",
   showVariableNames: "Mostra nomi variabili",
   reloadSession: "Applica ora",

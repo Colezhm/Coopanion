@@ -25,7 +25,6 @@ export const S: Partial<typeof en> = {
   variablesTitle: "テンプレート変数",
   insertHint: "クリックで確認、ダブルクリックまたは Enter で挿入。このセクションにドラッグもできます。",
   worldSettings: "World の設定へ",
-  introDesc: "人物像は CONSTITUTION で編集します。他のラベルをクリックすると各セクションが開きます。",
   previewVariables: "変数をプレビュー",
   showVariableNames: "変数名を表示",
   reloadSession: "今すぐ適用",

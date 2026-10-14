@@ -1,11 +1,11 @@
-.prompt-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin:24px 0 0; }
+.featureslot.featureslot-prompts > .featureintro { position:static; }
+.prompt-toolbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:12px 0; background:var(--background); border-bottom:1px solid var(--border); }
 .prompt-actions { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
 .prompt-toolbar .prompt-status { min-height:0; margin:0; font-size:12px; }
 .prompt-toolbar .btn.danger { background:var(--danger); color:#fff; }
 .prompt-toolbar .btn.danger:hover { background:color-mix(in srgb,var(--danger) 88%,#000); }
-.prefix-flags .prompt-expand-all { position:absolute; bottom:100%; left:0; margin-bottom:16px; }
 .prompt-help { margin:0; color:var(--ink-dim); font-size:11px; line-height:1.6; }
-  .prefix-stage { position: relative; display: flex; align-items: flex-start; gap: 0; margin-top: 64px; }
+  .prefix-stage { position: relative; display: flex; align-items: flex-start; gap: 0; margin-top: 24px; }
   .prefix-host { flex: 1; min-width: 0; }
 
   .prefix-grip {
@@ -94,7 +94,9 @@
     clip-path: polygon(0 0, 100% 50%, 0 100%);
   }
 
-  .prefix-flag:hover { z-index: 5; }
+  .prefix-flag { transition:transform 160ms ease-out, filter 160ms ease-out; }
+  .prefix-flag:hover { z-index: 5; filter:brightness(.96); }
+  .prefix-flag:active { transform:translateY(-50%) translateX(3px) scale(.98); }
 
   .prefix-host .cm-lineNumbers .cm-gutterElement {
     padding: 0 8px 0 10px;
@@ -167,8 +169,8 @@
   .prefix-flags { flex-basis:132px !important; }
   .prefix-rail { flex-basis:90px !important; }
 }
-@media (prefers-reduced-motion:reduce) { .reference-arrive { animation:none; } }
-.prefix-fold-status { flex:none; margin-left:12px; font-size:10px; white-space:nowrap; }
+@media (prefers-reduced-motion:reduce) { .reference-arrive { animation:none; } .prefix-flag { transition:none; } .prefix-flag:active { transform:translateY(-50%); } }
+.prefix-fold-status { flex:none; width:16px; margin-left:12px; text-align:center; font:16px/18px var(--mono); }
 .prefix-fold-status.is-expanded { color:var(--ok); }
 .prefix-fold-status.is-collapsed { color:var(--accent); }
 .prompt-reference { display:inline-flex; align-items:baseline; vertical-align:baseline; max-width:100%; margin:0 2px; border:1px solid color-mix(in srgb,var(--section-color) 35%,var(--border)); border-radius:3px; color:var(--section-color); background:color-mix(in srgb,var(--section-color) 8%,var(--sheet)); }

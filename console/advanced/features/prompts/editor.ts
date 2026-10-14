@@ -134,7 +134,9 @@ class SectionHeader extends WidgetType {
     text.title = this.description;
     const status = view.dom.ownerDocument.createElement('span');
     status.className = `prefix-fold-status ${this.collapsed ? 'is-collapsed' : 'is-expanded'}`;
-    status.textContent = this.collapsed ? S.collapsed : S.expanded;
+    status.textContent = this.collapsed ? '+' : '−';
+    status.setAttribute('aria-label', this.collapsed ? S.collapsed : S.expanded);
+    status.title = this.collapsed ? S.collapsed : S.expanded;
     el.append(text, status);
     return el;
   }
@@ -154,6 +156,7 @@ function decorate(state: EditorState): DecorationSet {
       decorations.push(Decoration.line({
         class: `cm-block cm-block-${block.tone}${line.from === from ? ' cm-block-first' : ''}`,
         attributes: {
+          'data-prompt-section': String(index),
           ...(n === state.doc.lineAt(to).number ? { style: `padding-bottom:${range.padding}px` } : {}),
         },
       }).range(line.from));

@@ -31,7 +31,6 @@ export const S: Partial<typeof en> = {
   variablesTitle: "Переменные шаблона",
   insertHint: "Нажмите для просмотра; двойной щелчок или Enter для вставки. Можно перетащить в этот раздел.",
   worldSettings: "Настроить в World",
-  introDesc: "Личность меняется в CONSTITUTION. Нажмите на другие метки, чтобы раскрыть разделы.",
   previewVariables: "Просмотр переменных",
   showVariableNames: "Показать имена",
   reloadSession: "Применить сейчас",

@@ -25,7 +25,6 @@ export const S: Partial<typeof en> = {
   variablesTitle: "Vorlagenvariablen",
   insertHint: "Klicken zum Ansehen; Doppelklick oder Eingabe zum Einfügen. Ziehen in diesen Abschnitt ist ebenfalls möglich.",
   worldSettings: "World konfigurieren",
-  introDesc: "Die Persönlichkeit bearbeiten Sie in CONSTITUTION. Andere Abschnitte öffnen Sie durch Anklicken ihrer Beschriftung.",
   previewVariables: "Variablenvorschau",
   showVariableNames: "Variablennamen anzeigen",
   reloadSession: "Jetzt anwenden",

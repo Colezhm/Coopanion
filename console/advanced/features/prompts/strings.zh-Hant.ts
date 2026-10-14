@@ -25,7 +25,6 @@ export const S: Partial<typeof en> = {
   variablesTitle: "範本變數",
   insertHint: "單擊查看，雙擊或按 Enter 插入；也可拖入本段正文。",
   worldSettings: "前往 World 配置",
-  introDesc: "修改人設通常只需編輯 CONSTITUTION。其他部分可點擊標籤展開。",
   previewVariables: "預覽變數",
   showVariableNames: "顯示變數名稱",
   reloadSession: "立即套用",

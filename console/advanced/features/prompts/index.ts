@@ -54,7 +54,7 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
   const gripR = ui.h('div', 'prefix-grip');
   const dividers = ui.h('div', 'prefix-dividers');
   stage.append(flags, gripL, host, gripR, rail, dividers);
-  const intro = pageIntro(ui, S.title, S.introDesc);
+  const intro = pageIntro(ui, S.title);
   root.append(intro, toolbar, stage);
 
   function say(text: string, bad = false): void {
@@ -72,7 +72,15 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
     }
   }
   function open(section: Section, expanded: boolean): void {
-    editor.setCollapsed(sections.indexOf(section), !expanded);
+    if (section.collapsed === !expanded) return;
+    const index = sections.indexOf(section);
+    editor.setCollapsed(index, !expanded);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const targets = host.querySelectorAll(`[data-prompt-section="${index}"], .prefix-comment[data-block="${index}"]`);
+    for (const target of [...targets, section.note]) {
+      target.getAnimations().forEach((animation) => animation.cancel());
+      target.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
+    }
   }
   const expand = ui.button(S.expandAll, { size: 'sm', onClick: () => {
     const expanded = sections.some((s) => s.collapsed);
@@ -89,9 +97,7 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
   restore.disabled = true;
   const save = ui.button(S.saveToFile, { size: 'sm', onClick: () => { void saveAll(); } });
   save.title = 'Ctrl / ⌘ + S';
-  expand.classList.add('prompt-expand-all');
-  flags.append(expand);
-  actions.append(undoStep, restore, save);
+  actions.append(expand, undoStep, restore, save);
   toolbar.append(status, actions);
 
   async function refreshGenerated(): Promise<void> {
@@ -221,7 +227,7 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
     if (!geometryFrame) geometryFrame = requestAnimationFrame(() => { geometryFrame = 0; positionSides(); });
   }
   function positionSides(): void {
-    root.style.setProperty('--prompt-rail-top', `${intro.offsetHeight + 12}px`);
+    root.style.setProperty('--prompt-rail-top', `${toolbar.offsetHeight + 12}px`);
     const geometry = editor.blockGeometry();
     const offset = editor.contentTop() - stage.getBoundingClientRect().top;
     const spacing = geometry.map((g, index) => {
@@ -266,7 +272,7 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
   applyWidths();
   const observer = new ResizeObserver(scheduleGeometry);
   observer.observe(stage);
-  observer.observe(intro);
+  observer.observe(toolbar);
   observer.observe(flags);
   observer.observe(rail);
   ctx.lifecycle.own({ dispose() { observer.disconnect(); cancelAnimationFrame(geometryFrame); } });
