@@ -25,7 +25,7 @@ export const S: Partial<typeof en> = {
   removeReference: "참조 제거",
   variablesTitle: "템플릿 변수",
   insertHint: "클릭하여 확인, 두 번 클릭하거나 Enter로 삽입. 이 섹션으로 드래그할 수도 있습니다.",
-  worldSettings: "World 설정으로",
+  worldSettings: "변수 설정",
   previewVariables: "변수 미리 보기",
   showVariableNames: "변수 이름 표시",
   reloadSession: "지금 적용",

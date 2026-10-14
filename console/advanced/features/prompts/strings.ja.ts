@@ -25,7 +25,7 @@ export const S: Partial<typeof en> = {
   removeReference: "参照を削除",
   variablesTitle: "テンプレート変数",
   insertHint: "クリックで確認、ダブルクリックまたは Enter で挿入。このセクションにドラッグもできます。",
-  worldSettings: "World の設定へ",
+  worldSettings: "変数を設定",
   previewVariables: "変数をプレビュー",
   showVariableNames: "変数名を表示",
   reloadSession: "今すぐ適用",

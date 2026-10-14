@@ -25,7 +25,7 @@ export const S: Partial<typeof en> = {
   removeReference: "移除引用",
   variablesTitle: "範本變數",
   insertHint: "單擊查看，雙擊或按 Enter 插入；也可拖入本段正文。",
-  worldSettings: "前往 World 配置",
+  worldSettings: "配置變數",
   previewVariables: "預覽變數",
   showVariableNames: "顯示變數名稱",
   reloadSession: "立即套用",

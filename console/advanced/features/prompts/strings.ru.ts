@@ -31,7 +31,7 @@ export const S: Partial<typeof en> = {
   removeReference: "Удалить ссылку",
   variablesTitle: "Переменные шаблона",
   insertHint: "Нажмите для просмотра; двойной щелчок или Enter для вставки. Можно перетащить в этот раздел.",
-  worldSettings: "Настроить в World",
+  worldSettings: "Настроить переменные",
   previewVariables: "Просмотр переменных",
   showVariableNames: "Показать имена",
   reloadSession: "Применить сейчас",

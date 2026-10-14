@@ -25,7 +25,7 @@ export const S: Partial<typeof en> = {
   removeReference: "Referenz entfernen",
   variablesTitle: "Vorlagenvariablen",
   insertHint: "Klicken zum Ansehen; Doppelklick oder Eingabe zum Einfügen. Ziehen in diesen Abschnitt ist ebenfalls möglich.",
-  worldSettings: "World konfigurieren",
+  worldSettings: "Variablen konfigurieren",
   previewVariables: "Variablenvorschau",
   showVariableNames: "Variablennamen anzeigen",
   reloadSession: "Jetzt anwenden",
