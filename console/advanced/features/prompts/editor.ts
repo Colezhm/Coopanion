@@ -64,7 +64,6 @@ export function references(text: string): Array<{ name: string; from: number; to
 }
 
 function valueOf(variable: PromptVar, fallback?: string): string {
-  if (variable.value === undefined) return S.varUnreported;
   return variable.value || fallback || S.emptyValue;
 }
 

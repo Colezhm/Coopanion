@@ -66,9 +66,12 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
     restore.disabled = dirty.size === 0 || !!savePromise;
     say(dirty.size ? S.dirtyCount(dirty.size) : pendingApply ? S.pendingApply : S.prefixStats(segments.length, estTok(segments.map((s) => s.text).join('')).toLocaleString()));
     for (const section of sections) {
-      const changed = section.segment.sourceKey && dirty.has(section.segment.sourceKey);
-      section.badge.textContent = changed ? S.unsaved : docs.has(section.segment.sourceKey!) ? S.editableTemplate : S.generated;
+      const key = section.segment.sourceKey;
+      const doc = key ? docs.get(key) : undefined;
+      const changed = key && dirty.has(key);
+      section.badge.textContent = changed ? S.unsaved : doc ? S.editableTemplate : S.generated;
       section.badge.classList.toggle('is-dirty', !!changed);
+      section.toggle.title = doc?.origin === 'deployment' ? S.loadedFromDeployment : doc?.origin === 'package' ? S.loadedFromPackage : doc?.origin === 'module' ? S.loadedFromWorld : doc ? S.loadedFromSource : S.generated;
     }
   }
   function open(section: Section, expanded: boolean): void {
@@ -77,8 +80,8 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
     editor.setCollapsed(index, !expanded);
   }
   function animateSection(section: Section, index: number): void {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const targets = host.querySelectorAll(`[data-prompt-section="${index}"], .prefix-comment[data-block="${index}"]`);
+    if (section.collapsed || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const targets = host.querySelectorAll(`[data-prompt-section="${index}"]`);
     for (const target of [...targets, section.note]) {
       target.getAnimations().forEach((animation) => animation.cancel());
       target.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
@@ -125,11 +128,15 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
         const out = await post<{ revision: string }>('/api/prompts', { key, content, baseRevision: doc.revision }, { signal });
         doc.content = content;
         doc.revision = out.revision;
+        if (doc.origin) doc.origin = 'deployment';
         const current = editor.text(key);
         if (current === content) dirty.delete(key); else dirty.set(key, current);
         pendingApply = true;
       } catch (error) {
-        if (!signal.aborted) say(S.saveFailedFor(doc.title, String(error)), true);
+        if (!signal.aborted) {
+          state();
+          say(S.saveFailedFor(doc.title, String(error)), true);
+        }
         return false;
       }
     }
@@ -321,7 +328,6 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
     const badge = ui.h('span', 'prompt-section-badge');
     meta.append(ui.h('span', 'prefix-flag-key mono', key), badge);
     toggle.append(title, meta);
-    toggle.title = doc?.origin === 'deployment' ? S.loadedFromDeployment : doc?.origin === 'package' ? S.loadedFromPackage : doc?.origin === 'module' ? S.loadedFromWorld : doc ? S.loadedFromSource : S.generated;
     label.append(toggle);
     const cell = ui.h('div', `prefix-railcell tone-${tone}`);
     const note = ui.h('div', 'prefix-railcontent');
@@ -331,7 +337,6 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
     flags.append(label);
     rail.append(cell);
     dividers.append(divider);
-    observer.observe(label);
     observer.observe(note);
     const section: Section = { segment, label, toggle, cell, note, badge, divider, collapsed: segment.sourceKey !== 'constitution', updateVariables() {} };
     sections.push(section);

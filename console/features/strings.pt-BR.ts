@@ -7,7 +7,6 @@ export const S: Partial<typeof en> = {
   body: "Salva as alterações desta página, apaga o contexto da conversa atual de Coo e reinicia com o prompt do sistema atualizado. A exclusão não pode ser desfeita. Memory e a personalidade são mantidos.",
   clearing: "Iniciando uma nova conversa…",
   cleared: "Nova conversa iniciada",
-  failed: (why: string) => `Não foi limpo: ${why}`,
   // release.ts
   repoHint: 'Abrir o projeto Coopanion no GitHub',
   update: (latest: string) => `O Coopanion ${latest} saiu: baixe a atualização`,

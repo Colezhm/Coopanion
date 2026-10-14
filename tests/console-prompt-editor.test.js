@@ -55,6 +55,20 @@ describe('continuous prompt document', () => {
     expect(editor.view.state.doc.toString()).toBe('Persona!\nnew.md');
   });
 
+  it('keeps generated refreshes out of source undo and redo history', () => {
+    const { editor } = mount([
+      { title: 'WORKSPACE', tone: 'derived', text: 'files.md' },
+      { title: 'CONSTITUTION', sourceKey: 'constitution', tone: 'persona', text: 'Identity' },
+    ]);
+    editor.view.dispatch({ changes: { from: editor.view.state.doc.length, insert: '!' }, userEvent: 'input.type' });
+    editor.updateGenerated(0, 'files.md\nnotes.md');
+    editor.undo();
+    expect(editor.view.state.doc.toString()).toBe('files.md\nnotes.md\nIdentity');
+    expect(editor.canUndo()).toBe(false);
+    editor.redo();
+    expect(editor.view.state.doc.toString()).toBe('files.md\nnotes.md\nIdentity!');
+  });
+
   it('inserts a reference token, removes it as a whole and undoes while its section is folded', () => {
     const key = 'constitution';
     const { editor } = mount([{ title: 'CONSTITUTION', sourceKey: key, tone: 'persona', text: 'Hello ', vars: [{ name: 'fixture.name', description: 'Name', value: 'Friend' }] }]);

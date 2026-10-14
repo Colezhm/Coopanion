@@ -7,7 +7,6 @@ export const S: Partial<typeof en> = {
   body: "Guarda los cambios de esta página, borra el contexto de la conversación actual de Coo y reinicia con el prompt del sistema actualizado. El borrado no se puede deshacer. Memory y la personalidad se conservan.",
   clearing: "Iniciando una nueva conversación…",
   cleared: "Nueva conversación iniciada",
-  failed: (why: string) => `No se borró: ${why}`,
   // release.ts
   repoHint: 'Abrir el proyecto Coopanion en GitHub',
   update: (latest: string) => `Salió Coopanion ${latest}: descarga la actualización`,

@@ -16,7 +16,6 @@ const zh = {
   body: "将先保存本页修改，再清空 Coo 当前对话的上下文，使用更新后的系统提示词重新开始。清空无法撤销；Memory 和人设保留。",
   clearing: "正在开始新对话…",
   cleared: "已开始新对话",
-  failed: (why: string) => `清空失败：${why}`,
   // release.ts
   repoHint: '在 GitHub 上打开 Coopanion 项目',
   update: (latest: string) => `Coopanion ${latest} 已发布，点击下载更新`,
@@ -29,7 +28,6 @@ export const en: typeof zh = {
   body: "Save edits on this page, then clear Coo’s current conversation context and restart with the updated system prompt. Clearing cannot be undone. Memory and persona are kept.",
   clearing: "Starting a new conversation…",
   cleared: "New conversation started",
-  failed: (why: string) => `Not cleared: ${why}`,
   // release.ts
   repoHint: 'Open the Coopanion project on GitHub',
   update: (latest: string) => `Coopanion ${latest} is out: download the update`,

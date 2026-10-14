@@ -7,7 +7,6 @@ export const S: Partial<typeof en> = {
   body: "Сохраняет правки на этой странице, очищает контекст текущего разговора Coo и начинает заново с обновлённым системным промптом. Очистку нельзя отменить. Memory и личность сохраняются.",
   clearing: "Начинается новый разговор…",
   cleared: "Новый разговор начат",
-  failed: (why: string) => `Не очищено: ${why}`,
   // release.ts
   repoHint: 'Открыть проект Coopanion на GitHub',
   update: (latest: string) => `Вышел Coopanion ${latest}: скачайте обновление`,

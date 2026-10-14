@@ -7,7 +7,6 @@ export const S: Partial<typeof en> = {
   body: "このページの編集を保存し、Coo の現在の会話の文脈を消去して、更新したシステムプロンプトで再開します。消去は取り消せません。Memory と人格は保持します。",
   clearing: "新しい会話を開始中…",
   cleared: "新しい会話を開始しました",
-  failed: (why: string) => `クリアできませんでした：${why}`,
   // release.ts
   repoHint: 'GitHub で Coopanion のプロジェクトを開く',
   update: (latest: string) => `Coopanion ${latest} が公開されました：更新をダウンロード`,

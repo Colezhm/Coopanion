@@ -7,7 +7,6 @@ export const S: Partial<typeof en> = {
   body: "Enregistre les modifications de cette page, puis efface le contexte de la conversation actuelle de Coo et recommence avec le prompt système actualisé. L’effacement est irréversible. Memory et la persona sont conservés.",
   clearing: "Démarrage de la conversation…",
   cleared: "Nouvelle conversation démarrée",
-  failed: (why: string) => `Non effacé : ${why}`,
   // release.ts
   repoHint: 'Ouvrir le projet Coopanion sur GitHub',
   update: (latest: string) => `Coopanion ${latest} est disponible : téléchargez la mise à jour`,

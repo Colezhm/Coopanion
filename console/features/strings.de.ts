@@ -7,7 +7,6 @@ export const S: Partial<typeof en> = {
   body: "Speichert Änderungen dieser Seite, löscht dann Coos aktuellen Gesprächskontext und startet mit dem aktualisierten Systemprompt neu. Das Löschen lässt sich nicht rückgängig machen. Memory und Persona bleiben erhalten.",
   clearing: "Neues Gespräch wird gestartet…",
   cleared: "Neues Gespräch gestartet",
-  failed: (why: string) => `Nicht geleert: ${why}`,
   // release.ts
   repoHint: 'Das Coopanion-Projekt auf GitHub öffnen',
   update: (latest: string) => `Coopanion ${latest} ist da: Update herunterladen`,
