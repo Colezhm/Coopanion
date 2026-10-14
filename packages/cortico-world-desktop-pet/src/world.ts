@@ -335,7 +335,7 @@ export class DesktopPetWorld implements World {
   /** The talk key is down (hold) or was switched on (toggle). */
   private talking = false;
   private keyWatcher: KeyWatcher | null = null;
-  /** Why the talk key cannot be read; the gate then stays open as in `always`. */
+  /** Why the talk key cannot be read; the gate then stays closed. */
   private hotkeyProblem: string | null = null;
   private hotkeyKey = '';
   private level = -100;
@@ -1227,9 +1227,9 @@ export class DesktopPetWorld implements World {
 
   /* ---------- talk key ---------- */
 
-  /** The mode in force: hold and toggle fall back to always while the talk key cannot be read. */
+  /** The mode in force: the configured one, also while the talk key cannot be read. */
   private micMode(): MicMode {
-    return this.hotkeyProblem ? 'always' : this.cfg.asr.mic.mode;
+    return this.cfg.asr.mic.mode;
   }
 
   /** Audio reaches the segmenter only while this is true. */
@@ -1263,7 +1263,7 @@ export class DesktopPetWorld implements World {
     if (key !== this.hotkeyKey) { if (typeof watcher !== 'string') watcher.stop(); return; }
     if (typeof watcher === 'string') {
       this.hotkeyProblem = watcher;
-      this.log?.warn(`按键收音不可用,改为一直收音:${watcher}`);
+      this.log?.warn(`说话键不可用,暂不识别说话:${watcher}`);
     } else this.keyWatcher = watcher;
     this.segmenter.configure(this.segmentConfig());
   }
@@ -1274,7 +1274,8 @@ export class DesktopPetWorld implements World {
     const ui = this.ui, v = ui.voice;
     const key = comboLabel(hotkey, process.platform, ui), { taps } = splitTaps(hotkey);
     const mode = this.micMode();
-    if (mode === 'always') return this.hotkeyProblem ? v.fallback(this.hotkeyProblem) : v.always;
+    if (mode === 'always') return v.always;
+    if (this.hotkeyProblem) return v.fallback(this.hotkeyProblem);
     if (mode === 'toggle') return taps > 1 ? v.toggleTaps(hotkeyLabel(hotkey, process.platform, ui), taps) : v.toggle(key);
     return taps > 1 ? v.holdTaps(key, taps) : v.hold(key);
   }
