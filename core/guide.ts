@@ -148,7 +148,7 @@ interface VoiceState {
   enabled?: boolean;
   engine?: 'funasr' | 'whisper' | 'system';
   model?: { phase: 'absent' | 'working' | 'ready' | 'error'; done: number; total: number | null; bytes: number; detail: string | null };
-  input?: { effectiveMode?: 'hold' | 'toggle' | 'always'; hint?: string; keyLabel?: string; taps?: number };
+  input?: { mode?: 'hold' | 'toggle' | 'always'; hint?: string; keyLabel?: string; taps?: number };
 }
 
 /** Steps through the pet's bubble; a step the pet page was not there for waits for it and shows again. */
@@ -393,7 +393,7 @@ export async function runGuide(deps: GuideDeps): Promise<void> {
     }
     // the World words the hint for the key and mode in force; the key cap acts out the taps and the hold
     const on = voice?.enabled !== false && !!voice?.input?.hint;
-    const keyed = on && voice?.input?.effectiveMode !== 'always';
+    const keyed = on && voice?.input?.mode !== 'always';
     await step(5, 'talk', {
       text: `${on ? S.talk(voice!.input!.hint!) : S.talkOff}${S.talkType}`,
       input: { kind: 'buttons', keys: keyed ? voice?.input?.keyLabel : undefined, taps: voice?.input?.taps, options: [{ label: S.gotIt, primary: true }] },
