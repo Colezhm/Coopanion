@@ -1,6 +1,7 @@
 /**
  * 系统提示词以单个编辑器中的一份文档呈现，分段表示为行区间。段与模板源的映射来自后端 PrefixSegment.sourceKey。
  * 编辑不自动保存，用户通过 Ctrl+S 写回；未保存状态在界面显示。
+ * 「查看完整提示词」展开按现在的文件渲染的整条前缀：各段 text 按序直接拼接，与 Core 发给模型的拼法相同。
  */
 
 import { get, post } from '../../../base/api.ts';
@@ -49,6 +50,17 @@ export async function mountPrompts(ctx: FeatureContext, opts: { embedded?: boole
   // 分割线单独一层:它要从旗尖一路延伸到右栏末端,横跨三列,谁的内部都装不下
   const dividers = ui.h('div', 'prefix-dividers');
   stage.append(flags, gripL, host, gripR, rail, dividers);
+  const full = ui.h('pre', 'mono prefix-full');
+  full.hidden = true;
+  const showFull = ui.button(S.showFull, {
+    size: 'sm',
+    onClick: () => {
+      full.hidden = !full.hidden;
+      showFull.textContent = full.hidden ? S.showFull : S.hideFull;
+    },
+  });
+  showFull.disabled = true;
+  toolbar.appendChild(showFull);
   if (ctx.capabilities.sessionControl === true) {
     const reload = ui.button(S.reloadSession, {
       size: 'sm',
@@ -72,7 +84,7 @@ export async function mountPrompts(ctx: FeatureContext, opts: { embedded?: boole
     toolbar.appendChild(reload);
   }
   if (!opts.embedded) root.appendChild(intro);
-  root.append(toolbar, stage);
+  root.append(toolbar, full, stage);
 
   /** key → 那份模板的声明与 revision(保存要带 baseRevision 做乐观锁)。 */
   const docs = new Map<string, PromptDoc>();
@@ -122,6 +134,8 @@ export async function mountPrompts(ctx: FeatureContext, opts: { embedded?: boole
     editor.setSaveState('saved');
     setStatus(S.savedList(done.join(S.listSep)));
     refreshRail();
+    const prefix = await get<{ segments?: PrefixSegment[] }>('/api/prompts/prefix', { signal: ctx.signal }).catch(() => null);
+    if (prefix?.segments?.length) full.textContent = prefix.segments.map((s) => s.text).join('');
   }
 
   const editor = createPrefixEditor({
@@ -303,6 +317,12 @@ export async function mountPrompts(ctx: FeatureContext, opts: { embedded?: boole
       docs.clear();
       for (const d of docsRes?.prompts ?? []) docs.set(d.key, d);
       const segments = prefixRes?.segments ?? [];
+      full.textContent = segments.map((s) => s.text).join('');
+      showFull.disabled = !segments.length;
+      if (!segments.length) {
+        full.hidden = true;
+        showFull.textContent = S.showFull;
+      }
 
       if (!segments.length) {
         setStatus(prefixRes ? S.prefixEmpty : S.prefixUnavailable, true);

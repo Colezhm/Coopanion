@@ -1153,6 +1153,16 @@
     border-bottom: 1px solid var(--border);
   }
   .prompt-toolbar .msgline { min-width: 0; overflow-wrap: anywhere; }
+  .prefix-full {
+    margin: 24px 0 0;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    background: var(--sheet);
+    color: var(--ink);
+    font: 13px/1.7 var(--mono);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
   .featureslot-prompts > .prompt-library,
   .panelslot > .prompt-library { margin-top: 0; }
   .prompt-card textarea.field {

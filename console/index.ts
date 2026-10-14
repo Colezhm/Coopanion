@@ -3,12 +3,12 @@
  * API (tests/console-api.test.ts locks the routes). The Electron main process serves this build
  * under `/coopanion/` on Core's own origin (app/main.cjs), so requests and WebSockets are same-origin.
  *
- * Two modes (features/mode.ts). The normal mode lists the pages about the pet, 系统提示词 (the persona
- * and 「清空重开」), 用量与成本 and 对话; every other route opens 开始. The advanced mode adds the pages
- * copied from Cortico's console (advanced/): the World tree with the World pages, 接入 (模型供应商,
- * 扩展), 人格与记忆 (the Persona and Memory pages), 诊断 (终端, Core), and shows the whole system prompt on
- * 系统提示词. Pages from the manifest (`/api/console/manifest`: Worlds, the Persona, Memory) mount
- * through the page host (advanced/console-pages) by the panel contract. The rail is built once; a mode
+ * Two modes (features/mode.ts). The normal mode lists the pages about the pet, 系统提示词 (the whole
+ * system prompt with 「清空重开」, the page of advanced/ that uses public routes only), 用量与成本 and 对话;
+ * every other route opens 开始. The advanced mode adds the pages copied from Cortico's console
+ * (advanced/): the World tree with the World pages, 接入 (模型供应商, 扩展), 人格与记忆 (the Persona and
+ * Memory pages), 诊断 (终端, Core). Pages from the manifest (`/api/console/manifest`: Worlds, the
+ * Persona, Memory) mount through the page host (advanced/console-pages) by the panel contract. The rail is built once; a mode
  * change only hides or shows the entries the normal mode does not list, and the page open stays.
  *
  * The colour scheme is painted from the last record this window saw before anything renders, then
@@ -43,14 +43,13 @@ import { usagePage } from './features/cost/index.ts';
 import { dressPage } from './features/dress/index.ts';
 import { homePage } from './features/home/index.ts';
 import { onModeRequest, readMode, writeMode, type ConsoleMode } from './features/mode.ts';
-import { personaPage } from './features/persona/index.ts';
 import { petPage } from './features/pet/index.ts';
 import { voicePage } from './features/voice/index.ts';
 import { createRail, type NavGroup, type NavItem } from './rail/index.ts';
 import { S as R } from './rail/strings.ts';
 import { L } from './strings.ts';
 
-/** One entry of the rail and the page it mounts; on 系统提示词 the advanced mode mounts another page. */
+/** One entry of the rail and the page it mounts. */
 interface Entry {
   route: string;
   label: string;
@@ -63,19 +62,16 @@ interface Entry {
   feature?: FrameworkFeature;
 }
 
-const fromPage = (page: Page, feature?: FrameworkFeature): Entry => ({
-  route: page.route, label: page.label, icon: page.icon, basic: true, group: 'primary', page,
-  ...(feature ? { feature, ...(feature.needsAny ? { needsAny: feature.needsAny } : {}) } : {}),
-});
-const fromFeature = (feature: FrameworkFeature, group: Entry['group']): Entry => ({
-  route: feature.route, label: feature.label, ...(feature.icon ? { icon: feature.icon } : {}), basic: false, group, feature,
+const fromPage = (page: Page): Entry => ({ route: page.route, label: page.label, icon: page.icon, basic: true, group: 'primary', page });
+const fromFeature = (feature: FrameworkFeature, group: Entry['group'], basic = false): Entry => ({
+  route: feature.route, label: feature.label, ...(feature.icon ? { icon: feature.icon } : {}), basic, group, feature,
   ...(feature.needsAny ? { needsAny: feature.needsAny } : {}),
 });
 
 /** The rail's entries in order. */
 export const ENTRIES: readonly Entry[] = [
   fromPage(homePage), fromPage(petPage), fromPage(dressPage), fromPage(voicePage),
-  fromPage(personaPage, promptsWithClearFeature), fromPage(usagePage), fromPage(chatPage),
+  fromFeature(promptsWithClearFeature, 'primary', true), fromPage(usagePage), fromPage(chatPage),
   // 模型供应商 keeps the providers page's own name
   fromFeature(providersFeature, 'integrations'), fromFeature(extensionsFeature, 'integrations'),
   fromFeature(traceFeature, 'diagnostics'), fromFeature(coreFeature, 'diagnostics'),
@@ -197,8 +193,7 @@ export function boot(doc: Document = document): Disposable {
       await embedded.load();
       return embedded.mountConnection(pageId, panelId, box, {}, (context) => context);
     };
-    // 系统提示词: the whole prompt in the advanced mode, the persona alone in the normal mode
-    const run = () => (entry.feature && (mode === 'advanced' || !entry.page) ? entry.feature.mount(ctx) : entry.page!.mount({ ...ctx, mountPanel }));
+    const run = () => (entry.feature ? entry.feature.mount(ctx) : entry.page!.mount({ ...ctx, mountPanel }));
     void (async () => {
       try {
         const out = await run();

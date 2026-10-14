@@ -10,7 +10,7 @@ import { S as it } from './strings.it.ts';
 import { S as ru } from './strings.ru.ts';
 
 const zh = {
-  // persona/index.ts
+  // advanced/features/clear-session.ts
   button: '清空重开',
   title: '清空当前对话，让 Coo 从头开始？',
   body: 'Coo 会忘掉这段对话的上下文，按现在的系统提示词重新开始，不能撤销。工作区里的记忆和人设都保留。',
@@ -23,7 +23,7 @@ const zh = {
 };
 
 export const en: typeof zh = {
-  // persona/index.ts
+  // advanced/features/clear-session.ts
   button: 'Clear and restart',
   title: 'Clear this conversation and start Coo afresh?',
   body: 'Coo forgets the context of this conversation and starts again from the current system prompt. This cannot be undone. Memory and persona in the workspace stay.',

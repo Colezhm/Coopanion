@@ -4,6 +4,8 @@ export const S: Partial<typeof en> = {
   // index.ts
   title: 'Prompt di sistema',
   introDesc: 'Ctrl+S salva i template; ricarica per aggiornare il prefisso della sessione attuale. Le sezioni provenienti dal codice sono in sola lettura.',
+  showFull: 'Mostra il prompt completo',
+  hideFull: 'Nascondi il prompt completo',
   reloadSession: 'Ricarica sessione attuale',
   reloading: 'Ricaricamento…',
   prefixReloaded: 'Prefisso ricaricato',

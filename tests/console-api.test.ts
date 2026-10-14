@@ -131,11 +131,7 @@ describe('routes the advanced mode uses beyond the public table', () => {
     expect(body.parts).toEqual(expect.arrayContaining([expect.objectContaining({ key: 'session', label: expect.any(String) })]));
   });
 
-  it('prompts: the prefix by segment, a reset of a deployment override, the reload of the current prefix', async () => {
-    const prefix = await json(await get('/api/prompts/prefix'));
-    expect(prefix.body.segments).toEqual(expect.arrayContaining([expect.objectContaining({ title: expect.any(String), text: expect.any(String) })]));
-    expect((await json(await post('/api/prompts/reset', { key: 'worlds.terminal.envPrompt' }))).body).toMatchObject({ result: expect.any(String) });
-    expect((await json(await post('/api/session/reload-prefix'))).body).toMatchObject({ result: expect.any(String) });
+  it('tool schemas: the list the Persona page reads', async () => {
     expect((await json(await get('/api/tool-schemas'))).body.tools).toEqual(expect.any(Array));
   });
 
@@ -242,6 +238,13 @@ describe('the console API the settings window reads', () => {
     const stale = await json(await post('/api/prompts', { key: 'constitution', content: 'Again\n', baseRevision: constitution.revision }));
     expect(stale.status).toBe(409);
     expect(stale.body.error).toEqual(expect.any(String));
+  });
+
+  it('prompts: the prefix by segment, a reset of a deployment override, the reload of the current prefix', async () => {
+    const prefix = await json(await get('/api/prompts/prefix'));
+    expect(prefix.body.segments).toEqual(expect.arrayContaining([expect.objectContaining({ title: expect.any(String), text: expect.any(String) })]));
+    expect((await json(await post('/api/prompts/reset', { key: 'worlds.terminal.envPrompt' }))).body).toMatchObject({ result: expect.any(String) });
+    expect((await json(await post('/api/session/reload-prefix'))).body).toMatchObject({ result: expect.any(String) });
   });
 
   it('usage: totals, a series and the breakdowns, empty before any model call', async () => {

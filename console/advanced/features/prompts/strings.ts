@@ -14,6 +14,8 @@ const zh = {
   // index.ts
   title: '系统提示词',
   introDesc: "Ctrl+S 保存模板，重载后更新当前 session 前缀。来自代码的段只读。",
+  showFull: '查看完整提示词',
+  hideFull: '收起完整提示词',
   reloadSession: '重载当前 session',
   reloading: '正在重载…',
   prefixReloaded: '前缀已重载',
@@ -80,6 +82,8 @@ export const en: typeof zh = {
   // index.ts
   title: 'System prompt',
   introDesc: "Ctrl+S saves templates; reload to update the current session prefix. Sections from code are read-only.",
+  showFull: 'Show full prompt',
+  hideFull: 'Hide full prompt',
   reloadSession: 'Reload current session',
   reloading: 'Reloading…',
   prefixReloaded: 'Prefix reloaded',

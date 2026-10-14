@@ -13,5 +13,6 @@ imports of Cortico's console modules were rewired to `console/base/`. From Corti
 (`tests/console-imports.test.ts`).
 
 These pages call routes of the console HTTP API that Cortico does not make public. That is an exception
-for this directory only; `tests/console-api.test.ts` locks the shape of each such route, so a submodule
+for this directory only. 系统提示词 (`features/prompts/` with `features/clear-session.ts`) is listed in the
+normal mode too and calls public routes only; `tests/console-api.test.ts` locks the shape of each such route, so a submodule
 bump that changes one fails the tests.

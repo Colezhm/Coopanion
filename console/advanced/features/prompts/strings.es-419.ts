@@ -4,6 +4,8 @@ export const S: Partial<typeof en> = {
   // index.ts
   title: 'Prompt del sistema',
   introDesc: 'Ctrl+S guarda las plantillas; recarga para actualizar el prefijo de la sesión actual. Las secciones que vienen del código son de solo lectura.',
+  showFull: 'Mostrar el prompt completo',
+  hideFull: 'Ocultar el prompt completo',
   reloadSession: 'Recargar sesión actual',
   reloading: 'Recargando…',
   prefixReloaded: 'Prefijo recargado',

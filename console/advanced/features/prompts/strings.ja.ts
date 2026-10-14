@@ -5,6 +5,8 @@ export const S: Partial<typeof en> = {
   // index.ts
   title: 'システムプロンプト',
   introDesc: 'Ctrl+S でテンプレートを保存し、再読み込みすると現在のセッションのプレフィックスが更新されます。コード由来のセクションは読み取り専用です。',
+  showFull: '完全なプロンプトを表示',
+  hideFull: '完全なプロンプトを閉じる',
   reloadSession: '現在のセッションを再読み込み',
   reloading: '再読み込み中…',
   prefixReloaded: 'プレフィックスを再読み込みしました',

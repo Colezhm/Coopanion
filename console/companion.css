@@ -180,7 +180,6 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), [contentedita
 }
 
 /* 系统提示词: the persona box takes the window's height less the heading, its note and the buttons */
-textarea.persona-editor { width: 100%; min-height: max(320px, calc(100dvh - 360px)); resize: vertical; font: 13px/1.6 var(--mono); }
 
 /* 语音输入: the pet World's panel; its first card is titled like the page */
 .companion-voicebox .sheet:first-of-type > h3 { display: none; }

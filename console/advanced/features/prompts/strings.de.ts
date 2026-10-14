@@ -4,6 +4,8 @@ export const S: Partial<typeof en> = {
   // index.ts
   title: 'System-Prompt',
   introDesc: 'Strg+S speichert Vorlagen; lade neu, um das Präfix der aktuellen Session zu aktualisieren. Abschnitte aus dem Code sind schreibgeschützt.',
+  showFull: 'Vollständigen Prompt anzeigen',
+  hideFull: 'Vollständigen Prompt ausblenden',
   reloadSession: 'Aktuelle Session neu laden',
   reloading: 'Wird neu geladen…',
   prefixReloaded: 'Präfix neu geladen',

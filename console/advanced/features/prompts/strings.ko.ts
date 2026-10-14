@@ -5,6 +5,8 @@ export const S: Partial<typeof en> = {
   // index.ts
   title: '시스템 프롬프트',
   introDesc: 'Ctrl+S로 템플릿을 저장하고, 다시 불러오면 현재 세션의 프리픽스가 업데이트됩니다. 코드에서 온 섹션은 읽기 전용입니다.',
+  showFull: '전체 프롬프트 보기',
+  hideFull: '전체 프롬프트 접기',
   reloadSession: '현재 세션 다시 불러오기',
   reloading: '다시 불러오는 중…',
   prefixReloaded: '프리픽스를 다시 불러왔습니다',

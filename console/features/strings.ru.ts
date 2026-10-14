@@ -1,7 +1,7 @@
 import type { en } from './strings.ts';
 
 export const S: Partial<typeof en> = {
-  // persona/index.ts
+  // advanced/features/clear-session.ts
   button: 'Очистить и начать заново',
   title: 'Очистить этот разговор и начать с Coo заново?',
   body: 'Coo забудет контекст этого разговора и начнёт заново с текущего системного промпта. Это нельзя отменить. Память и описание личности в рабочей области сохранятся.',

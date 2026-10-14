@@ -5,6 +5,8 @@ export const S: Partial<typeof en> = {
   // index.ts
   title: '系統提示詞',
   introDesc: 'Ctrl+S 儲存範本，重新載入後更新目前 session 前綴。來自程式碼的段落唯讀。',
+  showFull: '查看完整提示詞',
+  hideFull: '收起完整提示詞',
   reloadSession: '重新載入目前 session',
   reloading: '正在重新載入…',
   prefixReloaded: '前綴已重新載入',
