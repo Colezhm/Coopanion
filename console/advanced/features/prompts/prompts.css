@@ -1,8 +1,11 @@
 .prompt-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin:24px 0 0; }
 .prompt-actions { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
-.prompt-status { min-height:22px; margin:8px 0 16px; font-size:12px; }
+.prompt-toolbar .prompt-status { min-height:0; margin:0; font-size:12px; }
+.prompt-toolbar .btn.danger { background:var(--danger); color:#fff; }
+.prompt-toolbar .btn.danger:hover { background:color-mix(in srgb,var(--danger) 88%,#000); }
+.prefix-flags .prompt-expand-all { position:absolute; bottom:100%; left:0; margin-bottom:16px; }
 .prompt-help { margin:0; color:var(--ink-dim); font-size:11px; line-height:1.6; }
-  .prefix-stage { position: relative; display: flex; align-items: flex-start; gap: 0; margin-top: 24px; }
+  .prefix-stage { position: relative; display: flex; align-items: flex-start; gap: 0; margin-top: 64px; }
   .prefix-host { flex: 1; min-width: 0; }
 
   .prefix-grip {

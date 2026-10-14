@@ -43,7 +43,6 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
   let pendingApply = false;
   let savePromise: Promise<boolean> | null = null;
   const toolbar = ui.h('div', 'prompt-toolbar');
-  const navigation = ui.h('div', 'prompt-actions');
   const actions = ui.h('div', 'prompt-actions');
   const status = ui.msgline('');
   status.setAttribute('role', 'status');
@@ -56,7 +55,7 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
   const dividers = ui.h('div', 'prefix-dividers');
   stage.append(flags, gripL, host, gripR, rail, dividers);
   const intro = pageIntro(ui, S.title, S.introDesc);
-  root.append(intro, toolbar, status, stage);
+  root.append(intro, toolbar, stage);
 
   function say(text: string, bad = false): void {
     status.className = bad ? 'msgline bad prompt-status' : 'msgline prompt-status';
@@ -90,9 +89,10 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
   restore.disabled = true;
   const save = ui.button(S.saveToFile, { size: 'sm', onClick: () => { void saveAll(); } });
   save.title = 'Ctrl / ⌘ + S';
-  navigation.append(expand);
+  expand.classList.add('prompt-expand-all');
+  flags.append(expand);
   actions.append(undoStep, restore, save);
-  toolbar.append(navigation, actions);
+  toolbar.append(status, actions);
 
   async function refreshGenerated(): Promise<void> {
     try {
@@ -142,15 +142,15 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
     });
     return savePromise;
   }
-  if (ctx.capabilities.sessionControl) {
-    const apply = ui.button(S.reloadSession, { size: 'sm', variant: 'primary', onClick: () => { void runSession(apply, false); } });
-    apply.title = S.applyHint;
-    actions.append(apply);
-  }
   if (ctx.capabilities.storage) {
     const restart = ui.button(sessionText.button, { size: 'sm', variant: 'danger', onClick: () => { void runSession(restart, true); } });
     restart.title = sessionText.body;
     actions.append(restart);
+  }
+  if (ctx.capabilities.sessionControl) {
+    const apply = ui.button(S.reloadSession, { size: 'sm', variant: 'primary', onClick: () => { void runSession(apply, false); } });
+    apply.title = S.applyHint;
+    actions.append(apply);
   }
   let changingSession = false;
   async function runSession(button: HTMLButtonElement, restart: boolean): Promise<void> {
@@ -342,9 +342,8 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
       } });
       preview.classList.add('prompt-preview-toggle');
       preview.setAttribute('aria-pressed', 'false');
-      note.append(preview);
       const list = ui.h('div', 'prompt-variable-list');
-      note.append(list);
+      note.append(list, preview);
       for (const variable of doc.vars) {
         let insertPosition = 0;
         const chip = ui.button(variable.name, { size: 'sm', onClick: () => {
@@ -399,7 +398,7 @@ export async function mountPrompts(ctx: FeatureContext): Promise<void> {
           ctx.router.navigate(['provider', page.id, '~config']);
         } });
         settings.classList.add('prompt-settings-link');
-        section.note.append(settings);
+        section.note.insertBefore(settings, section.note.querySelector('.prompt-railwarn'));
         scheduleGeometry();
       }
     } catch (error) { if (!signal.aborted) ctx.onError(error); }
